@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,76 +10,178 @@
         :root {
             --bg-color: #0f172a;
             --accent-color: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.3);
             --card-bg: rgba(30, 41, 59, 0.7);
             --text-color: #f1f5f9;
             --border-color: rgba(255, 255, 255, 0.1);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            padding-bottom: 100px;
+            gap: 16px;
+            padding-bottom: 120px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .header-card {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(30, 41, 59, 0.7));
+            border: 1px solid var(--accent-color);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .profile-tabs {
+            display: flex;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            padding: 4px;
+            margin-top: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-tab {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        .profile-tab.active {
+            background: var(--accent-color);
+            color: var(--bg-color);
+            opacity: 1;
+            box-shadow: 0 4px 12px var(--accent-glow);
         }
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
         }
 
         h2 {
-            margin-top: 0;
-            font-size: 1.25rem;
+            margin: 0 0 16px 0;
+            font-size: 1.1rem;
             color: var(--accent-color);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .input-group {
-            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            opacity: 0.8;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            font-weight: 500;
         }
 
-        input[type="number"], input[type="text"], select {
-            width: 100%;
-            background: rgba(15, 23, 42, 0.5);
+        input[type="number"],
+        select {
+            background: rgba(15, 23, 42, 0.6);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
+            border-radius: 10px;
+            padding: 12px;
             color: white;
-            box-sizing: border-box;
             font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
         }
 
-        .toggle-group {
+        input:focus,
+        select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .mode-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mode-option {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-option.active {
+            border-color: var(--accent-color);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .mode-option input {
+            display: none;
+        }
+
+        .radio-circle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mode-option.active .radio-circle {
+            border-color: var(--accent-color);
+        }
+
+        .mode-option.active .radio-circle::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--accent-color);
+            border-radius: 50%;
+        }
+
+        .toggle-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .toggle-group:last-child {
+        .toggle-item:last-child {
             border-bottom: none;
         }
 
-        /* Customize Switch */
         .switch {
             position: relative;
             display: inline-block;
@@ -116,11 +219,11 @@
             border-radius: 50%;
         }
 
-        input:checked + .slider {
-            background-color: var(--accent-color);
+        input:checked+.slider {
+            background-color: var(--success-color);
         }
 
-        input:checked + .slider:before {
+        input:checked+.slider:before {
             transform: translateX(20px);
         }
 
@@ -129,181 +232,322 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(20px);
-            padding: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(24px);
+            padding: 16px;
             border-top: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            z-index: 100;
+            gap: 12px;
+            z-index: 1000;
         }
 
-        .footer-row {
+        .save-options {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
-        button {
-            flex: 1;
-            padding: 12px;
+        .btn {
+            padding: 14px;
             border-radius: 12px;
             border: none;
-            font-weight: bold;
+            font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        button:active {
-            transform: scale(0.98);
+            transition: all 0.2s;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-save {
-            background-color: var(--accent-color);
+            background: var(--accent-color);
             color: var(--bg-color);
+            box-shadow: 0 4px 12px var(--accent-glow);
         }
 
-        .btn-close {
-            background-color: #475569;
+        .btn-secondary {
+            background: rgba(71, 85, 105, 0.5);
             color: white;
         }
 
-        select#targetProfile {
-            background: #1e293b;
-            color: white;
-            font-weight: bold;
-            border-color: var(--accent-color);
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .hint {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            text-align: center;
         }
     </style>
 </head>
+
 <body>
-    <div class="card">
-        <h2>рџЊЎпёЏ РљРµСЂСѓРІР°РЅРЅСЏ РїРѕ РґР°С‚С‡РёРєСѓ</h2>
-        <div class="input-group">
-            <label>РЈСЃС‚Р°РІРєР° (В°C)</label>
-            <input type="number" id="Sensor_set" step="0.1" value="22.0">
-        </div>
-        <div class="input-group">
-            <label>Р“С–СЃС‚РµСЂРµР·РёСЃ (В°C)</label>
-            <input type="number" id="Sensor_histeresis" step="0.1" value="1.0">
+    <div class="header-card">
+        <label>Р РµРґР°РіСѓРІР°РЅРЅСЏ РїСЂРѕС„С–Р»СЋ:</label>
+        <div class="profile-tabs" id="profileTabs">
+            <div class="profile-tab active" data-profile="D" onclick="setEditProfile('D')">вЂпёЏ Р”Р•РќР¬</div>
+            <div class="profile-tab" data-profile="N" onclick="setEditProfile('N')">рџЊ™ РќР†Р§</div>
         </div>
     </div>
 
     <div class="card">
-        <h2>вЏ° РљРµСЂСѓРІР°РЅРЅСЏ РїРѕ С‡Р°СЃСѓ</h2>
-        <div class="input-group">
-            <label>РҐРІРёР»РёРЅ РЈРІС–РјРєРЅРµРЅРѕ (ON)</label>
-            <input type="number" id="Time_on" value="10">
+        <h2>рџ› пёЏ Р РµР¶РёРј СЂРѕР±РѕС‚Рё</h2>
+        <div class="mode-selector">
+            <div class="mode-option" id="mode0" onclick="setMode(0)">
+                <div class="radio-circle"></div>
+                <div>
+                    <strong>Р СѓС‡РЅРёР№ СЂРµР¶РёРј</strong>
+                    <div style="font-size: 0.75rem; opacity: 0.6;">РљРµСЂСѓРІР°РЅРЅСЏ С‚С–Р»СЊРєРё С‡РµСЂРµР· Р±РѕС‚</div>
+                </div>
+            </div>
+            <div class="mode-option" id="mode1" onclick="setMode(1)">
+                <div class="radio-circle"></div>
+                <div>
+                    <strong>РџРѕ РґР°С‚С‡РёРєСѓ</strong>
+                    <div style="font-size: 0.75rem; opacity: 0.6;">РЈС‚СЂРёРјР°РЅРЅСЏ С‚РµРјРїРµСЂР°С‚СѓСЂРё</div>
+                </div>
+            </div>
+            <div class="mode-option" id="mode2" onclick="setMode(2)">
+                <div class="radio-circle"></div>
+                <div>
+                    <strong>РџРѕ С‚Р°Р№РјРµСЂСѓ</strong>
+                    <div style="font-size: 0.75rem; opacity: 0.6;">Р¦РёРєР»С–С‡РЅРµ РІРІС–РјРєРЅРµРЅРЅСЏ</div>
+                </div>
+            </div>
         </div>
-        <div class="input-group">
-            <label>РҐРІРёР»РёРЅ Р’РёРјРєРЅРµРЅРѕ (OFF)</label>
-            <input type="number" id="Time_off" value="10">
+    </div>
+
+    <div id="sensorSettings" class="card">
+        <h2>рџЊЎпёЏ РџР°СЂР°РјРµС‚СЂРё РґР°С‚С‡РёРєР°</h2>
+        <div class="input-row">
+            <div class="input-group">
+                <label>РЈСЃС‚Р°РІРєР° (В°C)</label>
+                <input type="number" id="Sensor_set" step="0.1" value="22.0">
+            </div>
+            <div class="input-group">
+                <label>Р“С–СЃС‚РµСЂРµР·РёСЃ (В°C)</label>
+                <input type="number" id="Sensor_histeresis" step="0.1" value="1.0">
+            </div>
+        </div>
+    </div>
+
+    <div id="timerSettings" class="card">
+        <h2>вЏ° РџР°СЂР°РјРµС‚СЂРё С‚Р°Р№РјРµСЂР°</h2>
+        <div class="input-row">
+            <div class="input-group">
+                <label>РЈРІС–РјРє (С…РІ)</label>
+                <input type="number" id="Time_on" value="10">
+            </div>
+            <div class="input-group">
+                <label>Р’РёРјРє (С…РІ)</label>
+                <input type="number" id="Time_off" value="10">
+            </div>
         </div>
     </div>
 
     <div class="card">
         <h2>рџљЁ РџРѕСЂРѕРіРё С‚СЂРёРІРѕРіРё</h2>
-        <div class="input-group">
-            <label>Р’РµСЂС…РЅСЏ РјРµР¶Р° (В°C)</label>
-            <input type="number" id="Alarm_data_u" step="0.5" value="30.0">
+        <div class="input-row">
+            <div class="input-group">
+                <label>Р’РµСЂС…РЅСЏ (В°C)</label>
+                <input type="number" id="Alarm_data_u" step="0.1" value="30.0">
+            </div>
+            <div class="input-group">
+                <label>РќРёР¶РЅСЏ (В°C)</label>
+                <input type="number" id="Alarm_data_d" step="0.1" value="15.0">
+            </div>
         </div>
-        <div class="input-group">
-            <label>РќРёР¶РЅСЏ РјРµР¶Р° (В°C)</label>
-            <input type="number" id="Alarm_data_d" step="0.5" value="15.0">
+        <div class="toggle-item">
+            <span>РђРєС‚РёРІСѓРІР°С‚Рё С‚СЂРёРІРѕРіСѓ</span>
+            <label class="switch">
+                <input type="checkbox" id="Alarm_data_set">
+                <span class="slider"></span>
+            </label>
         </div>
     </div>
 
     <div class="card">
-        <h2>рџ”” РЎРїРѕРІС–С‰РµРЅРЅСЏ С‚Р° С„СѓРЅРєС†С–С—</h2>
-        <div class="toggle-group">
-            <span>РўСЂРёРІРѕРіР° РїРѕ СЃРµРЅСЃРѕСЂСѓ</span>
-            <label class="switch"><input type="checkbox" id="Alarm_data_set"><span class="slider"></span></label>
-        </div>
-        <div class="toggle-group">
+        <h2>рџ”” Р”РѕРґР°С‚РєРѕРІРѕ</h2>
+        <div class="toggle-item">
             <span>Р’С–РґР¶РµС‚</span>
             <label class="switch"><input type="checkbox" id="widget_status"><span class="slider"></span></label>
         </div>
-        <div class="toggle-group">
-            <span>РђРЅР°Р»С–Р· С‚СЂРµРЅРґСѓ</span>
+        <div class="toggle-item">
+            <span>РўРµРЅРґРµРЅС†С–СЏ</span>
             <label class="switch"><input type="checkbox" id="trend"><span class="slider"></span></label>
         </div>
-        <div class="toggle-group">
-            <span>РљРѕРЅС‚СЂРѕР»СЊ Р¶РёРІР»РµРЅРЅСЏ</span>
+        <div class="toggle-item">
+            <span>Р–РёРІР»РµРЅРЅСЏ</span>
             <label class="switch"><input type="checkbox" id="Alarm_power"><span class="slider"></span></label>
         </div>
-        <div class="toggle-group">
-            <span>Р—РјС–РЅР° СЃС‚Р°РЅСѓ СЂРµР»Рµ</span>
+        <div class="toggle-item">
+            <span>Р—РјС–РЅР° СЂРµР»Рµ</span>
             <label class="switch"><input type="checkbox" id="relay_change_notify"><span class="slider"></span></label>
         </div>
-        <div class="toggle-group">
-            <span>Р—РІС–С‚ РїСЂРё СЃС‚Р°СЂС‚С–</span>
+        <div class="toggle-item">
+            <span>Р—РІС–С‚ СЃС‚Р°СЂС‚Сѓ</span>
             <label class="switch"><input type="checkbox" id="Alarm_start"><span class="slider"></span></label>
         </div>
     </div>
 
-    <div class="bottom-bar">
-        <label>РљСѓРґРё Р·Р±РµСЂРµРіС‚Рё?</label>
-        <select id="targetProfile">
-            <option value="D">вЂпёЏ Р”РµРЅРЅРёР№ РїСЂРѕС„С–Р»СЊ</option>
-            <option value="N">рџЊ™ РќС–С‡РЅРёР№ РїСЂРѕС„С–Р»СЊ</option>
-            <option value="B">рџЊџ РћР±РёРґРІР° РїСЂРѕС„С–Р»С–</option>
-        </select>
-        <div class="footer-row">
-            <button class="btn-close" onclick="window.closeApp()">Close</button>
-            <button class="btn-save" onclick="window.saveSettings()">SAVE</button>
+    <div class="card">
+        <h2>вљ™пёЏ Р“Р»РѕР±Р°Р»СЊРЅС– (РџРµСЂРµС…С–Рґ)</h2>
+        <div class="input-row">
+            <div class="input-group">
+                <label>РЎС‚Р°СЂС‚ Р”РЅСЏ (РіРѕРґ)</label>
+                <input type="number" id="Time_D_h" value="8" min="0" max="23">
+            </div>
+            <div class="input-group">
+                <label>РЎС‚Р°СЂС‚ РќРѕС‡С– (РіРѕРґ)</label>
+                <input type="number" id="Time_N_h" value="20" min="0" max="23">
+            </div>
         </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="save-options">
+            <select id="saveTo" style="flex: 1; background: rgba(30, 41, 59, 1); border-color: var(--accent-color);">
+                <option value="CUR">Р—Р±РµСЂРµРіС‚Рё РІ РѕР±СЂР°РЅРёР№</option>
+                <option value="D">РўС–Р»СЊРєРё РІ Р”Р•РќРќРР™</option>
+                <option value="N">РўС–Р»СЊРєРё РІ РќР†Р§РќРР™</option>
+                <option value="B">Р’ РћР‘РР”Р’Рђ РїСЂРѕС„С–Р»С–</option>
+            </select>
+        </div>
+        <div class="save-options">
+            <button class="btn btn-secondary" onclick="Telegram.WebApp.close()">Р—Р°РєСЂРёС‚Рё</button>
+            <button class="btn btn-save" onclick="saveSettings()">Р—Р‘Р•Р Р•Р“РўР</button>
+        </div>
+        <div class="hint">Р—Р±РµСЂРµР¶РµРЅРЅСЏ Р·Р°РїРёСЃСѓС” РґР°РЅС– Сѓ Flash-РїР°Рј'СЏС‚СЊ ESP</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        tg.enableClosingConfirmation();
 
-        // Р¤СѓРЅРєС†С–СЏ РґР»СЏ Р·Р°РїРѕРІРЅРµРЅРЅСЏ РїРѕР»С–РІ С–Р· URL (ESP -> App)
-        const urlParams = new URLSearchParams(window.location.search);
+        let currentProfile = 'D'; // 'D' or 'N'
+        let automationMode = 0;   // 0: Manual, 1: Sensor, 2: Time
+
+        // РЎС…РѕРІРёС‰Рµ РґР°РЅРёС… РґР»СЏ РѕР±РѕС… РїСЂРѕС„С–Р»С–РІ
+        const dataStore = {
+            D: {},
+            N: {},
+            G: {} // Global
+        };
+
         const fields = [
-            'Sensor_set', 'Sensor_histeresis', 'Time_on', 'Time_off', 
-            'Alarm_data_u', 'Alarm_data_d', 'Alarm_data_set', 
-            'widget_status', 'trend', 'Alarm_power', 
+            'Sensor_set', 'Sensor_histeresis', 'Time_on', 'Time_off',
+            'Alarm_data_u', 'Alarm_data_d', 'Alarm_data_set',
+            'widget_status', 'trend', 'Alarm_power',
             'relay_change_notify', 'Alarm_start'
         ];
 
-        fields.forEach(f => {
-            const val = urlParams.get(f);
-            if (val !== null) {
-                const el = document.getElementById(f);
-                if (el.type === 'checkbox') {
-                    el.checked = val === '1';
-                } else {
-                    el.value = val;
-                }
-            }
-        });
+        // Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ РґР°РЅРёС… Р· URL
+        function initData() {
+            const params = new URLSearchParams(window.location.search);
 
-        window.saveSettings = function() {
-            const data = {
-                t: document.getElementById('targetProfile').value, // target
-                s: {} // settings
-            };
+            // РџРѕС‚РѕС‡РЅРёР№ Р¶РёРІРёР№ РїСЂРѕС„С–Р»СЊ РЅР° ESP
+            const espProf = params.get('cp') || 'D';
+            currentProfile = espProf;
 
             fields.forEach(f => {
-                const el = document.getElementById(f);
-                data.s[f] = el.type === 'checkbox' ? (el.checked ? 1 : 0) : parseFloat(el.value);
+                dataStore.D[f] = params.get('d_' + f) || (f.includes('Alarm') ? 30 : 20);
+                dataStore.N[f] = params.get('n_' + f) || (f.includes('Alarm') ? 30 : 20);
             });
 
-            // Р’С–РґРїСЂР°РІР»СЏС”РјРѕ JSON Р±РѕС‚Сѓ
-            tg.sendData(JSON.stringify(data));
-        };
+            // Global
+            dataStore.G.Time_D_h = params.get('g_tdh') || 8;
+            dataStore.G.Time_N_h = params.get('g_tnh') || 20;
 
-        window.closeApp = function() {
-            tg.close();
-        };
+            updateTabs();
+            loadProfileToUI(currentProfile);
 
-        // РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ РіРѕР»РѕРІРЅРѕС— РєРЅРѕРїРєРё Telegram РґР»СЏ Р·СЂСѓС‡РЅРѕСЃС‚С–
-        tg.MainButton.setText("SAVE SETTINGS");
-        tg.MainButton.onClick(window.saveSettings);
-        tg.MainButton.show();
+            // Р“Р»РѕР±Р°Р»СЊРЅС– РїРѕР»СЏ Р·Р°РІР¶РґРё СЃРёРЅС…СЂРѕРЅРЅС–
+            document.getElementById('Time_D_h').value = dataStore.G.Time_D_h;
+            document.getElementById('Time_N_h').value = dataStore.G.Time_N_h;
+        }
 
+        function setEditProfile(p) {
+            saveUIToStore(currentProfile); // Р—Р±РµСЂС–РіР°С”РјРѕ РїРѕС‚РѕС‡РЅС– Р·РјС–РЅРё РІ РїР°Рј'СЏС‚СЊ JS
+            currentProfile = p;
+            updateTabs();
+            loadProfileToUI(p);
+        }
+
+        function updateTabs() {
+            document.querySelectorAll('.profile-tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.profile === currentProfile);
+            });
+        }
+
+        function loadProfileToUI(p) {
+            const data = dataStore[p];
+            fields.forEach(f => {
+                const el = document.getElementById(f);
+                if (el.type === 'checkbox') {
+                    el.checked = data[f] == '1' || data[f] === true;
+                } else {
+                    el.value = data[f];
+                }
+            });
+
+            // Р РµР¶РёРј Р°РІС‚РѕРјР°С‚РёР·Р°С†С–С—
+            const mode = parseInt(data['Statatus_sensor_control'] || 0);
+            setMode(mode, false);
+        }
+
+        function saveUIToStore(p) {
+            fields.forEach(f => {
+                const el = document.getElementById(f);
+                dataStore[p][f] = el.type === 'checkbox' ? (el.checked ? 1 : 0) : el.value;
+            });
+            dataStore[p].Statatus_sensor_control = automationMode;
+        }
+
+        function setMode(m, updateStore = true) {
+            automationMode = m;
+            document.querySelectorAll('.mode-option').forEach((el, idx) => {
+                el.classList.toggle('active', idx === m);
+            });
+
+            // Р’Р·Р°С”РјРѕРІРёРєР»СЋС‡РЅР° Р»РѕРіС–РєР° UI
+            const sensorBox = document.getElementById('sensorSettings');
+            const timerBox = document.getElementById('timerSettings');
+
+            sensorBox.style.opacity = (m === 1) ? "1" : "0.5";
+            timerBox.style.opacity = (m === 2) ? "1" : "0.5";
+
+            if (updateStore) {
+                dataStore[currentProfile].Statatus_sensor_control = m;
+            }
+        }
+
+        function saveSettings() {
+            saveUIToStore(currentProfile);
+
+            // Р“Р»РѕР±Р°Р»СЊРЅС–
+            dataStore.G.Time_D_h = document.getElementById('Time_D_h').value;
+            dataStore.G.Time_N_h = document.getElementById('Time_N_h').value;
+
+            const target = document.getElementById('saveTo').value;
+            const finalTarget = (target === 'CUR') ? currentProfile : target;
+
+            const result = {
+                t: finalTarget, // D, N, B
+                s: (finalTarget === 'B') ? dataStore.D : dataStore[finalTarget],
+                g: dataStore.G
+            };
+
+            // РЇРєС‰Рѕ "РћР±РёРґРІР°", РІС–РґРїСЂР°РІР»СЏС”РјРѕ РґРІР° РѕР±'С”РєС‚Рё Р°Р±Рѕ РїРѕР·РЅР°С‡Р°С”РјРѕ РґР»СЏ ESP
+            tg.sendData(JSON.stringify(result));
+        }
+
+        initData();
     </script>
 </body>
+
 </html>
