@@ -494,10 +494,12 @@
             const data = dataStore[p];
             fields.forEach(f => {
                 const el = document.getElementById(f);
-                if (el.type === 'checkbox') {
-                    el.checked = data[f] == '1' || data[f] === true;
-                } else {
-                    el.value = data[f];
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        el.checked = data[f] == '1' || data[f] === true;
+                    } else {
+                        el.value = data[f];
+                    }
                 }
             });
 
@@ -509,15 +511,18 @@
         function saveUIToStore(p) {
             fields.forEach(f => {
                 const el = document.getElementById(f);
-                if (el.type === 'checkbox') {
-                    dataStore[p][f] = el.checked ? 1 : 0;
-                } else {
-                    const val = parseFloat(el.value);
-                    dataStore[p][f] = isNaN(val) ? 0 : val;
+                if (el) {
+                    if (el.type === 'checkbox') {
+                        dataStore[p][f] = el.checked ? 1 : 0;
+                    } else {
+                        const val = parseFloat(el.value);
+                        dataStore[p][f] = isNaN(val) ? 0 : val;
+                    }
                 }
             });
             dataStore[p].Statatus_sensor_control = automationMode;
         }
+
 
         function setMode(m, updateStore = true) {
             automationMode = m;
