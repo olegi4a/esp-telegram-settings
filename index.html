@@ -496,12 +496,13 @@
                 const el = document.getElementById(f);
                 if (el) {
                     if (el.type === 'checkbox') {
-                        el.checked = data[f] == '1' || data[f] === true;
+                        el.checked = (data[f] == 1 || data[f] == '1' || data[f] === true);
                     } else {
                         el.value = data[f];
                     }
                 }
             });
+
 
             // Режим автоматизації
             const mode = parseInt(data['Statatus_sensor_control'] || 0);
