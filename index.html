@@ -451,13 +451,23 @@
             currentProfile = espProf;
 
             fields.forEach(f => {
-                dataStore.D[f] = params.get('d_' + f) || (f.includes('Alarm') ? 30 : 20);
-                dataStore.N[f] = params.get('n_' + f) || (f.includes('Alarm') ? 30 : 20);
+                let dVal = params.get('d_' + f);
+                let nVal = params.get('n_' + f);
+
+                if (f.includes('Alarm') && !f.includes('power') && !f.includes('start')) {
+                    dataStore.D[f] = dVal !== null ? parseFloat(dVal) : 30;
+                    dataStore.N[f] = nVal !== null ? parseFloat(nVal) : 30;
+                } else {
+                    dataStore.D[f] = dVal !== null ? parseFloat(dVal) : (f === 'Sensor_set' ? 20 : 0);
+                    dataStore.N[f] = nVal !== null ? parseFloat(nVal) : (f === 'Sensor_set' ? 20 : 0);
+                }
             });
 
             // Global
-            dataStore.G.Time_D_h = params.get('g_tdh') || 8;
-            dataStore.G.Time_N_h = params.get('g_tnh') || 20;
+            let gTdh = params.get('g_tdh');
+            let gTnh = params.get('g_tnh');
+            dataStore.G.Time_D_h = gTdh !== null ? parseInt(gTdh) : 8;
+            dataStore.G.Time_N_h = gTnh !== null ? parseInt(gTnh) : 20;
 
             updateTabs();
             loadProfileToUI(currentProfile);
