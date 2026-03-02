@@ -283,82 +283,82 @@
 
 <body>
     <div class="header-card">
-        <label>Р РµРґР°РіСѓРІР°РЅРЅСЏ РїСЂРѕС„С–Р»СЋ:</label>
+        <label>Редагування профілю:</label>
         <div class="profile-tabs" id="profileTabs">
-            <div class="profile-tab active" data-profile="D" onclick="setEditProfile('D')">вЂпёЏ Р”Р•РќР¬</div>
-            <div class="profile-tab" data-profile="N" onclick="setEditProfile('N')">рџЊ™ РќР†Р§</div>
+            <div class="profile-tab active" data-profile="D" onclick="setEditProfile('D')">☀️ ДЕНЬ</div>
+            <div class="profile-tab" data-profile="N" onclick="setEditProfile('N')">🌙 НІЧ</div>
         </div>
     </div>
 
     <div class="card">
-        <h2>рџ› пёЏ Р РµР¶РёРј СЂРѕР±РѕС‚Рё</h2>
+        <h2>🛠️ Режим роботи</h2>
         <div class="mode-selector">
             <div class="mode-option" id="mode0" onclick="setMode(0)">
                 <div class="radio-circle"></div>
                 <div>
-                    <strong>Р СѓС‡РЅРёР№ СЂРµР¶РёРј</strong>
-                    <div style="font-size: 0.75rem; opacity: 0.6;">РљРµСЂСѓРІР°РЅРЅСЏ С‚С–Р»СЊРєРё С‡РµСЂРµР· Р±РѕС‚</div>
+                    <strong>Ручний режим</strong>
+                    <div style="font-size: 0.75rem; opacity: 0.6;">Керування тільки через бот</div>
                 </div>
             </div>
             <div class="mode-option" id="mode1" onclick="setMode(1)">
                 <div class="radio-circle"></div>
                 <div>
-                    <strong>РџРѕ РґР°С‚С‡РёРєСѓ</strong>
-                    <div style="font-size: 0.75rem; opacity: 0.6;">РЈС‚СЂРёРјР°РЅРЅСЏ С‚РµРјРїРµСЂР°С‚СѓСЂРё</div>
+                    <strong>По датчику</strong>
+                    <div style="font-size: 0.75rem; opacity: 0.6;">Утримання температури</div>
                 </div>
             </div>
             <div class="mode-option" id="mode2" onclick="setMode(2)">
                 <div class="radio-circle"></div>
                 <div>
-                    <strong>РџРѕ С‚Р°Р№РјРµСЂСѓ</strong>
-                    <div style="font-size: 0.75rem; opacity: 0.6;">Р¦РёРєР»С–С‡РЅРµ РІРІС–РјРєРЅРµРЅРЅСЏ</div>
+                    <strong>По таймеру</strong>
+                    <div style="font-size: 0.75rem; opacity: 0.6;">Циклічне ввімкнення</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="sensorSettings" class="card">
-        <h2>рџЊЎпёЏ РџР°СЂР°РјРµС‚СЂРё РґР°С‚С‡РёРєР°</h2>
+        <h2>🌡️ Параметри датчика</h2>
         <div class="input-row">
             <div class="input-group">
-                <label>РЈСЃС‚Р°РІРєР° (В°C)</label>
+                <label>Уставка (°C)</label>
                 <input type="number" id="Sensor_set" step="0.1" value="22.0">
             </div>
             <div class="input-group">
-                <label>Р“С–СЃС‚РµСЂРµР·РёСЃ (В°C)</label>
+                <label>Гістерезис (°C)</label>
                 <input type="number" id="Sensor_histeresis" step="0.1" value="1.0">
             </div>
         </div>
     </div>
 
     <div id="timerSettings" class="card">
-        <h2>вЏ° РџР°СЂР°РјРµС‚СЂРё С‚Р°Р№РјРµСЂР°</h2>
+        <h2>⏰ Параметри таймера</h2>
         <div class="input-row">
             <div class="input-group">
-                <label>РЈРІС–РјРє (С…РІ)</label>
+                <label>Увімк (хв)</label>
                 <input type="number" id="Time_on" value="10">
             </div>
             <div class="input-group">
-                <label>Р’РёРјРє (С…РІ)</label>
+                <label>Вимк (хв)</label>
                 <input type="number" id="Time_off" value="10">
             </div>
         </div>
     </div>
 
     <div class="card">
-        <h2>рџљЁ РџРѕСЂРѕРіРё С‚СЂРёРІРѕРіРё</h2>
+        <h2>🚨 Пороги тривоги</h2>
         <div class="input-row">
             <div class="input-group">
-                <label>Р’РµСЂС…РЅСЏ (В°C)</label>
+                <label>Верхня (°C)</label>
                 <input type="number" id="Alarm_data_u" step="0.1" value="30.0">
             </div>
             <div class="input-group">
-                <label>РќРёР¶РЅСЏ (В°C)</label>
+                <label>Нижня (°C)</label>
                 <input type="number" id="Alarm_data_d" step="0.1" value="15.0">
             </div>
         </div>
         <div class="toggle-item">
-            <span>РђРєС‚РёРІСѓРІР°С‚Рё С‚СЂРёРІРѕРіСѓ</span>
+            <span>Активувати тривогу</span>
             <label class="switch">
                 <input type="checkbox" id="Alarm_data_set">
                 <span class="slider"></span>
@@ -367,38 +367,38 @@
     </div>
 
     <div class="card">
-        <h2>рџ”” Р”РѕРґР°С‚РєРѕРІРѕ</h2>
+        <h2>🔔 Додатково</h2>
         <div class="toggle-item">
-            <span>Р’С–РґР¶РµС‚</span>
+            <span>Віджет</span>
             <label class="switch"><input type="checkbox" id="widget_status"><span class="slider"></span></label>
         </div>
         <div class="toggle-item">
-            <span>РўРµРЅРґРµРЅС†С–СЏ</span>
+            <span>Тенденція</span>
             <label class="switch"><input type="checkbox" id="trend"><span class="slider"></span></label>
         </div>
         <div class="toggle-item">
-            <span>Р–РёРІР»РµРЅРЅСЏ</span>
+            <span>Живлення</span>
             <label class="switch"><input type="checkbox" id="Alarm_power"><span class="slider"></span></label>
         </div>
         <div class="toggle-item">
-            <span>Р—РјС–РЅР° СЂРµР»Рµ</span>
+            <span>Зміна реле</span>
             <label class="switch"><input type="checkbox" id="relay_change_notify"><span class="slider"></span></label>
         </div>
         <div class="toggle-item">
-            <span>Р—РІС–С‚ СЃС‚Р°СЂС‚Сѓ</span>
+            <span>Звіт старту</span>
             <label class="switch"><input type="checkbox" id="Alarm_start"><span class="slider"></span></label>
         </div>
     </div>
 
     <div class="card">
-        <h2>вљ™пёЏ Р“Р»РѕР±Р°Р»СЊРЅС– (РџРµСЂРµС…С–Рґ)</h2>
+        <h2>⚙️ Глобальні (Перехід)</h2>
         <div class="input-row">
             <div class="input-group">
-                <label>РЎС‚Р°СЂС‚ Р”РЅСЏ (РіРѕРґ)</label>
+                <label>Старт Дня (год)</label>
                 <input type="number" id="Time_D_h" value="8" min="0" max="23">
             </div>
             <div class="input-group">
-                <label>РЎС‚Р°СЂС‚ РќРѕС‡С– (РіРѕРґ)</label>
+                <label>Старт Ночі (год)</label>
                 <input type="number" id="Time_N_h" value="20" min="0" max="23">
             </div>
         </div>
@@ -407,17 +407,17 @@
     <div class="bottom-bar">
         <div class="save-options">
             <select id="saveTo" style="flex: 1; background: rgba(30, 41, 59, 1); border-color: var(--accent-color);">
-                <option value="CUR">Р—Р±РµСЂРµРіС‚Рё РІ РѕР±СЂР°РЅРёР№</option>
-                <option value="D">РўС–Р»СЊРєРё РІ Р”Р•РќРќРР™</option>
-                <option value="N">РўС–Р»СЊРєРё РІ РќР†Р§РќРР™</option>
-                <option value="B">Р’ РћР‘РР”Р’Рђ РїСЂРѕС„С–Р»С–</option>
+                <option value="CUR">Зберегти в обраний</option>
+                <option value="D">Тільки в ДЕННИЙ</option>
+                <option value="N">Тільки в НІЧНИЙ</option>
+                <option value="B">В ОБИДВА профілі</option>
             </select>
         </div>
         <div class="save-options">
-            <button class="btn btn-secondary" onclick="Telegram.WebApp.close()">Р—Р°РєСЂРёС‚Рё</button>
-            <button class="btn btn-save" onclick="saveSettings()">Р—Р‘Р•Р Р•Р“РўР</button>
+            <button class="btn btn-secondary" onclick="Telegram.WebApp.close()">Закрити</button>
+            <button class="btn btn-save" onclick="saveSettings()">ЗБЕРЕГТИ</button>
         </div>
-        <div class="hint">Р—Р±РµСЂРµР¶РµРЅРЅСЏ Р·Р°РїРёСЃСѓС” РґР°РЅС– Сѓ Flash-РїР°Рј'СЏС‚СЊ РїСЂРёСЃС‚СЂРѕСЋ</div>
+        <div class="hint">Збереження записує дані у Flash-пам'ять пристрою</div>
     </div>
 
     <script>
@@ -428,7 +428,7 @@
         let currentProfile = 'D'; // 'D' or 'N'
         let automationMode = 0;   // 0: Manual, 1: Sensor, 2: Time
 
-        // РЎС…РѕРІРёС‰Рµ РґР°РЅРёС… РґР»СЏ РѕР±РѕС… РїСЂРѕС„С–Р»С–РІ
+        // Сховище даних для обох профілів
         const dataStore = {
             D: {},
             N: {},
@@ -442,11 +442,11 @@
             'relay_change_notify', 'Alarm_start'
         ];
 
-        // Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ РґР°РЅРёС… Р· URL
+        // Завантаження даних з URL
         function initData() {
             const params = new URLSearchParams(window.location.search);
 
-            // РџРѕС‚РѕС‡РЅРёР№ Р¶РёРІРёР№ РїСЂРѕС„С–Р»СЊ РЅР° ESP
+            // Поточний живий профіль на ESP
             const espProf = params.get('cp') || 'D';
             currentProfile = espProf;
 
@@ -462,13 +462,13 @@
             updateTabs();
             loadProfileToUI(currentProfile);
 
-            // Р“Р»РѕР±Р°Р»СЊРЅС– РїРѕР»СЏ Р·Р°РІР¶РґРё СЃРёРЅС…СЂРѕРЅРЅС–
+            // Глобальні поля завжди синхронні
             document.getElementById('Time_D_h').value = dataStore.G.Time_D_h;
             document.getElementById('Time_N_h').value = dataStore.G.Time_N_h;
         }
 
         function setEditProfile(p) {
-            saveUIToStore(currentProfile); // Р—Р±РµСЂС–РіР°С”РјРѕ РїРѕС‚РѕС‡РЅС– Р·РјС–РЅРё РІ РїР°Рј'СЏС‚СЊ JS
+            saveUIToStore(currentProfile); // Зберігаємо поточні зміни в пам'ять JS
             currentProfile = p;
             updateTabs();
             loadProfileToUI(p);
@@ -491,7 +491,7 @@
                 }
             });
 
-            // Р РµР¶РёРј Р°РІС‚РѕРјР°С‚РёР·Р°С†С–С—
+            // Режим автоматизації
             const mode = parseInt(data['Statatus_sensor_control'] || 0);
             setMode(mode, false);
         }
@@ -515,7 +515,7 @@
                 el.classList.toggle('active', idx === m);
             });
 
-            // Р’Р·Р°С”РјРѕРІРёРєР»СЋС‡РЅР° Р»РѕРіС–РєР° UI
+            // Взаємовиключна логіка UI
             const sensorBox = document.getElementById('sensorSettings');
             const timerBox = document.getElementById('timerSettings');
 
@@ -530,7 +530,7 @@
         function saveSettings() {
             saveUIToStore(currentProfile);
 
-            // Р“Р»РѕР±Р°Р»СЊРЅС–
+            // Глобальні
             dataStore.G.Time_D_h = parseInt(document.getElementById('Time_D_h').value) || 0;
             dataStore.G.Time_N_h = parseInt(document.getElementById('Time_N_h').value) || 0;
 
@@ -543,7 +543,7 @@
                 g: dataStore.G
             };
 
-            // РЇРєС‰Рѕ "РћР±РёРґРІР°", РІС–РґРїСЂР°РІР»СЏС”РјРѕ РґРІР° РѕР±'С”РєС‚Рё Р°Р±Рѕ РїРѕР·РЅР°С‡Р°С”РјРѕ РґР»СЏ ESP
+            // Якщо "Обидва", відправляємо два об'єкти або позначаємо для ESP
             tg.sendData(JSON.stringify(result));
         }
 
