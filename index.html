@@ -7,593 +7,513 @@
     <title>ESP Control Settings</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* === DESIGN SYSTEM (Mirroring Home.html Exactly) === */
         :root {
-            --bg-color: #0f172a;
-            --accent-color: #38bdf8;
-            --accent-glow: rgba(56, 189, 248, 0.3);
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text-color: #f1f5f9;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
+            --bg: #0b0e14;
+            --card-bg: #151921;
+            --accent: #6c63ff;
+            --accent-glow: rgba(108, 99, 255, 0.3);
+            --text: #e1e1e6;
+            --muted: #8c92a4;
+            --border: #2a2d3e;
+            --green: #00c853;
+            --accent2: #ff3d00;
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            padding-bottom: 32px;
+            padding: 0;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .header-card {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(30, 41, 59, 0.7));
-            border: 1px solid var(--accent-color);
-            border-radius: 16px;
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
             padding: 16px;
-            text-align: center;
-        }
-
-        .profile-tabs {
-            display: flex;
-            background: rgba(15, 23, 42, 0.5);
-            border-radius: 12px;
-            padding: 4px;
-            margin-top: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .profile-tab {
-            flex: 1;
-            padding: 8px;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 600;
-            font-size: 0.9rem;
-            opacity: 0.6;
-        }
-
-        .profile-tab.active {
-            background: var(--accent-color);
-            color: var(--bg-color);
-            opacity: 1;
-            box-shadow: 0 4px 12px var(--accent-glow);
+            padding-bottom: 30px;
         }
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 20px;
-            transition: transform 0.2s;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
-        h2 {
-            margin: 0 0 16px 0;
-            font-size: 1.1rem;
-            color: var(--accent-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .card-title {
+            font-size: .85rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 14px;
         }
 
-        .input-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
+        /* === FORM FIELDS === */
+        .field {
+            margin-bottom: 14px;
         }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+        .field label {
+            display: block;
+            font-size: .72rem;
+            color: var(--muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-weight: 600;
         }
 
-        label {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            font-weight: 500;
-        }
-
-        input[type="number"],
-        select {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px;
-            color: white;
-            font-size: 1rem;
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: .9rem;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border .2s;
         }
 
-        input:focus,
-        select:focus {
-            border-color: var(--accent-color);
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--accent);
         }
 
-        .mode-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .mode-option {
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .mode-option.active {
-            border-color: var(--accent-color);
-            background: rgba(56, 189, 248, 0.1);
-        }
-
-        .mode-option input {
-            display: none;
-        }
-
-        .radio-circle {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .mode-option.active .radio-circle {
-            border-color: var(--accent-color);
-        }
-
-        .mode-option.active .radio-circle::after {
-            content: '';
-            width: 10px;
-            height: 10px;
-            background: var(--accent-color);
-            border-radius: 50%;
-        }
-
-        .toggle-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .toggle-item:last-child {
-            border-bottom: none;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #475569;
-            transition: .4s;
-            border-radius: 24px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: var(--success-color);
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(20px);
-        }
-
-        .bottom-bar {
-            background: rgba(15, 23, 42, 0.4);
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .save-options {
+        /* === MODE BUTTONS (Start status) === */
+        .mode-btns {
             display: flex;
             gap: 8px;
         }
 
-        .btn {
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
+        .mode-btn {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            padding: 10px 4px;
+            background: var(--border);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: center;
         }
 
-        .btn-save {
-            background: var(--accent-color);
-            color: var(--bg-color);
+        .mode-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
             box-shadow: 0 4px 12px var(--accent-glow);
         }
 
-        .btn-secondary {
-            background: rgba(71, 85, 105, 0.5);
-            color: white;
+        /* === PROFILE TABS === */
+        .prof-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .prof-tab {
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border-radius: 9px;
+            color: var(--muted);
+            font-size: .8rem;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .prof-tab.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        /* === PROFILE MODE SELECTOR (Vertical) === */
+        .pmode-opt {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .2s;
+            margin-bottom: 8px;
+        }
+
+        .pmode-opt.active {
+            border-color: var(--accent);
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        .pmode-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .pmode-opt.active .pmode-radio {
+            border-color: var(--accent);
+        }
+
+        .pmode-opt.active .pmode-radio::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: .95rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: .02em;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .btn-full {
+            width: 100%;
+            margin: 16px 0 10px;
         }
 
         .btn:active {
-            transform: scale(0.96);
+            transform: scale(0.97);
         }
 
-        .hint {
-            font-size: 0.75rem;
-            opacity: 0.5;
-            text-align: center;
+        /* === CHECKBOXES (Home.html style) === */
+        label[style*="cursor:pointer"] {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .88rem;
+            padding: 6px 0;
+            color: var(--text);
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* === TOAST === */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card-bg);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: .9rem;
+            transition: transform .3s;
+            z-index: 1000;
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
         }
     </style>
 </head>
 
 <body>
-    <div class="header-card">
-        <label>Редагування профілю:</label>
-        <div class="profile-tabs" id="profileTabs">
-            <div class="profile-tab active" data-profile="D" onclick="setEditProfile('D')">☀️ ДЕНЬ</div>
-            <div class="profile-tab" data-profile="N" onclick="setEditProfile('N')">🌙 НІЧ</div>
-        </div>
+
+    <div class="prof-tabs">
+        <div class="prof-tab active" id="ptab-D" onclick="setProfTab('D')">☀️ День</div>
+        <div class="prof-tab" id="ptab-N" onclick="setProfTab('N')">🌙 Ніч</div>
     </div>
 
     <div class="card">
-        <h2>🔌 Початковий стан реле</h2>
-        <div style="font-size:0.8rem;opacity:0.6;margin-bottom:12px">Стан реле одразу після увімкнення або
-            перезавантаження пристрою</div>
-        <div class="mode-selector" style="flex-direction:row;gap:10px">
-            <div class="mode-option" id="ss0" onclick="setStartStatus(0)" style="flex:1;justify-content:center">
-                <div class="radio-circle"></div>
-                <strong>❌ Вимкнено</strong>
-            </div>
-            <div class="mode-option" id="ss1" onclick="setStartStatus(1)" style="flex:1;justify-content:center">
-                <div class="radio-circle"></div>
-                <strong>✅ Увімкнено</strong>
-            </div>
+        <div class="card-title">Початковий стан реле при старті</div>
+        <div class="mode-btns">
+            <div class="mode-btn" id="ss-0" onclick="setStartStatus(0)">Вимкнено</div>
+            <div class="mode-btn" id="ss-1" onclick="setStartStatus(1)">Увімкнено</div>
         </div>
     </div>
 
+    <!-- Mode selector (vertical) -->
     <div class="card">
-        <h2>🛠️ Режим роботи</h2>
-        <div class="mode-selector">
-            <div class="mode-option" id="mode0" onclick="setMode(0)">
-                <div class="radio-circle"></div>
+        <div class="card-title">Режим автоматики профілю</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="pmode-opt" id="pmode-0" onclick="setProfMode(0)">
+                <div class="pmode-radio"></div>
                 <div>
-                    <strong>Ручний режим</strong>
-                    <div style="font-size: 0.75rem; opacity: 0.6;">Керування тільки через бот</div>
+                    <div style="font-weight:700;font-size:1rem">🖐 Ручний</div>
+                    <div style="font-size:.72rem;color:var(--muted)">Керування тільки вручну</div>
                 </div>
             </div>
-            <div class="mode-option" id="mode1" onclick="setMode(1)">
-                <div class="radio-circle"></div>
+            <div class="pmode-opt" id="pmode-1" onclick="setProfMode(1)">
+                <div class="pmode-radio"></div>
                 <div>
-                    <strong>По датчику</strong>
-                    <div style="font-size: 0.75rem; opacity: 0.6;">Утримання температури</div>
+                    <div style="font-weight:700;font-size:1rem">🌡 По датчику</div>
+                    <div style="font-size:.72rem;color:var(--muted)">Підтримка температури</div>
                 </div>
             </div>
-            <div class="mode-option" id="mode2" onclick="setMode(2)">
-                <div class="radio-circle"></div>
+            <div class="pmode-opt" id="pmode-2" onclick="setProfMode(2)">
+                <div class="pmode-radio"></div>
                 <div>
-                    <strong>По таймеру</strong>
-                    <div style="font-size: 0.75rem; opacity: 0.6;">Циклічне ввімкнення</div>
+                    <div style="font-weight:700;font-size:1rem">⏱ По таймеру</div>
+                    <div style="font-size:.72rem;color:var(--muted)">Циклічне ввімкнення/вимкнення</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="sensorSettings" class="card">
-        <h2>🌡️ Параметри датчика</h2>
-        <div class="input-row">
-            <div class="input-group">
-                <label>Уставка (°C)</label>
-                <input type="number" id="Sensor_set" step="0.1" value="22.0">
-            </div>
-            <div class="input-group">
-                <label>Гістерезис (°C)</label>
-                <input type="number" id="Sensor_histeresis" step="0.1" value="1.0">
-            </div>
+    <!-- Sensor settings -->
+    <div class="card prof-mode-card" id="card-sensor" style="display:none">
+        <div class="card-title">🌡 Параметри датчика</div>
+        <div class="field">
+            <label>Уставка (SetPoint) °C</label>
+            <input type="number" id="p-sensor_set" step="0.1" value="20">
+        </div>
+        <div class="field">
+            <label>Гістерезис °C</label>
+            <input type="number" id="p-sensor_histeresis" step="0.1" value="1">
+        </div>
+        <div class="field" style="margin:0">
+            <label>Реле вмикається якщо temp</label>
+            <select id="p-rele_status">
+                <option value="0">Нижче уставки</option>
+                <option value="1">Вище уставки</option>
+            </select>
         </div>
     </div>
 
-    <div id="timerSettings" class="card">
-        <h2>⏰ Параметри таймера</h2>
-        <div class="input-row">
-            <div class="input-group">
-                <label>Увімк (хв)</label>
-                <input type="number" id="Time_on" value="10">
+    <!-- Timer settings -->
+    <div class="card prof-mode-card" id="card-timer" style="display:none">
+        <div class="card-title">⏱ Параметри таймера</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field" style="margin:0">
+                <label>ON хвилин</label>
+                <input type="number" id="p-time_on" value="10">
             </div>
-            <div class="input-group">
-                <label>Вимк (хв)</label>
-                <input type="number" id="Time_off" value="10">
+            <div class="field" style="margin:0">
+                <label>OFF хвилин</label>
+                <input type="number" id="p-time_off" value="10">
             </div>
         </div>
     </div>
 
     <div class="card">
-        <h2>🚨 Пороги тривоги</h2>
-        <div class="input-row">
-            <div class="input-group">
-                <label>Верхня (°C)</label>
-                <input type="number" id="Alarm_data_u" step="0.1" value="30.0">
+        <div class="card-title">Тривога по температурі</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field" style="margin:0">
+                <label>Верхня межа °C</label>
+                <input type="number" id="p-alarm_data_u" step="0.5" value="30">
             </div>
-            <div class="input-group">
-                <label>Нижня (°C)</label>
-                <input type="number" id="Alarm_data_d" step="0.1" value="15.0">
+            <div class="field" style="margin:0">
+                <label>Нижня межа °C</label>
+                <input type="number" id="p-alarm_data_d" step="0.5" value="15">
             </div>
         </div>
-        <div class="toggle-item">
-            <span>Активувати тривогу</span>
-            <label class="switch">
-                <input type="checkbox" id="Alarm_data_set">
-                <span class="slider"></span>
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+            <label style="cursor:pointer">
+                <input type="checkbox" id="p-alarm_data_set"> Тривога активна
+            </label>
+            <label style="cursor:pointer">
+                <input type="checkbox" id="p-trend"> По тенденції
             </label>
         </div>
     </div>
 
     <div class="card">
-        <h2>🔔 Додатково</h2>
-        <div class="toggle-item">
-            <span>Віджет</span>
-            <label class="switch"><input type="checkbox" id="widget_status"><span class="slider"></span></label>
-        </div>
-        <div class="toggle-item">
-            <span>Тенденція</span>
-            <label class="switch"><input type="checkbox" id="trend"><span class="slider"></span></label>
-        </div>
-        <div class="toggle-item">
-            <span>Живлення</span>
-            <label class="switch"><input type="checkbox" id="Alarm_power"><span class="slider"></span></label>
-        </div>
-        <div class="toggle-item">
-            <span>Зміна реле</span>
-            <label class="switch"><input type="checkbox" id="relay_change_notify"><span class="slider"></span></label>
-        </div>
-        <div class="toggle-item">
-            <span>Звіт старту</span>
-            <label class="switch"><input type="checkbox" id="Alarm_start"><span class="slider"></span></label>
+        <div class="card-title">Сповіщення</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="cursor:pointer">
+                <input type="checkbox" id="p-alarm_start"> Повідомлення про перезавантаження
+            </label>
+            <label style="cursor:pointer">
+                <input type="checkbox" id="p-alarm_power"> Сповіщення про збій живлення
+            </label>
+            <label style="cursor:pointer">
+                <input type="checkbox" id="p-relay_change_notify"> Сповіщення про зміну реле
+            </label>
+            <label style="cursor:pointer">
+                <input type="checkbox" id="p-widget_status"> Віджет (раз на 5 хв)
+            </label>
         </div>
     </div>
 
+    <!-- Global context context boundaries -->
     <div class="card">
-        <h2>⚙️ Глобальні (Перехід)</h2>
-        <div class="input-row">
-            <div class="input-group">
-                <label>Старт Дня (год)</label>
-                <input type="number" id="Time_D_h" value="8" min="0" max="23">
+        <div class="card-title">🕐 Тимчасові межі профілів</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field" style="margin:0">
+                <label style="font-size: calc(0.72rem - 1px)">☀️ День починається</label>
+                <input type="number" id="g-time_d_h" min="0" max="23" value="8">
             </div>
-            <div class="input-group">
-                <label>Старт Ночі (год)</label>
-                <input type="number" id="Time_N_h" value="20" min="0" max="23">
+            <div class="field" style="margin:0">
+                <label style="font-size: calc(0.72rem - 1px)">🌙 Ніч починається</label>
+                <input type="number" id="g-time_n_h" min="0" max="23" value="20">
             </div>
         </div>
     </div>
 
-    <div class="bottom-bar">
-        <div class="save-options">
-            <select id="saveTo" style="flex: 1; background: rgba(30, 41, 59, 1); border-color: var(--accent-color);">
-                <option value="CUR">Зберегти в обраний</option>
-                <option value="D">Тільки в ДЕННИЙ</option>
-                <option value="N">Тільки в НІЧНИЙ</option>
-                <option value="B">В ОБИДВА профілі</option>
-            </select>
-        </div>
-        <div class="save-options">
-            <button class="btn btn-secondary" onclick="Telegram.WebApp.close()">Закрити</button>
-            <button class="btn btn-save" onclick="saveSettings()">ЗБЕРЕГТИ</button>
-        </div>
-        <div class="hint">Збереження записує дані у Flash-пам'ять пристрою</div>
+    <div class="field" style="padding: 0 4px; margin-top: 10px;">
+        <label>Збереження</label>
+        <select id="saveTarget">
+            <option value="CUR">Зберегти в обраний профіль</option>
+            <option value="D">Тільки в ДЕННИЙ профіль</option>
+            <option value="N">Тільки в НІЧНИЙ профіль</option>
+            <option value="BOTH">В ОБИДВА профілі одразу</option>
+        </select>
     </div>
+
+    <button class="btn btn-primary btn-full" onclick="saveSettings()">💾 Зберегти налаштування</button>
+
+    <div id="toast">✅ Збережено на пристрої</div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.enableClosingConfirmation();
+        tg.setHeaderColor('#0b0e14');
 
-        let currentProfile = 'D'; // 'D' or 'N'
-        let automationMode = 0;   // 0: Manual, 1: Sensor, 2: Time
-        let startStatusValue = 0; // 0: OFF, 1: ON at boot
+        let currentProf = 'D';
+        const dataStore = { D: {}, N: {}, G: {} };
 
-        // Сховище даних для обох профілів
-        const dataStore = {
-            D: {},
-            N: {},
-            G: {} // Global
-        };
-
-        const fields = [
-            'Sensor_set', 'Sensor_histeresis', 'Time_on', 'Time_off',
-            'Alarm_data_u', 'Alarm_data_d', 'Alarm_data_set',
-            'widget_status', 'trend', 'Alarm_power',
-            'relay_change_notify', 'Alarm_start', 'Statatus_sensor_control',
-            'Start_status' // Per-profile initial relay state
+        // Mapping keys (Home.html IDs <-> URL params)
+        const profileKeys = [
+            'sensor_set', 'sensor_histeresis', 'rele_status',
+            'time_on', 'time_off',
+            'alarm_data_u', 'alarm_data_d', 'alarm_data_set', 'trend',
+            'alarm_start', 'alarm_power', 'relay_change_notify', 'widget_status',
+            'Statatus_sensor_control', 'Start_status'
         ];
 
-        // Завантаження даних з URL
-        function initData() {
-            const params = new URLSearchParams(window.location.search);
+        function init() {
+            const params = new URLSearchParams(location.search);
+            currentProf = params.get('cp') || 'D';
 
-            // Поточний живий профіль на ESP
-            const espProf = params.get('cp') || 'D';
-            currentProfile = espProf;
+            profileKeys.forEach(k => {
+                dataStore.D[k] = params.get('d_' + k.toLowerCase()) || (k === 'sensor_set' ? 20 : 0);
+                dataStore.N[k] = params.get('n_' + k.toLowerCase()) || (k === 'sensor_set' ? 20 : 0);
+            });
+            dataStore.G.Time_D_h = params.get('g_tdh') || 8;
+            dataStore.G.Time_N_h = params.get('g_tnh') || 20;
 
-            fields.forEach(f => {
-                let dVal = params.get('d_' + f);
-                let nVal = params.get('n_' + f);
+            // Init global inputs
+            document.getElementById('g-time_d_h').value = dataStore.G.Time_D_h;
+            document.getElementById('g-time_n_h').value = dataStore.G.Time_N_h;
 
-                if (f.includes('Alarm') && !f.includes('power') && !f.includes('start')) {
-                    dataStore.D[f] = dVal !== null ? parseFloat(dVal) : 30;
-                    dataStore.N[f] = nVal !== null ? parseFloat(nVal) : 30;
-                } else {
-                    dataStore.D[f] = dVal !== null ? parseFloat(dVal) : (f === 'Sensor_set' ? 20 : 0);
-                    dataStore.N[f] = nVal !== null ? parseFloat(nVal) : (f === 'Sensor_set' ? 20 : 0);
-                }
+            setProfTab(currentProf);
+        }
+
+        function setProfTab(p) {
+            saveUIToStore(); // Save current profile changes to memory first
+            currentProf = p;
+            ['D', 'N'].forEach(id => {
+                document.getElementById('ptab-' + id).classList.toggle('active', id === p);
+            });
+            loadProfileToUI();
+        }
+
+        function loadProfileToUI() {
+            const data = dataStore[currentProf];
+            profileKeys.forEach(k => {
+                if (k === 'Statatus_sensor_control' || k === 'Start_status') return;
+                const el = document.getElementById('p-' + k);
+                if (!el) return;
+                if (el.type === 'checkbox') el.checked = (data[k] == 1);
+                else el.value = data[k];
             });
 
-            // Global
-            let gTdh = params.get('g_tdh');
-            let gTnh = params.get('g_tnh');
-            dataStore.G.Time_D_h = gTdh !== null ? parseInt(gTdh) : 8;
-            dataStore.G.Time_N_h = gTnh !== null ? parseInt(gTnh) : 20;
-
-            updateTabs();
-            loadProfileToUI(currentProfile);
-
-            // Глобальні поля завжди синхронні
-            document.getElementById('Time_D_h').value = dataStore.G.Time_D_h;
-            document.getElementById('Time_N_h').value = dataStore.G.Time_N_h;
+            setStartStatus(parseInt(data.Start_status || 0), false);
+            setProfMode(parseInt(data.Statatus_sensor_control || 0), false);
         }
 
-        function setEditProfile(p) {
-            saveUIToStore(currentProfile); // Зберігаємо поточні зміни в пам'ять JS
-            currentProfile = p;
-            updateTabs();
-            loadProfileToUI(p);
-        }
-
-        function updateTabs() {
-            document.querySelectorAll('.profile-tab').forEach(t => {
-                t.classList.toggle('active', t.dataset.profile === currentProfile);
+        function saveUIToStore() {
+            const data = dataStore[currentProf];
+            profileKeys.forEach(k => {
+                if (k === 'Statatus_sensor_control' || k === 'Start_status') return;
+                const el = document.getElementById('p-' + k);
+                if (!el) return;
+                data[k] = el.type === 'checkbox' ? (el.checked ? 1 : 0) : el.value;
             });
+            // Mode and StartStatus are already updated via their functions
         }
-
-        function loadProfileToUI(p) {
-            const data = dataStore[p];
-            fields.forEach(f => {
-                if (f === 'Start_status') return; // Handled separately
-                const el = document.getElementById(f);
-                if (el) {
-                    if (el.type === 'checkbox') {
-                        el.checked = (data[f] == 1 || data[f] == '1' || data[f] === true);
-                    } else {
-                        el.value = data[f];
-                    }
-                }
-            });
-
-            // Start_status UI
-            setStartStatus(parseInt(data['Start_status'] || 0), false);
-
-            // Режим автоматизації
-            const mode = parseInt(data['Statatus_sensor_control'] || 0);
-            setMode(mode, false);
-        }
-
-        function saveUIToStore(p) {
-            fields.forEach(f => {
-                if (f === 'Start_status') return; // Handled separately
-                const el = document.getElementById(f);
-                if (el) {
-                    if (el.type === 'checkbox') {
-                        dataStore[p][f] = el.checked ? 1 : 0;
-                    } else {
-                        const val = parseFloat(el.value);
-                        dataStore[p][f] = isNaN(val) ? 0 : val;
-                    }
-                }
-            });
-            dataStore[p].Statatus_sensor_control = automationMode;
-            dataStore[p].Start_status = startStatusValue;
-        }
-
 
         function setStartStatus(v, updateStore = true) {
-            startStatusValue = v;
-            document.getElementById('ss0').classList.toggle('active', v === 0);
-            document.getElementById('ss1').classList.toggle('active', v === 1);
-            if (updateStore) dataStore[currentProfile].Start_status = v;
+            if (updateStore) dataStore[currentProf].Start_status = v;
+            [0, 1].forEach(id => {
+                document.getElementById('ss-' + id).classList.toggle('active', id === v);
+            });
         }
 
-        function setMode(m, updateStore = true) {
-            automationMode = m;
-            document.querySelectorAll('.mode-option').forEach((el, idx) => {
-                el.classList.toggle('active', idx === m);
+        function setProfMode(m, updateStore = true) {
+            if (updateStore) dataStore[currentProf].Statatus_sensor_control = m;
+            [0, 1, 2].forEach(id => {
+                document.getElementById('pmode-' + id).classList.toggle('active', id === m);
             });
+            document.getElementById('card-sensor').style.display = (m === 1 ? 'block' : 'none');
+            document.getElementById('card-timer').style.display = (m === 2 ? 'block' : 'none');
+        }
 
-            // Взаємовиключна логіка UI
-            const sensorBox = document.getElementById('sensorSettings');
-            const timerBox = document.getElementById('timerSettings');
-
-            sensorBox.style.opacity = (m === 1) ? "1" : "0.5";
-            timerBox.style.opacity = (m === 2) ? "1" : "0.5";
-
-            if (updateStore) {
-                dataStore[currentProfile].Statatus_sensor_control = m;
-            }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
 
         function saveSettings() {
-            saveUIToStore(currentProfile);
+            saveUIToStore();
+            dataStore.G.Time_D_h = document.getElementById('g-time_d_h').value;
+            dataStore.G.Time_N_h = document.getElementById('g-time_n_h').value;
 
-            // Глобальні
-            dataStore.G.Time_D_h = parseInt(document.getElementById('Time_D_h').value) || 0;
-            dataStore.G.Time_N_h = parseInt(document.getElementById('Time_N_h').value) || 0;
+            const target = document.getElementById('saveTarget').value;
+            const sendProfile = (target === 'CUR' ? currentProf : target);
 
-            const target = document.getElementById('saveTo').value;
-            const finalTarget = (target === 'CUR') ? currentProfile : target;
-
-            const result = {
-                t: finalTarget, // D, N, B
-                s: (finalTarget === 'B') ? dataStore.D : dataStore[finalTarget],
+            const payload = {
+                t: sendProfile, // D, N, BOTH
+                s: (sendProfile === 'BOTH' ? dataStore.D : dataStore[sendProfile === 'CUR' ? currentProf : sendProfile]),
                 g: dataStore.G
             };
 
-            // Якщо "Обидва", відправляємо два об'єкти або позначаємо для ESP
-            tg.sendData(JSON.stringify(result));
+            tg.sendData(JSON.stringify(payload));
+            showToast('✅ Надіслано!');
+            setTimeout(() => tg.close(), 1200);
         }
 
-        initData();
+        init();
     </script>
 </body>
 
