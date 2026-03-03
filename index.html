@@ -291,6 +291,22 @@
     </div>
 
     <div class="card">
+        <h2>🔌 Початковий стан реле</h2>
+        <div style="font-size:0.8rem;opacity:0.6;margin-bottom:12px">Стан реле одразу після увімкнення або
+            перезавантаження пристрою</div>
+        <div class="mode-selector" style="flex-direction:row;gap:10px">
+            <div class="mode-option" id="ss0" onclick="setStartStatus(0)" style="flex:1;justify-content:center">
+                <div class="radio-circle"></div>
+                <strong>❌ Вимкнено</strong>
+            </div>
+            <div class="mode-option" id="ss1" onclick="setStartStatus(1)" style="flex:1;justify-content:center">
+                <div class="radio-circle"></div>
+                <strong>✅ Увімкнено</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
         <h2>🛠️ Режим роботи</h2>
         <div class="mode-selector">
             <div class="mode-option" id="mode0" onclick="setMode(0)">
@@ -427,6 +443,7 @@
 
         let currentProfile = 'D'; // 'D' or 'N'
         let automationMode = 0;   // 0: Manual, 1: Sensor, 2: Time
+        let startStatusValue = 0; // 0: OFF, 1: ON at boot
 
         // Сховище даних для обох профілів
         const dataStore = {
@@ -439,7 +456,8 @@
             'Sensor_set', 'Sensor_histeresis', 'Time_on', 'Time_off',
             'Alarm_data_u', 'Alarm_data_d', 'Alarm_data_set',
             'widget_status', 'trend', 'Alarm_power',
-            'relay_change_notify', 'Alarm_start', 'Statatus_sensor_control'
+            'relay_change_notify', 'Alarm_start', 'Statatus_sensor_control',
+            'Start_status' // Per-profile initial relay state
         ];
 
         // Завантаження даних з URL
@@ -493,6 +511,7 @@
         function loadProfileToUI(p) {
             const data = dataStore[p];
             fields.forEach(f => {
+                if (f === 'Start_status') return; // Handled separately
                 const el = document.getElementById(f);
                 if (el) {
                     if (el.type === 'checkbox') {
@@ -503,6 +522,8 @@
                 }
             });
 
+            // Start_status UI
+            setStartStatus(parseInt(data['Start_status'] || 0), false);
 
             // Режим автоматизації
             const mode = parseInt(data['Statatus_sensor_control'] || 0);
@@ -511,6 +532,7 @@
 
         function saveUIToStore(p) {
             fields.forEach(f => {
+                if (f === 'Start_status') return; // Handled separately
                 const el = document.getElementById(f);
                 if (el) {
                     if (el.type === 'checkbox') {
@@ -522,8 +544,16 @@
                 }
             });
             dataStore[p].Statatus_sensor_control = automationMode;
+            dataStore[p].Start_status = startStatusValue;
         }
 
+
+        function setStartStatus(v, updateStore = true) {
+            startStatusValue = v;
+            document.getElementById('ss0').classList.toggle('active', v === 0);
+            document.getElementById('ss1').classList.toggle('active', v === 1);
+            if (updateStore) dataStore[currentProfile].Start_status = v;
+        }
 
         function setMode(m, updateStore = true) {
             automationMode = m;
