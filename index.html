@@ -507,15 +507,14 @@
             dataStore.G.Time_N_h = document.getElementById('g-time_n_h').value;
 
             const target = document.getElementById('saveTarget').value;
-            const sendProfile = (target === 'CUR' ? currentProf : target);
 
-            const payload = {
-                t: sendProfile, // D, N, BOTH
-                s: (sendProfile === 'BOTH' ? dataStore.D : dataStore[sendProfile === 'CUR' ? currentProf : sendProfile]),
-                g: dataStore.G
-            };
-
-            tg.sendData(JSON.stringify(payload));
+            if (target === 'BOTH') {
+                // Send Day payload
+                tg.sendData(JSON.stringify({ t: 'D', s: dataStore.D, g: dataStore.G }));
+            } else {
+                const prof = (target === 'CUR') ? currentProf : target;
+                tg.sendData(JSON.stringify({ t: prof, s: dataStore[prof], g: dataStore.G }));
+            }
             showToast('✅ Надіслано!');
             setTimeout(() => tg.close(), 1200);
         }
