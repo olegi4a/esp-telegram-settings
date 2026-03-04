@@ -437,7 +437,11 @@
             document.getElementById('g-time_d_h').value = dataStore.G.Time_D_h;
             document.getElementById('g-time_n_h').value = dataStore.G.Time_N_h;
 
-            setProfTab(currentProf);
+            // Activate tab and load WITHOUT triggering saveUIToStore()
+            ['D', 'N'].forEach(id => {
+                document.getElementById('ptab-' + id).classList.toggle('active', id === currentProf);
+            });
+            loadProfileToUI();
         }
 
         function setProfTab(p) {
