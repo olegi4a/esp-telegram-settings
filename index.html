@@ -410,22 +410,25 @@
         let currentProf = 'D';
         const dataStore = { D: {}, N: {}, G: {} };
 
-        // Mapping keys (Home.html IDs <-> URL params)
-        const profileKeys = [
-            'sensor_set', 'sensor_histeresis', 'rele_status',
-            'time_on', 'time_off',
-            'alarm_data_u', 'alarm_data_d', 'alarm_data_set', 'trend',
-            'alarm_start', 'alarm_power', 'relay_change_notify', 'widget_status',
-            'Statatus_sensor_control', 'Start_status'
-        ];
+        // Mapping keys to decode compressed URL parameters from C++
+        const paramMap = {
+            'Sensor_set': 'ss', 'Sensor_histeresis': 'sh',
+            'Time_on': 'ton', 'Time_off': 'tof',
+            'Alarm_data_u': 'au', 'Alarm_data_d': 'ad', 'Alarm_data_set': 'as', 'trend': 'tr',
+            'Alarm_start': 'ast', 'Alarm_power': 'ap', 'relay_change_notify': 'rn', 'widget_status': 'w',
+            'Statatus_sensor_control': 'sc', 'Start_status': 'sts'
+        };
+
+        const profileKeys = Object.keys(paramMap);
 
         function init() {
             const params = new URLSearchParams(location.search);
             currentProf = params.get('cp') || 'D';
 
             profileKeys.forEach(k => {
-                dataStore.D[k] = params.get('d_' + k.toLowerCase()) || (k === 'sensor_set' ? 20 : 0);
-                dataStore.N[k] = params.get('n_' + k.toLowerCase()) || (k === 'sensor_set' ? 20 : 0);
+                const shortKey = paramMap[k];
+                dataStore.D[k] = params.get('d_' + shortKey) || (k === 'Sensor_set' ? 20 : 0);
+                dataStore.N[k] = params.get('n_' + shortKey) || (k === 'Sensor_set' ? 20 : 0);
             });
             dataStore.G.Time_D_h = params.get('g_tdh') || 8;
             dataStore.G.Time_N_h = params.get('g_tnh') || 20;
@@ -450,7 +453,7 @@
             const data = dataStore[currentProf];
             profileKeys.forEach(k => {
                 if (k === 'Statatus_sensor_control' || k === 'Start_status') return;
-                const el = document.getElementById('p-' + k);
+                const el = document.getElementById('p-' + k.toLowerCase());
                 if (!el) return;
                 if (el.type === 'checkbox') el.checked = (data[k] == 1);
                 else el.value = data[k];
@@ -464,7 +467,7 @@
             const data = dataStore[currentProf];
             profileKeys.forEach(k => {
                 if (k === 'Statatus_sensor_control' || k === 'Start_status') return;
-                const el = document.getElementById('p-' + k);
+                const el = document.getElementById('p-' + k.toLowerCase());
                 if (!el) return;
                 data[k] = el.type === 'checkbox' ? (el.checked ? 1 : 0) : el.value;
             });
