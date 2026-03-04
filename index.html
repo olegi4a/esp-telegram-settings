@@ -423,15 +423,15 @@
 
         function init() {
             const params = new URLSearchParams(location.search);
-            currentProf = params.get('cp') || 'D';
+            currentProf = params.get('cp');
 
             profileKeys.forEach(k => {
                 const shortKey = paramMap[k];
-                dataStore.D[k] = params.get('d_' + shortKey) || (k === 'Sensor_set' ? 20 : 0);
-                dataStore.N[k] = params.get('n_' + shortKey) || (k === 'Sensor_set' ? 20 : 0);
+                dataStore.D[k] = params.get('d_' + shortKey);
+                dataStore.N[k] = params.get('n_' + shortKey);
             });
-            dataStore.G.Time_D_h = params.get('g_tdh') || 8;
-            dataStore.G.Time_N_h = params.get('g_tnh') || 20;
+            dataStore.G.Time_D_h = params.get('g_tdh');
+            dataStore.G.Time_N_h = params.get('g_tnh');
 
             // Init global inputs
             document.getElementById('g-time_d_h').value = dataStore.G.Time_D_h;
