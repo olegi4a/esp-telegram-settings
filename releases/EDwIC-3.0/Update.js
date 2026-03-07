@@ -115,8 +115,8 @@ async function doBackupAndContinue() {
 
 /** Створює ZIP-архів з файлів даних LittleFS і зберігає на ПК */
 async function createBackup() {
-  // Завантажуємо локальний JSZip для бекапу без інтернету
-  await loadScript('/jszip.js');
+  // Динамічно завантажуємо JSZip з CDN для економії місця на флеш-пам'яті
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
 
   // Отримуємо список файлів з пристрою
   const r = await fetch('/api/fs/list');

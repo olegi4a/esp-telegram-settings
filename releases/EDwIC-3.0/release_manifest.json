@@ -10,8 +10,7 @@
     "Update.html",
     "Update.css",
     "Update.js",
-    "jquery.js",
-    "jszip.js"
+    "jquery.js"
   ],
   "firmware": "firmware.bin"
 }
