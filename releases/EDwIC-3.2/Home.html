@@ -982,20 +982,42 @@
 
     async function loadHistory() {
       try {
-        let url = `/api/history?days=${chartDays}`;
+        let datesToFetch = [];
+        const tzOffset = (new Date()).getTimezoneOffset() * 60000;
         
         if (chartCustomStart && chartCustomEnd) {
-          // Format as local YYYY-MM-DD
-          const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-          const sDateStr = new Date(chartCustomStart.getTime() - tzOffset).toISOString().split('T')[0];
-          const eDateStr = new Date(chartCustomEnd.getTime() - tzOffset).toISOString().split('T')[0];
-          url = `/api/history?start=${sDateStr}&end=${eDateStr}`;
+          // Custom range: generate all dates from start to end
+          let d = new Date(chartCustomStart.getTime());
+          const end = new Date(chartCustomEnd.getTime());
+          while (d <= end) {
+            datesToFetch.push(new Date(d.getTime() - tzOffset).toISOString().split('T')[0]);
+            d.setDate(d.getDate() + 1);
+          }
+        } else {
+          // Quick presets: today, yesterday, etc based on chartDays
+          let d = new Date();
+          for (let i = 0; i < chartDays; i++) {
+            datesToFetch.push(new Date(d.getTime() - tzOffset).toISOString().split('T')[0]);
+            d.setDate(d.getDate() - 1);
+          }
         }
+
+        // Fetch all files in parallel
+        const fetchPromises = datesToFetch.map(async dateStr => {
+          try {
+            const res = await fetch(`/log/${dateStr}.ndjson`, { cache: 'no-cache' });
+            if (res.ok) return await res.text();
+            return "";
+          } catch(e) { return ""; }
+        });
+
+        const results = await Promise.all(fetchPromises);
+        const combinedText = results.join('\n');
+        historyData = parseNDJSON(combinedText);
         
-        const r = await fetch(url, { cache: 'no-cache' });
-        if (!r.ok) return;
-        const text = await r.text();
-        historyData = parseNDJSON(text);
+        // Sort ascending by timestamp since we might have fetched them in arbitrary or reverse order
+        historyData.sort((a, b) => a.ts - b.ts);
+        
         renderEventLog(historyData);
       } catch (e) { console.error('History load error:', e); }
     }
