@@ -171,8 +171,8 @@ async function runGithubUpdate() {
   if (manifestAsset) {
     try {
       addLog(logList, 'spin', 'Завантаження manifest...');
-      const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(manifestAsset.browser_download_url);
-      const mr = await fetch(proxyUrl);
+      const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteVer}/release_manifest.json`;
+      const mr = await fetch(rawUrl);
       manifest = await mr.json();
       updateLastLog(logList, 'ok', 'Manifest отримано');
     } catch (e) {
@@ -193,8 +193,8 @@ async function runGithubUpdate() {
 
     addLog(logList, 'spin', `Оновлення ${fname}...`);
     try {
-      const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(asset.browser_download_url);
-      const fr = await fetch(proxyUrl);
+      const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteVer}/${fname}`;
+      const fr = await fetch(rawUrl);
       if (!fr.ok) throw new Error('HTTP ' + fr.status);
       const blob = await fr.blob();
       await uploadFileToFs(fname, blob);
@@ -217,8 +217,8 @@ async function runGithubUpdate() {
 
   addLog(logList, 'spin', 'Завантаження прошивки з GitHub...');
   try {
-    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(fwAsset.browser_download_url);
-    const fwr = await fetch(proxyUrl);
+    const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteVer}/${fwName}`;
+    const fwr = await fetch(rawUrl);
     if (!fwr.ok) throw new Error('HTTP ' + fwr.status);
     const fwBlob = await fwr.blob();
     updateLastLog(logList, 'ok', `Прошивка завантажена (${formatSize(fwBlob.size)})`);
