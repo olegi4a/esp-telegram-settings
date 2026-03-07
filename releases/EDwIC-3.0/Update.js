@@ -167,6 +167,7 @@ async function runGithubUpdate() {
   const assets = pendingRelease.assets || [];
   const manifestAsset = assets.find(a => a.name === 'release_manifest.json');
 
+  const remoteVer = pendingRelease.tag_name.replace(/^v/, '');
   let manifest = null;
   if (manifestAsset) {
     try {
