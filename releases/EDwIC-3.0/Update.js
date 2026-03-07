@@ -77,7 +77,7 @@ async function checkVersion() {
       btnUpd.style.display = 'block';
       pendingRelease = githubRelease;
     } else {
-      document.getElementById('gh-new').textContent = remoteVer + ' ✓ актуальна';
+      document.getElementById('gh-new').textContent = remoteVer + ' (встановлено)';
     }
   } catch (e) {
     document.getElementById('gh-new').textContent = '❌ Помилка: ' + e.message;
@@ -113,11 +113,25 @@ async function doBackupAndContinue() {
   }
 }
 
-/** Створює ZIP-архів з файлів даних LittleFS і зберігає на ПК */
-async function createBackup() {
-  // Динамічно завантажуємо JSZip з CDN для економії місця на флеш-пам'яті
-  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+/** Функція для кнопки ручного бекапу на вкладці Manual */
+async function createBackupManual() {
+  const btn = document.getElementById('btn-manual-backup');
+  const ogText = btn.textContent;
+  try {
+    btn.disabled = true;
+    btn.textContent = 'Збираємо файли...';
+    await createBackup();
+    btn.textContent = '✅ Готово';
+    setTimeout(() => { btn.textContent = ogText; btn.disabled = false; }, 3000);
+  } catch (e) {
+    alert('Помилка бекапу: ' + e.message);
+    btn.textContent = '❌ Помилка';
+    setTimeout(() => { btn.textContent = ogText; btn.disabled = false; }, 3000);
+  }
+}
 
+/** Створює TAR-архів з файлів даних LittleFS (без зовнішніх бібліотек) */
+async function createBackup() {
   // Отримуємо список файлів з пристрою
   const r = await fetch('/api/fs/list');
   if (!r.ok) throw new Error('/api/fs/list: ' + r.status);
@@ -131,25 +145,74 @@ async function createBackup() {
 
   if (dataFiles.length === 0) throw new Error('Немає файлів для бекапу');
 
-  // Формуємо назву архіву і папки всередині
   const date    = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const zipName = `backup_edwik_${date}`;
-  const zip     = new JSZip();
-  const folder  = zip.folder(zipName);
+  const tarName = `backup_edwik_${date}.tar`;
+  const tarFolder = `backup_edwik_${date}/`;
+  
+  let tarBuffers = [];
+  
+  // Допоміжна функція для створення TAR заголовка (512 байт)
+  const createTarHeader = (name, size) => {
+    const header = new Uint8Array(512);
+    const encoder = new TextEncoder();
+    
+    // File name (100)
+    header.set(encoder.encode(name.substring(0, 100)), 0);
+    // File mode (8) - 0000644
+    header.set(encoder.encode('0000644 \0'), 100);
+    // UID (8)
+    header.set(encoder.encode('0000000 \0'), 108);
+    // GID (8)
+    header.set(encoder.encode('0000000 \0'), 116);
+    // File size in octal (12)
+    const sizeStr = size.toString(8).padStart(11, '0') + ' ';
+    header.set(encoder.encode(sizeStr), 124);
+    // MTime (12) - use current time
+    const mtime = Math.floor(Date.now() / 1000).toString(8).padStart(11, '0') + ' ';
+    header.set(encoder.encode(mtime), 136);
+    // Checksum (8) - initially spaces
+    header.set(encoder.encode('        '), 148);
+    // Type flag (1) - '0' for normal file
+    header.set(encoder.encode('0'), 156);
+    // Ustar indicator (6)
+    header.set(encoder.encode('ustar\0'), 257);
+    // Ustar version (2)
+    header.set(encoder.encode('00'), 263);
+    
+    // Calculate checksum
+    let checksum = 0;
+    for (let i = 0; i < 512; i++) checksum += header[i];
+    const chksumStr = checksum.toString(8).padStart(6, '0') + '\0 ';
+    header.set(encoder.encode(chksumStr), 148);
+    
+    return header;
+  };
 
-  // Завантажуємо кожен файл з пристрою
   for (const fileInfo of dataFiles) {
     const fr = await fetch('/api/fs/download?file=' + encodeURIComponent(fileInfo.name));
     if (!fr.ok) throw new Error('Не вдалося завантажити: ' + fileInfo.name);
-    const blob = await fr.blob();
+    const buf = await fr.arrayBuffer();
+    const data = new Uint8Array(buf);
+    
     // Ім'я файлу без початкового /
-    const fname = fileInfo.name.replace(/^\//, '');
-    folder.file(fname, blob);
+    const fname = tarFolder + fileInfo.name.replace(/^\//, '');
+    
+    const header = createTarHeader(fname, data.length);
+    tarBuffers.push(header);
+    tarBuffers.push(data);
+    
+    // Додаємо паддінг до 512 байт
+    const paddingLength = (512 - (data.length % 512)) % 512;
+    if (paddingLength > 0) {
+      tarBuffers.push(new Uint8Array(paddingLength));
+    }
   }
 
-  // Генеруємо та зберігаємо ZIP
-  const content = await zip.generateAsync({ type: 'blob' });
-  downloadBlob(content, zipName + '.zip');
+  // Завершальні 1024 нульові байти архіву TAR
+  tarBuffers.push(new Uint8Array(1024));
+  
+  const blob = new Blob(tarBuffers, { type: 'application/x-tar' });
+  downloadBlob(blob, tarName);
 }
 
 // ── GitHub: основний flow оновлення ──────────────────────────────────

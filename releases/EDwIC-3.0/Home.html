@@ -744,6 +744,9 @@
   <!-- ====================================================== -->
   <div id="tab-system" class="panel">
 
+    <!-- Firmware Update Button moved to top -->
+    <button class="btn btn-full" style="background:#23263a;border:1px solid var(--border);color:var(--text);margin-bottom:14px" onclick="window.location.href='/Update.html'">🔄 Оновлення прошивки</button>
+
     <!-- Device info -->
     <div class="card" id="dev-info">
       <div class="card-title">Стан пристрою</div>
@@ -816,7 +819,6 @@
     </div>
 
     <button class="btn btn-primary btn-full" onclick="saveSystem()">💾 Зберегти налаштування</button>
-    <button class="btn btn-full" style="background:#23263a;border:1px solid var(--border);color:var(--text)" onclick="window.location.href='/Update.html'">🔄 Оновлення прошивки</button>
     <button class="btn btn-danger btn-full" onclick="rebootDevice()">🔄 Перезавантажити пристрій</button>
   </div>
 
@@ -968,7 +970,8 @@
 
     async function loadHistory() {
       try {
-        const r = await fetch('/api/history', { cache: 'no-cache' });
+        const url = `/api/history?days=${chartDays}`;
+        const r = await fetch(url, { cache: 'no-cache' });
         if (!r.ok) return;
         const text = await r.text();
         historyData = parseNDJSON(text);
@@ -1044,7 +1047,7 @@
         document.getElementById('cq-' + d).className = 'chart-qbtn' + (d === days ? ' active' : '');
       });
       _updateChartTitle();
-      if (document.getElementById('chart-card').style.display !== 'none') drawChart(historyData, activeChart);
+      loadHistory(); // Перезавантажуємо історію з сервера для нового діапазону
     }
 
     // Calendar date picker: show exactly that calendar day
