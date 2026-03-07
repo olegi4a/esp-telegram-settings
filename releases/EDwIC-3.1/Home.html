@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>EDwIC Control</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --card: #1a1d2e;
+      --border: #2a2d3e;
+      --accent: #6c63ff;
+      --accent2: #ff6b6b;
+      --green: #43e97b;
+      --orange: #ff9f43;
+      --text: #eaf0fb;
+      --muted: #8892a4;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* === HEADER === */
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 6px var(--accent2);
+      transition: background .5s;
+    }
+
+    .status-dot.online {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    /* === TABS === */
+    nav {
+      display: flex;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav button {
+      flex: 1;
+      padding: 12px 4px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: .03em;
+    }
+
+    nav button.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    nav button:hover {
+      color: var(--text);
+    }
+
+    /* === PANELS === */
+    .panel {
+      display: none;
+      padding: 18px 14px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* === CARDS === */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    /* === SENSOR GRID === */
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .sensor-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .sensor-icon {
+      font-size: 1.4rem;
+    }
+
+    .sensor-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin: 4px 0;
+      color: var(--text);
+      transition: color .4s;
+    }
+
+    .sensor-lbl {
+      font-size: .65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    /* === RELAY TOGGLE === */
+    .relay-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .relay-label {
+      font-size: .9rem;
+      font-weight: 600;
+    }
+
+    .relay-state {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .toggle-wrap {
+      position: relative;
+    }
+
+    .toggle-wrap input {
+      display: none;
+    }
+
+    .toggle-wrap label {
+      display: block;
+      width: 54px;
+      height: 28px;
+      background: var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background .3s;
+      position: relative;
+    }
+
+    .toggle-wrap label::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      top: 4px;
+      left: 4px;
+      transition: transform .3s;
+    }
+
+    .toggle-wrap input:checked+label {
+      background: var(--green);
+    }
+
+    .toggle-wrap input:checked+label::after {
+      transform: translateX(26px);
+    }
+
+    .toggle-wrap.disabled label {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    /* === MODE SELECTOR === */
+    .mode-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 8px 4px;
+      background: var(--border);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: .75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      text-align: center;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* === CHART === */
+    canvas {
+      width: 100%;
+      height: 130px;
+      display: block;
+    }
+
+    /* === EVENT LOG === */
+    .event-list {
+      list-style: none;
+    }
+
+    .event-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .78rem;
+    }
+
+    .event-list li:last-child {
+      border: none;
+    }
+
+    .ev-icon {
+      font-size: 1rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .ev-time {
+      color: var(--muted);
+      font-size: .7rem;
+      min-width: 42px;
+    }
+
+    /* === FORM FIELDS === */
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: .72rem;
+      color: var(--muted);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: .9rem;
+      outline: none;
+      transition: border .2s;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent);
+    }
+
+    /* === BUTTONS === */
+    .btn {
+      padding: 11px 20px;
+      border: none;
+      border-radius: 9px;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      display: inline-block;
+      letter-spacing: .02em;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #7c75ff;
+    }
+
+    .btn-danger {
+      background: var(--accent2);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #ff5252;
+    }
+
+    .btn-full {
+      width: 100%;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .btn-sm {
+      padding: 7px 14px;
+      font-size: .78rem;
+    }
+
+    /* === PROFILE TABS === */
+    .prof-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .prof-tab {
+      flex: 1;
+      padding: 8px;
+      background: var(--border);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all .2s;
+    }
+
+    .prof-tab.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* === INFO ROW === */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .82rem;
+    }
+
+    .info-row:last-child {
+      border: none;
+    }
+
+    .info-key {
+      color: var(--muted);
+    }
+
+    .info-val {
+      font-weight: 600;
+    }
+
+    /* === TOAST === */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e2340;
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 10px 22px;
+      font-size: .85rem;
+      transition: transform .35s;
+      z-index: 999;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .section-title {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin: 8px 0 6px;
+    }
+
+    /* === PROFILE MODE SELECTOR === */
+    .pmode-opt {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .pmode-opt.active {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, .12);
+    }
+
+    .pmode-radio {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--muted);
+      border-radius: 50%;
+      flex-shrink: 0;
+      position: relative;
+      transition: border-color .2s;
+    }
+
+    .pmode-opt.active .pmode-radio {
+      border-color: var(--accent);
+    }
+
+    .pmode-opt.active .pmode-radio::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* animated card appear */
+    .prof-mode-card {
+      animation: fadeIn .25s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* === CHART QUICK BUTTONS === */
+    .chart-qbtn {
+      padding: 4px 9px;
+      background: var(--border);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .chart-qbtn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>⚡ EDwIC Control</h1>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="hdr-time" style="font-size:.75rem;color:var(--muted)"></span>
+      <div class="status-dot" id="statusDot"></div>
+    </div>
+  </header>
+
+  <nav>
+    <button class="active" onclick="showTab('dashboard',this)">📊 Дашборд</button>
+    <button onclick="showTab('profiles',this)">⚙️ Профілі</button>
+    <button onclick="showTab('system',this)">🔧 Система</button>
+  </nav>
+
+  <!-- ====================================================== -->
+  <!--  TAB 1: DASHBOARD                                       -->
+  <!-- ====================================================== -->
+  <div id="tab-dashboard" class="panel active">
+
+    <div class="sensor-grid" id="sensor-grid">
+      <div class="sensor-box" id="sbox-temp" onclick="toggleChart('temp')" style="cursor:pointer">
+        <div class="sensor-icon">🌡</div>
+        <div class="sensor-val" id="s-temp">--</div>
+        <div class="sensor-lbl">°C ▼</div>
+      </div>
+      <div class="sensor-box" id="sbox-hum" onclick="toggleChart('hum')" style="cursor:pointer;display:none">
+        <div class="sensor-icon">💧</div>
+        <div class="sensor-val" id="s-hum">--</div>
+        <div class="sensor-lbl">% ▼</div>
+      </div>
+      <div class="sensor-box" id="sbox-press" onclick="toggleChart('press')" style="cursor:pointer;display:none">
+        <div class="sensor-icon">🌬</div>
+        <div class="sensor-val" id="s-press">--</div>
+        <div class="sensor-lbl">hPa ▼</div>
+      </div>
+    </div>
+
+    <!-- Chart (collapsed by default, shown on click) -->
+    <!-- Chart (collapsed until sensor clicked) -->
+    <div class="card" id="chart-card" style="display:none">
+      <div
+        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+        <div class="card-title" id="chart-title" style="margin:0">Температура</div>
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+          <button class="chart-qbtn active" id="cq-1" onclick="setChartRange(1)">Сьогодні</button>
+          <button class="chart-qbtn" id="cq-2" onclick="setChartRange(2)">Вчора</button>
+          <button class="chart-qbtn" id="cq-7" onclick="setChartRange(7)">Тиждень</button>
+          <input type="date" id="chart-date-pick"
+            style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:4px 7px;font-size:.74rem;outline:none"
+            onchange="setChartDate(this.value)">
+        </div>
+      </div>
+      <canvas id="chart"></canvas>
+      <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted);margin-top:4px">
+        <span id="chart-lbl-l">AM</span><span id="chart-lbl-m"></span><span id="chart-lbl-r">Anzaraz</span>
+      </div>
+    </div>
+
+    <!-- Relay -->
+    <div class="card">
+      <div class="card-title">Реле</div>
+      <div class="relay-row">
+        <div>
+          <div class="relay-label" id="relay-label">Вимкнено</div>
+          <div class="relay-state" id="relay-mode-label">Ручне керування</div>
+        </div>
+        <div class="toggle-wrap" id="relay-toggle-wrap">
+          <input type="checkbox" id="relayToggle" onchange="setRelay(this.checked)">
+          <label for="relayToggle"></label>
+        </div>
+      </div>
+      <!-- 220V status row -->
+      <div
+        style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:.82rem">
+        <span style="color:var(--muted)">Живлення 220В</span>
+        <span id="dash-power" style="font-weight:700">—</span>
+      </div>
+      <div style="margin-top:10px">
+        <div class="section-title">Режим роботи</div>
+        <div class="mode-btns">
+          <div class="mode-btn" id="mode-manual" onclick="setOpMode('manual')">Ручний</div>
+          <div class="mode-btn" id="mode-auto" onclick="setOpMode('auto')">Автоматичний</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event log -->
+    <div class="card">
+      <div class="card-title">Останні події</div>
+      <ul class="event-list" id="event-list">
+        <li><span class="ev-icon">💤</span><span>Завантаження...</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!--  TAB 2: PROFILES                                        -->
+  <!-- ====================================================== -->
+  <div id="tab-profiles" class="panel">
+
+    <div class="prof-tabs">
+      <div class="prof-tab active" id="ptab-D" onclick="setProfTab('D')">☀️ День</div>
+      <div class="prof-tab" id="ptab-N" onclick="setProfTab('N')">🌙 Ніч</div>
+      <div class="prof-tab" id="ptab-B" onclick="setProfTab('B')">💾 Обидва</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Початковий стан реле при старті</div>
+      <div class="mode-btns">
+        <div class="mode-btn" id="ss-0" onclick="setStartStatus(0)">Вимкнено</div>
+        <div class="mode-btn" id="ss-1" onclick="setStartStatus(1)">Увімкнено</div>
+      </div>
+    </div>
+
+    <!-- Mode selector (vertical) -->
+    <div class="card">
+      <div class="card-title">Режим автоматики профілю</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="pmode-opt" id="pmode-0" onclick="setProfMode(0)">
+          <div class="pmode-radio"></div>
+          <div>
+            <div style="font-weight:700;font-size:.88rem">🖐 Ручний</div>
+            <div style="font-size:.72rem;color:var(--muted)">Керування тільки вручну</div>
+          </div>
+        </div>
+        <div class="pmode-opt" id="pmode-1" onclick="setProfMode(1)">
+          <div class="pmode-radio"></div>
+          <div>
+            <div style="font-weight:700;font-size:.88rem">🌡 По датчику</div>
+            <div style="font-size:.72rem;color:var(--muted)">Підтримка температури</div>
+          </div>
+        </div>
+        <div class="pmode-opt" id="pmode-2" onclick="setProfMode(2)">
+          <div class="pmode-radio"></div>
+          <div>
+            <div style="font-weight:700;font-size:.88rem">⏱ По таймеру</div>
+            <div style="font-size:.72rem;color:var(--muted)">Циклічне ввімкнення/вимкнення</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sensor settings (shown only when mode = 1) -->
+    <div class="card prof-mode-card" id="card-sensor" style="display:none">
+      <div class="card-title">🌡 Параметри датчика</div>
+      <div class="field">
+        <label>Уставка (SetPoint) °C</label>
+        <input type="number" id="p-sensor_set" step="0.1" value="20">
+      </div>
+      <div class="field">
+        <label>Гістерезис °C</label>
+        <input type="number" id="p-sensor_histeresis" step="0.1" value="1">
+      </div>
+      <div class="field" style="margin:0">
+        <label>Реле вмикається якщо temp</label>
+        <select id="p-rele_status">
+          <option value="0">Нижче уставки</option>
+          <option value="1">Вище уставки</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Timer settings (shown only when mode = 2) -->
+    <div class="card prof-mode-card" id="card-timer" style="display:none">
+      <div class="card-title">⏱ Параметри таймера</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field" style="margin:0">
+          <label>ON хвилин</label>
+          <input type="number" id="p-time_on" value="1">
+        </div>
+        <div class="field" style="margin:0">
+          <label>OFF хвилин</label>
+          <input type="number" id="p-time_off" value="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Тривога по температурі</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field" style="margin:0">
+          <label>Верхня межа °C</label>
+          <input type="number" id="p-alarm_data_u" step="0.5" value="30">
+        </div>
+        <div class="field" style="margin:0">
+          <label>Нижня межа °C</label>
+          <input type="number" id="p-alarm_data_d" step="0.5" value="15">
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
+          <input type="checkbox" id="p-alarm_data_set"> Тривога активна
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
+          <input type="checkbox" id="p-trend"> По тенденції
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Сповіщення</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+          <input type="checkbox" id="p-alarm_start"> Повідомлення про перезавантаження
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+          <input type="checkbox" id="p-alarm_power"> Сповіщення про збій живлення
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+          <input type="checkbox" id="p-relay_change_notify"> Сповіщення про зміну реле
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+          <input type="checkbox" id="p-widget_status"> Віджет (раз на 5 хв)
+        </label>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="saveProfile()">💾 Зберегти профіль</button>
+  </div>
+
+  <!-- ====================================================== -->
+  <!--  TAB 3: SYSTEM                                          -->
+  <!-- ====================================================== -->
+  <div id="tab-system" class="panel">
+
+    <!-- Firmware Update Button moved to top -->
+    <button class="btn btn-full" style="background:#23263a;border:1px solid var(--border);color:var(--text);margin-bottom:14px" onclick="window.location.href='/Update.html'">🔄 Оновлення прошивки</button>
+
+    <!-- Device info -->
+    <div class="card" id="dev-info">
+      <div class="card-title">Стан пристрою</div>
+      <div class="info-row"><span class="info-key">IP-адреса</span><span class="info-val" id="sys-ip">—</span></div>
+      <div class="info-row"><span class="info-key">Uptime</span><span class="info-val" id="sys-uptime">—</span></div>
+      <div class="info-row"><span class="info-key">Вільна RAM</span><span class="info-val" id="sys-heap">—</span></div>
+      <div class="info-row"><span class="info-key">RAM Журнал</span><span class="info-val" id="sys-log">—</span></div>
+      <div class="info-row"><span class="info-key">Wi-Fi сигнал</span><span class="info-val" id="sys-wifi">—</span>
+      </div>
+    </div>
+
+    <!-- Wi-Fi settings -->
+    <div class="card">
+      <div class="card-title">Wi-Fi</div>
+      <div class="field">
+        <label>SSID мережі</label>
+        <input type="text" id="g-sid" placeholder="назва мережі">
+      </div>
+      <div class="field">
+        <label>Пароль</label>
+        <input type="password" id="g-pas" placeholder="••••••••">
+      </div>
+    </div>
+
+    <!-- Time profile boundaries -->
+    <div class="card">
+      <div class="card-title">Межі профілів за часом</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field" style="margin:0">
+          <label>☀️ День починається</label>
+          <input type="number" id="g-time_d_h" min="0" max="23" value="8">
+        </div>
+        <div class="field" style="margin:0">
+          <label>🌙 Ніч починається</label>
+          <input type="number" id="g-time_n_h" min="0" max="23" value="20">
+        </div>
+      </div>
+    </div>
+
+    <!-- Timezone -->
+    <div class="card">
+      <div class="card-title">🕐 Часовий пояс (DST авто)</div>
+      <div class="field" style="margin-bottom:6px">
+        <label>POSIX рядок</label>
+        <input type="text" id="g-timezone" placeholder="EET-2EEST,M3.5.0/3,M10.5.0/4">
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px">
+        <button class="btn btn-sm" style="background:var(--border);color:var(--text)"
+          onclick="document.getElementById('g-timezone').value='EET-2EEST,M3.5.0/3,M10.5.0/4'">🇺🇦 Київ</button>
+        <button class="btn btn-sm" style="background:var(--border);color:var(--text)"
+          onclick="document.getElementById('g-timezone').value='CET-1CEST,M3.5.0,M10.5.0/3'">🇩🇪 Берлін</button>
+        <button class="btn btn-sm" style="background:var(--border);color:var(--text)"
+          onclick="document.getElementById('g-timezone').value='GMT0BST,M3.5.0/1,M10.5.0'">🇬🇧 Лондон</button>
+        <button class="btn btn-sm" style="background:var(--border);color:var(--text)"
+          onclick="document.getElementById('g-timezone').value='UTC0'">🌐 UTC</button>
+      </div>
+    </div>
+
+    <!-- Telegram settings -->
+    <div class="card">
+      <div class="card-title">Telegram</div>
+      <div class="field">
+        <label>Bot Token</label>
+        <input type="password" id="g-token" placeholder="не показується з міркувань безпеки">
+      </div>
+      <div class="field">
+        <label>Пароль доступу</label>
+        <input type="number" id="g-pass" placeholder="числовий код">
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="saveSystem()">💾 Зберегти налаштування</button>
+    <button class="btn btn-danger btn-full" onclick="rebootDevice()">🔄 Перезавантажити пристрій</button>
+  </div>
+
+  <div id="toast">✅ Збережено!</div>
+
+  <script>
+    // ============================================================
+    //  State
+    // ============================================================
+    let currentStatus = {};
+    let historyData = [];
+    let profTarget = 'D';
+    let profStartStatus = 0;
+    let profModeValue = 0;  // 0=manual, 1=sensor, 2=timer
+    let refreshTimer;
+
+    const EVENT_ICONS = { 0: '📊', 1: '🔌', 2: '⚙️', 3: '⚡', 4: '🚀', 5: '⚠️', 6: '🕹️', 7: '☀️', 8: '🌙', 9: '💾', 10: '🔔', 11: '🔄', 12: '🧹', 13: '⌚', 14: '🖐', 15: '🌡', 16: '⏱', 17: '💾', 18: '💾', 19: '💾', 20: '⚙️', 21: '☀️', 22: '🌙' };
+    const EVENT_NAMES = { 0: 'Датчик', 1: 'Реле', 2: 'Налаштування', 3: 'Збій живлення', 4: 'Старт', 5: 'Переповнення буфера', 6: 'Режим', 7: 'Денний профіль', 8: 'Нічний профіль', 9: 'Профіль збережено', 10: 'Тривога', 11: 'Перезавантаження', 12: 'Скидання', 13: 'Синхронізація часу', 14: 'Режим: Ручний', 15: 'Режим: Сенсор', 16: 'Режим: Таймер', 17: 'Збережено: Денний', 18: 'Збережено: Нічний', 19: 'Збережено: Поточний', 20: 'Збережено: Система', 21: 'Активовано: Денний', 22: 'Активовано: Нічний' };
+
+    // ============================================================
+    //  Helpers
+    // ============================================================
+    function showToast(msg = '✅ Збережено!', ok = true) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.borderColor = ok ? 'var(--green)' : 'var(--accent2)';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function showTab(name, btn) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      btn.classList.add('active');
+      if (name === 'profiles') loadConfig();
+      if (name === 'system') loadSystemData();
+    }
+
+    function fmtUptime(secs) {
+      const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+      return `${h}г ${m}хв ${s}с`;
+    }
+
+    // ============================================================
+    //  API fetch helpers
+    // ============================================================
+    async function apiGet(path) {
+      try {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 3500);
+        const r = await fetch(path, { cache: 'no-cache', signal: controller.signal });
+        clearTimeout(id);
+        return r.ok ? r.json() : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function apiPost(path, body) {
+      try {
+        const r = await fetch(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        return r.ok ? r.json() : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // ============================================================
+    //  DASHBOARD: live status polling
+    // ============================================================
+    let activeChart = 'temp';  // default chart sensor
+
+    async function refreshStatus() {
+      const data = await apiGet('/api/status');
+      if (!data) {
+        document.getElementById('statusDot').className = 'status-dot';
+        return;
+      }
+      currentStatus = data;
+      document.getElementById('statusDot').className = 'status-dot online';
+      document.getElementById('hdr-time').textContent = data.time ?? '';
+
+      // --- Smart sensor visibility ---
+      const hasTemp = data.temp != null && data.temp !== '';
+      const hasHum = data.hum != null && data.hum !== '' && parseFloat(data.hum) > 0;
+      const hasPress = data.press != null && data.press !== '' && parseFloat(data.press) > 100;
+
+      document.getElementById('s-temp').textContent = hasTemp ? data.temp : '--';
+      document.getElementById('s-hum').textContent = hasHum ? data.hum : '--';
+      document.getElementById('s-press').textContent = hasPress ? data.press : '--';
+      document.getElementById('sbox-hum').style.display = hasHum ? '' : 'none';
+      document.getElementById('sbox-press').style.display = hasPress ? '' : 'none';
+      const count = 1 + (hasHum ? 1 : 0) + (hasPress ? 1 : 0);
+      document.getElementById('sensor-grid').style.gridTemplateColumns = `repeat(${count},1fr)`;
+
+      // 220V
+      const pw = document.getElementById('dash-power');
+      pw.textContent = data.power ? '✅ 220В є' : '❌ Відсутнє';
+      pw.style.color = data.power ? 'var(--green)' : 'var(--accent2)';
+
+      // Relay
+      const r = !!data.relay;
+      document.getElementById('relayToggle').checked = r;
+      document.getElementById('relay-label').textContent = r ? '✅ Увімкнено' : '❌ Вимкнено';
+      const mode = data.mode ?? 0;
+      const isAuto = mode !== 0;
+      document.getElementById('relay-toggle-wrap').className = 'toggle-wrap' + (isAuto ? ' disabled' : '');
+      document.getElementById('relayToggle').disabled = isAuto;
+      const modeNames = ['Ручне керування', 'Автоматика по сенсору', 'Автоматика по таймеру'];
+      document.getElementById('relay-mode-label').textContent = modeNames[mode] || '';
+
+      // Highlight manual/auto based on mode value
+      document.getElementById('mode-manual').className = 'mode-btn' + (mode === 0 ? ' active' : '');
+      document.getElementById('mode-auto').className = 'mode-btn' + (mode !== 0 ? ' active' : '');
+
+      // --- Live update System tab (reuses the same poll, zero extra requests) ---
+      const sysUptime = document.getElementById('sys-uptime');
+      if (sysUptime) {
+        document.getElementById('sys-ip').textContent = location.hostname;
+        document.getElementById('sys-uptime').textContent = fmtUptime(data.uptime || 0);
+        const heapPct = data.heap ? Math.round((data.heap / 81920) * 100) : 0;
+        document.getElementById('sys-heap').textContent = heapPct + '% (' + (data.heap || 0) + ' B)';
+
+        const logEl = document.getElementById('sys-log');
+        if (logEl) logEl.textContent = `${data.log_count || 0} / ${data.log_max || 100}`;
+
+        const wifiEl = document.getElementById('sys-wifi');
+        if (wifiEl && data.wifi_rssi != null) {
+          const rssi = parseInt(data.wifi_rssi);
+          const icon = rssi >= -60 ? '📶' : rssi >= -75 ? '📶' : '🔴';
+          const quality = rssi >= -60 ? 'Відмінний' : rssi >= -75 ? 'Добрий' : rssi >= -85 ? 'Слабкий' : 'Дуже слабкий';
+          wifiEl.textContent = `${icon} ${rssi} dBm (${quality})`;
+          wifiEl.style.color = rssi >= -60 ? 'var(--green)' : rssi >= -75 ? '#f5c542' : 'var(--accent2)';
+        }
+      }
+    }
+
+    // Parse NDJSON text into Array of objects
+    function parseNDJSON(text) {
+      return text.trim().split('\n')
+        .map(l => { try { return JSON.parse(l.trim()); } catch (e) { return null; } })
+        .filter(Boolean);
+    }
+
+    async function loadHistory() {
+      try {
+        const url = `/api/history?days=${chartDays}`;
+        const r = await fetch(url, { cache: 'no-cache' });
+        if (!r.ok) return;
+        const text = await r.text();
+        historyData = parseNDJSON(text);
+        renderEventLog(historyData);
+      } catch (e) { console.error('History load error:', e); }
+    }
+
+    async function syncHistoryRam() {
+      try {
+        const r = await fetch('/api/history_ram', { cache: 'no-cache' });
+        if (!r.ok) return;
+        const text = await r.text();
+        const ramData = parseNDJSON(text);
+        if (ramData.length === 0) return;
+
+        let changed = false;
+        // Merge ram data appending only new timestamps
+        const existingTs = new Set(historyData.map(e => e.ts));
+        for (const item of ramData) {
+          if (!existingTs.has(item.ts)) {
+            historyData.push(item);
+            existingTs.add(item.ts);
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          // Sort by timestamp just in case
+          historyData.sort((a, b) => a.ts - b.ts);
+          renderEventLog(historyData);
+          if (document.getElementById('chart-card').style.display !== 'none') {
+            drawChart(historyData, activeChart);
+          }
+        }
+      } catch (e) { console.error('RAM sync error:', e); }
+    }
+
+    // Toggle chart visibility when sensor box is clicked
+    // Chart state
+    let chartDays = 1;          // how many days to show (1/2/7)
+    let chartDateOverride = null; // specific day (Date obj) or null = rolling
+
+    function toggleChart(sensor) {
+      const card = document.getElementById('chart-card');
+      if (activeChart === sensor && card.style.display !== 'none') {
+        card.style.display = 'none';
+        return;
+      }
+      activeChart = sensor;
+      card.style.display = 'block';
+      _updateChartTitle();
+      ['temp', 'hum', 'press'].forEach(s => {
+        const el = document.getElementById('sbox-' + s);
+        if (el) el.style.borderColor = (s === sensor) ? 'var(--accent)' : 'var(--border)';
+      });
+      drawChart(historyData, sensor);
+    }
+
+    function _updateChartTitle() {
+      const names = { temp: '🌡 Температура', hum: '💧 Вологість', press: '🌬 Тиск' };
+      const suffix = chartDateOverride
+        ? ' — ' + chartDateOverride.toLocaleDateString('uk-UA')
+        : (chartDays === 1 ? ' — 24г' : chartDays === 2 ? ' — вчора' : ` — ${chartDays}д`);
+      document.getElementById('chart-title').textContent = (names[activeChart] || activeChart) + suffix;
+    }
+
+    // Quick-range buttons: days=1 (today 24h), 2 (yesterday 48h window), 7 (week)
+    function setChartRange(days) {
+      chartDays = days;
+      chartDateOverride = null;
+      document.getElementById('chart-date-pick').value = '';
+      [1, 2, 7].forEach(d => {
+        document.getElementById('cq-' + d).className = 'chart-qbtn' + (d === days ? ' active' : '');
+      });
+      _updateChartTitle();
+      loadHistory(); // Перезавантажуємо історію з сервера для нового діапазону
+    }
+
+    // Calendar date picker: show exactly that calendar day
+    function setChartDate(dateStr) {
+      if (!dateStr) return;
+      const d = new Date(dateStr + 'T00:00:00');
+      chartDateOverride = d;
+      [1, 2, 7].forEach(d => document.getElementById('cq-' + d).className = 'chart-qbtn');
+      _updateChartTitle();
+      if (document.getElementById('chart-card').style.display !== 'none') drawChart(historyData, activeChart);
+    }
+
+    // ============================================================
+    //  Relay & Mode controls
+    // ============================================================
+    async function setRelay(on) {
+      if (currentStatus.mode !== 0) { showToast('⚠️ Вимкніть автоматику!', false); return; }
+      const res = await apiPost('/api/relay', { state: on ? 1 : 0 });
+      if (res?.ok) {
+        showToast(on ? '✅ Реле увімкнено' : '❌ Реле вимкнено');
+        refreshStatus();
+      }
+    }
+
+    async function setOpMode(m) {
+      const res = await apiPost('/api/mode', { mode: m });
+      if (res?.ok) {
+        showToast(m === 'manual' ? '🖐 Ручний режим' : '🤖 Автоматика відновлена');
+        refreshStatus();
+      } else {
+        showToast('❌ Помилка', false);
+      }
+    }
+
+    // ============================================================
+    //  Canvas chart
+    // ============================================================
+    function drawChart(log, field = 'temp') {
+      const canvas = document.getElementById('chart');
+      if (!canvas.getContext) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = 130 * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      const W = canvas.offsetWidth, H = 130;
+      ctx.clearRect(0, 0, W, H);
+
+      // --- Compute time window ---
+      let minT, maxT;
+      if (chartDateOverride) {
+        // Exact calendar day (midnight to midnight)
+        const d = new Date(chartDateOverride);
+        d.setHours(0, 0, 0, 0);
+        minT = d.getTime() / 1000;
+        maxT = minT + 86400;
+      } else {
+        const now_ts = Math.floor(Date.now() / 1000);
+        maxT = now_ts;
+        minT = now_ts - chartDays * 86400;
+      }
+
+      // --- Axis labels ---
+      const fmt = ts => { const d = new Date(ts * 1000); return d.getHours().toString().padStart(2, '0') + ':00'; };
+      const fmtDate = ts => { const d = new Date(ts * 1000); return d.getDate() + '.' + (d.getMonth() + 1); };
+      document.getElementById('chart-lbl-l').textContent = chartDays > 1 ? fmtDate(minT) : fmt(minT);
+      document.getElementById('chart-lbl-m').textContent = chartDays > 1 ? fmtDate((minT + maxT) / 2) : fmt((minT + maxT) / 2);
+      document.getElementById('chart-lbl-r').textContent = chartDateOverride ? fmt(maxT) : 'Зараз';
+
+      // --- Filter entries ---
+      const fieldKey = { temp: 't', hum: 'h', press: 'p' }[field] || 't';
+      const pts = log
+        .filter(e => parseInt(e.ts) >= minT && parseInt(e.ts) <= maxT && e.ev == 0)
+        .map(e => ({ ts: parseInt(e.ts), v: parseFloat(e[fieldKey]) }))
+        .filter(p => !isNaN(p.v));
+
+      if (pts.length < 2) {
+        ctx.fillStyle = 'rgba(140,146,164,0.5)';
+        ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Немає даних за цей період', W / 2, H / 2);
+        return;
+      }
+
+      const minV = Math.min(...pts.map(p => p.v)) - 0.5;
+      const maxV = Math.max(...pts.map(p => p.v)) + 0.5;
+
+      const toX = t => ((t - minT) / (maxT - minT)) * (W - 16) + 8;
+      const toY = v => H - 20 - ((v - minV) / (maxV - minV)) * (H - 30);
+
+      // Grid
+      ctx.strokeStyle = 'rgba(42,45,62,0.8)'; ctx.lineWidth = 1;
+      for (let g = 0; g <= 4; g++) {
+        const y = Math.round(20 + g * (H - 30) / 4) - 0.5;
+        ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(W - 8, y); ctx.stroke();
+        const val = maxV - g * (maxV - minV) / 4;
+        ctx.fillStyle = 'rgba(136,146,164,0.7)'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(val.toFixed(1), 10, y - 3);
+      }
+
+      // Gradient fill
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, 'rgba(108,99,255,0.4)');
+      grad.addColorStop(1, 'rgba(108,99,255,0)');
+      ctx.beginPath();
+      pts.forEach((p, i) => i === 0 ? ctx.moveTo(toX(p.ts), toY(p.v)) : ctx.lineTo(toX(p.ts), toY(p.v)));
+      ctx.lineTo(toX(pts[pts.length - 1].ts), H); ctx.lineTo(toX(pts[0].ts), H); ctx.closePath();
+      ctx.fillStyle = grad; ctx.fill();
+
+      // Line
+      ctx.beginPath();
+      ctx.strokeStyle = '#6c63ff'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+      pts.forEach((p, i) => i === 0 ? ctx.moveTo(toX(p.ts), toY(p.v)) : ctx.lineTo(toX(p.ts), toY(p.v)));
+      ctx.stroke();
+    }
+
+    // ============================================================
+    //  Event Log
+    // ============================================================
+    function renderEventLog(log) {
+      const list = document.getElementById('event-list');
+      const recent = [...log].reverse().slice(0, 20);
+      if (!recent.length) { list.innerHTML = '<li><span class="ev-icon">💤</span><span>Немає подій</span></li>'; return; }
+      list.innerHTML = recent.map(e => {
+        const d = new Date(e.ts * 1000);
+        const timeStr = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        const name = EVENT_NAMES[e.ev] || 'Подія';
+        const icon = EVENT_ICONS[e.ev] || '📌';
+        const extra = e.ev === 0 ? ` ${e.t}°C ${e.h}%` : (e.ev === 1 ? (e.r ? ' ✅ ON' : ' ❌ OFF') : '');
+        return `<li><span class="ev-icon">${icon}</span><span class="ev-time">${timeStr}</span><span>${name}${extra}</span></li>`;
+      }).join('');
+    }
+
+    // ============================================================
+    //  PROFILES tab
+    // ============================================================
+    let profTab = 'D';
+    let cachedConfig = { D: {}, N: {}, C: {}, G: {} };
+
+    function loadProfileToUI() {
+      const data = profTab === 'D' ? cachedConfig.D : (profTab === 'N' ? cachedConfig.N : cachedConfig.C);
+      if (!data) return;
+
+      setStartStatus(data.Start_status ?? 0);
+      setProfMode(data.Statatus_sensor_control ?? 0);
+      document.getElementById('p-sensor_set').value = data.Sensor_set ?? 20;
+      document.getElementById('p-sensor_histeresis').value = data.Sensor_histeresis ?? 1;
+      document.getElementById('p-rele_status').value = data.Rele_status ? 1 : 0;
+      document.getElementById('p-time_on').value = data.Time_on ?? 10;
+      document.getElementById('p-time_off').value = data.Time_off ?? 10;
+      document.getElementById('p-alarm_data_u').value = data.Alarm_data_u ?? 30;
+      document.getElementById('p-alarm_data_d').value = data.Alarm_data_d ?? 15;
+      document.getElementById('p-alarm_data_set').checked = !!data.Alarm_data_set;
+      document.getElementById('p-trend').checked = !!data.trend;
+      document.getElementById('p-alarm_start').checked = !!data.Alarm_start;
+      document.getElementById('p-alarm_power').checked = !!data.Alarm_power;
+      document.getElementById('p-relay_change_notify').checked = !!data.relay_change_notify;
+      document.getElementById('p-widget_status').checked = !!data.widget_status;
+    }
+
+    function setProfTab(t) {
+      profTab = t;
+      ['D', 'N', 'B'].forEach(x => document.getElementById('ptab-' + x).className = 'prof-tab' + (x === t ? ' active' : ''));
+      loadProfileToUI();
+    }
+
+    function setStartStatus(v) {
+      profStartStatus = v;
+      document.getElementById('ss-0').className = 'mode-btn' + (v === 0 ? ' active' : '');
+      document.getElementById('ss-1').className = 'mode-btn' + (v === 1 ? ' active' : '');
+    }
+
+    function setProfMode(m) {
+      profModeValue = m;
+      [0, 1, 2].forEach(i => {
+        document.getElementById('pmode-' + i).className = 'pmode-opt' + (i === m ? ' active' : '');
+      });
+      // Show/hide relevant settings cards with animation
+      const sensor = document.getElementById('card-sensor');
+      const timer = document.getElementById('card-timer');
+      sensor.style.display = (m === 1) ? 'block' : 'none';
+      timer.style.display = (m === 2) ? 'block' : 'none';
+    }
+
+    async function loadConfig() {
+      const data = await apiGet('/api/config');
+      if (!data) return;
+
+      cachedConfig.G = data.global || {};
+      cachedConfig.C = data.current || {};
+      cachedConfig.D = data.day || {};
+      cachedConfig.N = data.night || {};
+
+      if (cachedConfig.G) {
+        document.getElementById('g-sid').value = cachedConfig.G.SID_STA || '';
+        document.getElementById('g-time_d_h').value = cachedConfig.G.Time_D_h ?? 8;
+        document.getElementById('g-time_n_h').value = cachedConfig.G.Time_N_h ?? 20;
+      }
+
+      loadProfileToUI();
+    }
+
+    async function saveProfile() {
+      const body = {
+        t: profTab,
+        s: {
+          Start_status: profStartStatus,
+          Statatus_sensor_control: profModeValue,
+          Sensor_set: parseFloat(document.getElementById('p-sensor_set').value),
+          Sensor_histeresis: parseFloat(document.getElementById('p-sensor_histeresis').value),
+          Rele_status: parseInt(document.getElementById('p-rele_status').value),
+          Time_on: parseInt(document.getElementById('p-time_on').value),
+          Time_off: parseInt(document.getElementById('p-time_off').value),
+          Alarm_data_u: parseFloat(document.getElementById('p-alarm_data_u').value),
+          Alarm_data_d: parseFloat(document.getElementById('p-alarm_data_d').value),
+          Alarm_data_set: document.getElementById('p-alarm_data_set').checked ? 1 : 0,
+          trend: document.getElementById('p-trend').checked ? 1 : 0,
+          Alarm_start: document.getElementById('p-alarm_start').checked ? 1 : 0,
+          Alarm_power: document.getElementById('p-alarm_power').checked ? 1 : 0,
+          relay_change_notify: document.getElementById('p-relay_change_notify').checked ? 1 : 0,
+          widget_status: document.getElementById('p-widget_status').checked ? 1 : 0,
+        }
+      };
+      const res = await apiPost('/api/save', body);
+      if (res?.ok) {
+        showToast('✅ Профіль збережено!');
+        loadConfig();
+      } else {
+        showToast('❌ Помилка збереження', false);
+      }
+    }
+
+    // ============================================================
+    //  SYSTEM tab
+    // ============================================================
+    async function loadSystemData() {
+      const s = await apiGet('/api/status');
+      if (!s) return;
+      document.getElementById('sys-ip').textContent = location.hostname;
+      document.getElementById('sys-uptime').textContent = fmtUptime(s.uptime || 0);
+      const heapPct = s.heap ? Math.round((s.heap / 81920) * 100) : 0;
+      document.getElementById('sys-heap').textContent = heapPct + '% (' + (s.heap || 0) + ' B)';
+      const wifiEl2 = document.getElementById('sys-wifi');
+      if (wifiEl2 && s.wifi_rssi != null) {
+        const rssi2 = parseInt(s.wifi_rssi);
+        const icon2 = rssi2 >= -60 ? '📶' : rssi2 >= -75 ? '📶' : '🔴';
+        const quality2 = rssi2 >= -60 ? 'Відмінний' : rssi2 >= -75 ? 'Добрий' : rssi2 >= -85 ? 'Слабкий' : 'Дуже слабкий';
+        wifiEl2.textContent = `${icon2} ${rssi2} dBm (${quality2})`;
+        wifiEl2.style.color = rssi2 >= -60 ? 'var(--green)' : rssi2 >= -75 ? '#f5c542' : 'var(--accent2)';
+      }
+
+      const cfg = await apiGet('/api/config');
+      if (cfg?.global) {
+        document.getElementById('g-time_d_h').value = cfg.global.Time_D_h ?? 8;
+        document.getElementById('g-time_n_h').value = cfg.global.Time_N_h ?? 20;
+        document.getElementById('g-sid').value = cfg.global.SID_STA || '';
+        if (cfg.global.timezone_str) document.getElementById('g-timezone').value = cfg.global.timezone_str;
+      }
+    }
+
+    async function saveSystem() {
+      const g = {};
+      const sid = document.getElementById('g-sid').value.trim();
+      const pas = document.getElementById('g-pas').value;
+      const tok = document.getElementById('g-token').value.trim();
+      const pw = document.getElementById('g-pass').value;
+      const tz = document.getElementById('g-timezone').value.trim();
+      if (sid) g.SID_STA = sid;
+      if (pas) g.PAS_STA = pas;
+      if (tok && tok.length > 10) g.TB_Token = tok;
+      if (pw) g.TB_pasword = parseInt(pw);
+      if (tz) g.timezone_str = tz;
+      g.Time_D_h = parseInt(document.getElementById('g-time_d_h').value);
+      g.Time_N_h = parseInt(document.getElementById('g-time_n_h').value);
+
+      const res = await apiPost('/api/save', { g });
+      if (res?.ok) {
+        showToast('✅ Збережено!');
+        loadConfig();
+      } else {
+        showToast('❌ Помилка', false);
+      }
+    }
+
+    async function rebootDevice() {
+      if (!confirm('Перезавантажити пристрій?')) return;
+      await apiGet('/api/reboot');
+      showToast('🔄 Перезавантаження...');
+    }
+
+    // ============================================================
+    //  Init
+    // ============================================================
+    (async function init() {
+      await refreshStatus();
+      await loadHistory();
+
+      // Auto-open temp chart if temperature data exists
+      if (historyData.some(e => e.ev == 0)) {
+        toggleChart('temp');
+      }
+
+      clearInterval(refreshTimer);
+      refreshTimer = setInterval(refreshStatus, 4000);
+
+      setInterval(syncHistoryRam, 10000);
+      window.addEventListener('resize', () => { if (document.getElementById('chart-card').style.display !== 'none') drawChart(historyData, activeChart); });
+    })();
+  </script>
+</body>
+
+</html>
