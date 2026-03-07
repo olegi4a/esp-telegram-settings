@@ -982,7 +982,16 @@
 
     async function loadHistory() {
       try {
-        const url = `/api/history?days=${chartDays}`;
+        let url = `/api/history?days=${chartDays}`;
+        
+        if (chartCustomStart && chartCustomEnd) {
+          // Format as local YYYY-MM-DD
+          const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+          const sDateStr = new Date(chartCustomStart.getTime() - tzOffset).toISOString().split('T')[0];
+          const eDateStr = new Date(chartCustomEnd.getTime() - tzOffset).toISOString().split('T')[0];
+          url = `/api/history?start=${sDateStr}&end=${eDateStr}`;
+        }
+        
         const r = await fetch(url, { cache: 'no-cache' });
         if (!r.ok) return;
         const text = await r.text();
@@ -1203,18 +1212,38 @@
     // ============================================================
     //  Event Log
     // ============================================================
-    function handleLogDateChange() {
-      renderEventLog(historyData);
+    async function handleLogDateChange() {
+      const dateVal = document.getElementById('log-date-pick').value;
+      if (!dateVal) {
+        renderEventLog(historyData);
+        return;
+      }
+      
+      const list = document.getElementById('event-list');
+      list.innerHTML = '<li><span class="ev-icon">⏳</span><span>Завантаження...</span></li>';
+      
+      try {
+        const res = await fetch(`/log/${dateVal}.ndjson`, { cache: 'no-cache' });
+        if (!res.ok) {
+           renderEventLog([], dateVal);
+           return;
+        }
+        const text = await res.text();
+        const specificData = parseNDJSON(text);
+        renderEventLog(specificData, dateVal);
+      } catch(e) {
+        renderEventLog([], dateVal);
+      }
     }
 
-    function renderEventLog(log) {
+    function renderEventLog(log, explicitDate = null) {
       const list = document.getElementById('event-list');
-      const dateVal = document.getElementById('log-date-pick').value;
+      const dateVal = explicitDate || document.getElementById('log-date-pick').value;
       
       let filteredLog = [...log];
       
       if (dateVal) {
-        // Filter by specific day (midnight to midnight)
+        // Filter by specific day (midnight to midnight local time)
         const dStart = new Date(dateVal + 'T00:00:00').getTime() / 1000;
         const dEnd = dStart + 86400;
         filteredLog = log.filter(e => e.ts >= dStart && e.ts < dEnd);
