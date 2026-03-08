@@ -617,9 +617,7 @@
         </div>
       </div>
       <canvas id="chart"></canvas>
-      <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted);margin-top:4px">
-        <span id="chart-lbl-l">AM</span><span id="chart-lbl-m"></span><span id="chart-lbl-r">Зараз</span>
-      </div>
+    </div>
     </div>
 
     <!-- Relay -->
@@ -1239,15 +1237,8 @@
         minT = now_ts - chartDays * 86400;
       }
 
-      // --- Axis labels ---
-      const fmt = ts => { const d = new Date(ts * 1000); return d.getHours().toString().padStart(2, '0') + ':00'; };
-      const fmtDate = ts => { const d = new Date(ts * 1000); return d.getDate() + '.' + (d.getMonth() + 1); };
-      
       const isSingleDay = (chartDays === 1) || (chartCustomStart && chartCustomEnd && chartCustomStart.getTime() === chartCustomEnd.getTime());
-      
-      document.getElementById('chart-lbl-l').textContent = isSingleDay ? fmt(minT) : (fmtDate(minT) + ' ' + fmt(minT));
-      document.getElementById('chart-lbl-m').textContent = isSingleDay ? fmt((minT + maxT) / 2) : fmtDate((minT + maxT) / 2);
-      document.getElementById('chart-lbl-r').textContent = chartCustomEnd ? (isSingleDay ? fmt(maxT) : (fmtDate(maxT) + ' ' + fmt(maxT))) : 'Зараз';
+
 
       // --- Filter entries ---
       const fieldKey = { temp: 't', hum: 'h', press: 'p' }[field] || 't';
@@ -1267,16 +1258,27 @@
       const maxV = Math.max(...pts.map(p => p.v)) + 0.5;
 
       const toX = t => ((t - minT) / (maxT - minT)) * (W - 16) + 8;
-      const toY = v => H - 20 - ((v - minV) / (maxV - minV)) * (H - 30);
+      const toY = v => H - 25 - ((v - minV) / (maxV - minV)) * (H - 45);
 
-      // Grid
+      // Grid & Y labels
       ctx.strokeStyle = 'rgba(42,45,62,0.8)'; ctx.lineWidth = 1;
       for (let g = 0; g <= 4; g++) {
-        const y = Math.round(20 + g * (H - 30) / 4) - 0.5;
+        const y = Math.round(20 + g * (H - 35) / 4) - 0.5;
         ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(W - 8, y); ctx.stroke();
         const val = maxV - g * (maxV - minV) / 4;
         ctx.fillStyle = 'rgba(136,146,164,0.7)'; ctx.font = '9px sans-serif'; ctx.textAlign = 'left';
         ctx.fillText(val.toFixed(1), 10, y - 3);
+      }
+
+      // X Labels
+      ctx.fillStyle = 'rgba(136,146,164,0.8)'; ctx.font = '8px sans-serif'; ctx.textAlign = 'center';
+      const steps = isSingleDay ? 6 : ( (maxT-minT)/86400 > 3 ? Math.floor((maxT-minT)/86400) : 4 );
+      for(let i=0; i<=steps; i++){
+        const t = minT + i * (maxT-minT)/steps;
+        const x = toX(t);
+        const d = new Date(t*1000);
+        const lab = isSingleDay ? (d.getHours()+':00') : (d.getDate()+'.'+(d.getMonth()+1));
+        ctx.fillText(lab, x, H - 5);
       }
 
       // Gradient fill
