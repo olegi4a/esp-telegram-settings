@@ -596,15 +596,23 @@
           <button class="chart-qbtn active" id="cq-1" onclick="setChartRange(1)">Сьогодні</button>
           <button class="chart-qbtn" id="cq-2" onclick="setChartRange(2)">Вчора</button>
           <button class="chart-qbtn" id="cq-7" onclick="setChartRange(7)">Тиждень</button>
+          
+          <label style="display:flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--muted);cursor:pointer;margin-right:4px">
+            <input type="checkbox" id="chart-period-toggle" onchange="toggleChartDateMode()" style="accent-color:var(--accent)">
+            Період
+          </label>
+
           <div style="display:flex;gap:4px;align-items:center;padding:2px;background:var(--border);border-radius:6px">
-            <span style="font-size:0.7rem;color:var(--muted);padding-left:4px;">з</span>
+            <span id="chart-date-pre-start" style="font-size:0.7rem;color:var(--muted);padding-left:4px;">з</span>
             <input type="date" id="chart-date-start"
               style="color-scheme:dark;background:transparent;border:none;color:var(--text);padding:2px;font-size:.74rem;outline:none;width:105px;"
               onchange="setChartCustomDates()">
-            <span style="font-size:0.7rem;color:var(--muted);">по</span>
-            <input type="date" id="chart-date-end"
-              style="color-scheme:dark;background:transparent;border:none;color:var(--text);padding:2px;font-size:.74rem;outline:none;width:105px;"
-              onchange="setChartCustomDates()">
+            <span id="chart-date-range-sep" style="display:none;align-items:center;gap:4px;">
+              <span style="font-size:0.7rem;color:var(--muted);">по</span>
+              <input type="date" id="chart-date-end"
+                style="color-scheme:dark;background:transparent;border:none;color:var(--text);padding:2px;font-size:.74rem;outline:none;width:105px;"
+                onchange="setChartCustomDates()">
+            </span>
           </div>
         </div>
       </div>
@@ -1139,31 +1147,38 @@
       loadHistory(); // Перезавантажуємо історію з сервера для нового діапазону
     }
 
+    function toggleChartDateMode() {
+      const isPeriod = document.getElementById('chart-period-toggle').checked;
+      document.getElementById('chart-date-range-sep').style.display = isPeriod ? 'flex' : 'none';
+      document.getElementById('chart-date-pre-start').textContent = isPeriod ? 'з' : '';
+      setChartCustomDates();
+    }
+
     // Calendar custom date range
     function setChartCustomDates() {
       const sVal = document.getElementById('chart-date-start').value;
       const eVal = document.getElementById('chart-date-end').value;
-      if (!sVal && !eVal) return;
+      const isPeriod = document.getElementById('chart-period-toggle').checked;
+
+      if (!sVal) return;
       
-      chartCustomStart = sVal ? new Date(sVal + 'T00:00:00') : new Date(eVal + 'T00:00:00');
-      chartCustomEnd   = eVal ? new Date(eVal + 'T00:00:00') : new Date(sVal + 'T00:00:00');
+      chartCustomStart = new Date(sVal + 'T00:00:00');
+      if (isPeriod && eVal) {
+        chartCustomEnd = new Date(eVal + 'T00:00:00');
+      } else {
+        chartCustomEnd = new Date(sVal + 'T00:00:00');
+      }
       
       // Ensure start <= end
       if (chartCustomStart > chartCustomEnd) {
          const t = chartCustomStart; chartCustomStart = chartCustomEnd; chartCustomEnd = t;
       }
       
-      // Calculate how many days back from today we need to load from the server
-      const now = new Date();
-      now.setHours(0,0,0,0);
-      const diffTime = now.getTime() - chartCustomStart.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      
-      chartDays = Math.max(diffDays, 1);
+      chartDays = 0; // indicates custom range
       
       [1, 2, 7].forEach(d => document.getElementById('cq-' + d).className = 'chart-qbtn');
       _updateChartTitle();
-      loadHistory(); // Fetch data that covers the selected range
+      loadHistory();
     }
 
     // ============================================================
@@ -1217,9 +1232,12 @@
       // --- Axis labels ---
       const fmt = ts => { const d = new Date(ts * 1000); return d.getHours().toString().padStart(2, '0') + ':00'; };
       const fmtDate = ts => { const d = new Date(ts * 1000); return d.getDate() + '.' + (d.getMonth() + 1); };
-      document.getElementById('chart-lbl-l').textContent = (chartDays > 1 || chartCustomStart) ? fmtDate(minT) + ' ' + fmt(minT) : fmt(minT);
-      document.getElementById('chart-lbl-m').textContent = (chartDays > 1 || chartCustomStart) ? fmtDate((minT + maxT) / 2) : fmt((minT + maxT) / 2);
-      document.getElementById('chart-lbl-r').textContent = chartCustomEnd ? fmtDate(maxT) + ' ' + fmt(maxT) : 'Зараз';
+      
+      const isSingleDay = (chartDays === 1) || (chartCustomStart && chartCustomEnd && chartCustomStart.getTime() === chartCustomEnd.getTime());
+      
+      document.getElementById('chart-lbl-l').textContent = isSingleDay ? fmt(minT) : (fmtDate(minT) + ' ' + fmt(minT));
+      document.getElementById('chart-lbl-m').textContent = isSingleDay ? fmt((minT + maxT) / 2) : fmtDate((minT + maxT) / 2);
+      document.getElementById('chart-lbl-r').textContent = chartCustomEnd ? (isSingleDay ? fmt(maxT) : (fmtDate(maxT) + ' ' + fmt(maxT))) : 'Зараз';
 
       // --- Filter entries ---
       const fieldKey = { temp: 't', hum: 'h', press: 'p' }[field] || 't';
