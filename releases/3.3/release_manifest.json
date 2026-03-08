@@ -1,0 +1,16 @@
+﻿{
+  "version": "EDwIC-3.3",
+  "web_files": [
+    "Home.html",
+    "Home.css",
+    "Home.js",
+    "Seting.html",
+    "Seting.css",
+    "Seting.js",
+    "Update.html",
+    "Update.css",
+    "Update.js",
+    "jquery.js"
+  ],
+  "firmware": "firmware.bin"
+}

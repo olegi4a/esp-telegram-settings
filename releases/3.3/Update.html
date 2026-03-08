@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>EDwIC — Оновлення</title>
+  <link rel="stylesheet" href="Update.css">
+</head>
+<body>
+
+  <header>
+    <a href="/" class="back-btn">← Назад</a>
+    <h1>🔄 Оновлення</h1>
+    <div class="ver-badge" id="cur-ver">v—</div>
+  </header>
+
+  <nav>
+    <button class="active" id="tab-btn-github" onclick="switchTab('github')">🌐 GitHub</button>
+    <button id="tab-btn-manual" onclick="switchTab('manual')">🗂 Ручне</button>
+  </nav>
+
+  <!-- ======================================================= -->
+  <!--  TAB: GITHUB                                             -->
+  <!-- ======================================================= -->
+  <div id="tab-github" class="tab-panel active">
+
+    <!-- Версії -->
+    <div class="card" id="card-versions">
+      <div class="card-title">Версії прошивки</div>
+      <div class="ver-row">
+        <span class="ver-label">Поточна:</span>
+        <span class="ver-val" id="gh-cur">—</span>
+      </div>
+      <div class="ver-row">
+        <span class="ver-label">На GitHub:</span>
+        <span class="ver-val" id="gh-new">—</span>
+      </div>
+      <div id="gh-changelog" class="changelog" style="display:none"></div>
+      <div style="margin-top:14px">
+        <button class="btn btn-secondary btn-full" id="btn-check" onclick="checkVersion()">🔍 Перевірити оновлення</button>
+        <button class="btn btn-primary btn-full" id="btn-update" style="display:none" onclick="startUpdate()">⚡ Оновити до <span id="btn-new-ver"></span></button>
+      </div>
+    </div>
+
+    <!-- Лог прогресу (прихований до початку) -->
+    <div class="card" id="card-log" style="display:none">
+      <div class="card-title">Прогрес оновлення</div>
+      <ul class="log-list" id="update-log"></ul>
+      <div class="progress-wrap" id="fw-progress-wrap" style="display:none">
+        <div class="progress-bar" id="fw-progress-bar"></div>
+        <span class="progress-label" id="fw-progress-label">0%</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ======================================================= -->
+  <!--  TAB: MANUAL                                             -->
+  <!-- ======================================================= -->
+  <div id="tab-manual" class="tab-panel">
+
+    <!-- Секція 0: Резервна копія -->
+    <div class="card">
+      <div class="card-title">💾 Резервна копія</div>
+      <p class="hint">Збережіть усі налаштування, профілі та збережені логи на свій пристрій у форматі .tar архіву.</p>
+      <button class="btn btn-secondary btn-full" id="btn-manual-backup" onclick="createBackupManual()">Створити резервну копію</button>
+    </div>
+
+    <!-- Секція 1: Файли ФС -->
+    <div class="card">
+      <div class="card-title">📁 Файли веб-інтерфейсу та інші</div>
+      <p class="hint">Виберіть один або кілька файлів для завантаження у файлову систему пристрою. Вкажіть папку (наприклад, /log/).</p>
+      
+      <div class="field" style="margin-bottom:8px;">
+        <label for="fs-path-input">Шлях завантаження (Директорія)</label>
+        <input type="text" id="fs-path-input" value="/" placeholder="/ або /log/ або /css/">
+      </div>
+
+      <div class="file-drop-zone" id="fs-drop" onclick="document.getElementById('fs-file-input').click()">
+        <div class="drop-icon">📂</div>
+        <div class="drop-text">Натисніть або перетягніть файли</div>
+        <div class="drop-hint">.html, .css, .js, .json, .ndjson</div>
+      </div>
+      <input type="file" id="fs-file-input" multiple accept=".html,.css,.js,.json,.ndjson" style="display:none" onchange="onFsFilesSelected(this.files)">
+      <div id="fs-file-list" class="file-list"></div>
+      <button class="btn btn-primary btn-full" id="btn-fs-upload" style="display:none" onclick="uploadFsFiles()">📤 Надіслати файли</button>
+      <ul class="log-list" id="fs-log"></ul>
+    </div>
+
+    <!-- Секція 2: Прошивка -->
+    <div class="card">
+      <div class="card-title">⚙️ Прошивка (.bin)</div>
+      <p class="hint">Виберіть файл прошивки. Після завантаження пристрій автоматично перезавантажиться.</p>
+      <div class="file-drop-zone" id="fw-drop" onclick="document.getElementById('fw-file-input').click()">
+        <div class="drop-icon">💾</div>
+        <div class="drop-text">Натисніть або перетягніть firmware.bin</div>
+        <div class="drop-hint">.bin</div>
+      </div>
+      <input type="file" id="fw-file-input" accept=".bin" style="display:none" onchange="onFwFileSelected(this.files)">
+      <div id="fw-file-name" class="file-list"></div>
+      <button class="btn btn-danger btn-full" id="btn-fw-upload" style="display:none" onclick="uploadFirmwareManual()">🔥 Прошити пристрій</button>
+      <div class="progress-wrap" id="mfw-progress-wrap" style="display:none">
+        <div class="progress-bar" id="mfw-progress-bar"></div>
+        <span class="progress-label" id="mfw-progress-label">0%</span>
+      </div>
+      <ul class="log-list" id="fw-log"></ul>
+    </div>
+
+  </div>
+
+  <!-- ======================================================= -->
+  <!--  MODAL: Бекап перед оновленням                           -->
+  <!-- ======================================================= -->
+  <div class="modal-overlay" id="backup-modal">
+    <div class="modal-card">
+      <div class="modal-icon">⚠️</div>
+      <div class="modal-title">Перед оновленням</div>
+      <div class="modal-text">
+        Збережіть резервну копію налаштувань пристрою.<br>
+        Архів містить: конфіг, профілі, логи.<br>
+        <strong>Токен, паролі та всі дані будуть збережені.</strong>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Скасувати</button>
+        <button class="btn btn-primary" id="btn-backup" onclick="doBackupAndContinue()">💾 Створити бекап</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="Update.js"></script>
+</body>
+</html>

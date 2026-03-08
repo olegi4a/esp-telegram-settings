@@ -1,0 +1,57 @@
+@charset "utf-8";
+/* CSS Document */
+ body{
+  margin: 0;
+	background-color:#212121;
+	font-family: Arial, Helvetica, Verdana, sans-serif;
+}
+
+a {
+ color: #fafafa; /* Цвет ссылок */
+ text-decoration: none;
+ font-size: 1em;
+}
+a:visited {
+ color: #fafafa; /* Цвет посещенных ссылок */
+}
+a:active {
+ color: #fafafa; /* Цвет активных ссылок */
+}
+
+.menu {
+  text-align:center;
+  -webkit-appearance: none;
+  color: #7FA0BA;
+  padding: 15px 0 15px 0;
+	}
+
+.container_menu{
+	display: grid;
+	grid-template-columns: 1fr 1fr ;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  background-color:#424242;
+  font-size: 5vw;
+}
+
+.container{
+	text-align:center;
+  display: grid;
+	grid-template-columns: 1fr;
+  align-content: center;
+  color: #fafafa; /* Цвет активных ссылок */
+  margin-top: 5vw;
+  margin-left: 1vw;
+  margin-right: 1vw;
+}
+
+.buton {
+  width: 30vw;
+  height: 30vw;
+	border: none;
+  color: #fafafa;
+	box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+	background-color:#ff6e40;
+  font-size: 2em; /* Размер текста */
+  -webkit-appearance: none;
+
+}
