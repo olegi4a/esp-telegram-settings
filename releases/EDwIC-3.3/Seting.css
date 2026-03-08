@@ -1,0 +1,159 @@
+@charset "utf-8";
+/* CSS Document */
+
+ body{
+  margin: 0;
+	background-color:#212121;
+	font-size: 2em;
+	font-family: Arial, Helvetica, Verdana, sans-serif;
+}
+
+a {
+ color: #fafafa; /* Цвет ссылок */
+ text-decoration: none;
+ font-size: 1em;
+}
+a:visited {
+ color: #fafafa; /* Цвет посещенных ссылок */
+}
+a:active {
+ color: #fafafa; /* Цвет активных ссылок */
+}
+
+#text {
+  color: #fafafa;
+  font-size:1em;
+  text-align:center;
+  margin: 1em;
+}
+
+/*---------------------------------------------*/
+
+.container_menu{
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  background-color:#424242;
+}
+
+.container_input{
+  text-align:center;
+  display: grid;
+	grid-template-columns: 1fr;
+  background-color:#424242;
+  color: #fafafa; /* Цвет активных ссылок */
+  margin-top: 5vw;
+  margin-left: 1vw;
+  margin-right: 1vw;
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+
+.menu {
+  text-align:center;
+  -webkit-appearance: none;
+  color: #7FA0BA;
+  padding: 4vw 0 4vw 0;
+	}
+
+/*---------------------------------------------*/
+.buton {
+  margin-left: 1vw;
+  margin-right: 1vw;
+  margin-bottom: 1vw;
+  width: 97%;
+	border: none;
+  color: #fafafa;
+	box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+	background-color:#263238;
+  font-size: 2em; /* Размер текста */
+  font-weight: lighter; /* Светлое начертание */
+  -webkit-appearance: none;
+  padding: 2vw 0 2vw 0;
+}
+
+/*------------------input---------------------------*/
+.group {
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  margin-bottom: 30px;
+  -webkit-appearance: none;
+}
+
+.input_text {
+  font-size: 2em;
+  padding: 10px;
+  display: block;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  background-color:#424242;
+  -webkit-appearance: none;
+  color: #fafafa;
+}
+.input_text:focus {
+  outline: none;
+}
+
+.input_text ~ label {
+  margin-left: auto;
+  margin-right: auto;
+  color: #999;
+  font-size: 2em;
+  position: absolute;
+  pointer-events: none;
+  left: 10px;
+  top: 15px;
+  transition: 0.2s ease all;
+  -moz-transition: 0.2s ease all;
+  -webkit-transition: 0.2s ease all;
+  -webkit-appearance: none;
+}
+
+/* active state */
+.input_text:focus ~ label, .input_text:valid ~ label {
+  top: -15px;
+  font-size: 14px;
+  color: #999;
+}
+
+/* BOTTOM BARS ================================= */
+.bar {
+  position: relative;
+  display: block;
+  -webkit-appearance: none;
+}
+.bar:before, .bar:after {
+  content: "";
+  height: 2px;
+  width: 0;
+  bottom: 0;
+  position: absolute;
+  background: #263238;
+  transition: 0.2s ease all;
+  -moz-transition: 0.2s ease all;
+  -webkit-transition: 0.2s ease all;
+}
+.bar:before {
+  left: 50%;
+}
+.bar:after {
+  right: 50%;
+}
+
+/* active state */
+.input_text:focus ~ .bar:before,
+.input_text:focus ~ .bar:after {
+  width: 50%;
+}
+
+/*---------------------------------*/
+
+@media all and (min-width: 1024px)
+{
+  .box
+  {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
