@@ -1143,16 +1143,30 @@
 
     // Quick-range buttons: days=1 (today 24h), 2 (yesterday 48h window), 7 (week)
     function setChartRange(days) {
-      chartDays = days;
-      chartCustomStart = null;
-      chartCustomEnd = null;
       document.getElementById('chart-date-start').value = '';
       document.getElementById('chart-date-end').value = '';
+      
+      if (days === 1 || days === 2) {
+        // Fixed days: 1=Today, 2=Yesterday
+        const target = new Date();
+        if (days === 2) target.setDate(target.getDate() - 1);
+        target.setHours(0,0,0,0);
+        
+        chartCustomStart = new Date(target.getTime());
+        chartCustomEnd   = new Date(target.getTime());
+        chartDays = 0;
+      } else {
+        // Rolling range (e.g. 7 days)
+        chartDays = days;
+        chartCustomStart = null;
+        chartCustomEnd = null;
+      }
+
       [1, 2, 7].forEach(d => {
         document.getElementById('cq-' + d).className = 'chart-qbtn' + (d === days ? ' active' : '');
       });
       _updateChartTitle();
-      loadHistory(); // Перезавантажуємо історію з сервера для нового діапазону
+      loadHistory();
     }
 
     function toggleChartDateMode() {
