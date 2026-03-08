@@ -1020,13 +1020,17 @@
 
     async function loadHistory() {
       const loader = document.getElementById('chart-loader');
-      if (loader) loader.style.display = 'flex';
+      const lText = loader ? loader.querySelector('div div:last-child') : null;
+      if (loader) {
+        loader.style.display = 'flex';
+        if (lText) lText.textContent = 'ЗАВАНТАЖЕННЯ...';
+      }
+      
       try {
         let datesToFetch = [];
         const tzOffset = (new Date()).getTimezoneOffset() * 60000;
         
         if (chartCustomStart && chartCustomEnd) {
-          // Custom range: generate all dates from start to end
           let d = new Date(chartCustomStart.getTime());
           const end = new Date(chartCustomEnd.getTime());
           while (d <= end) {
@@ -1034,7 +1038,6 @@
             d.setDate(d.getDate() + 1);
           }
         } else {
-          // Quick presets: today, yesterday, etc based on chartDays
           let d = new Date();
           for (let i = 0; i < chartDays; i++) {
             datesToFetch.push(new Date(d.getTime() - tzOffset).toISOString().split('T')[0]);
@@ -1042,7 +1045,6 @@
           }
         }
 
-        // Fetch all files in parallel
         const fetchPromises = datesToFetch.map(async dateStr => {
           try {
             const res = await fetch(`/log/${dateStr}.ndjson`, { cache: 'no-cache' });
@@ -1052,13 +1054,21 @@
         });
 
         const results = await Promise.all(fetchPromises);
+        
+        if (lText) lText.textContent = 'ОБРОБКА...';
+        await new Promise(r => setTimeout(r, 50)); // Allow UI to update text
+
         const combinedText = results.join('\n');
         historyData = parseNDJSON(combinedText);
-        
-        // Sort ascending by timestamp since we might have fetched them in arbitrary or reverse order
         historyData.sort((a, b) => a.ts - b.ts);
         
         renderEventLog(historyData);
+        if (document.getElementById('chart-card').style.display !== 'none') {
+          drawChart(historyData, activeChart);
+        }
+        
+        // Final "buffer" delay to ensure browser finished layout/paint
+        await new Promise(r => setTimeout(r, 600)); 
       } catch (e) { 
         console.error('History load error:', e); 
       } finally {
