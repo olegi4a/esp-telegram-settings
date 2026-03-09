@@ -29,11 +29,7 @@ void WiFi_Init()
     {
       TBLOG(F("WiFi is conected to: "));
       TBLOG_LN(WiFi.SSID());
-      for (int i=0; i <= 10; i++)
-      {
-        digitalWrite(LED_STATUS, !digitalRead(LED_STATUS));
-        delay(100);
-      }
+      // LED handled in loop()
     }
     else
     {
@@ -69,7 +65,7 @@ void WiFi_Conect()
    {
      delay(100);
      TBLOG(".");
-     digitalWrite(LED_STATUS, !digitalRead(LED_STATUS));
+     // LED handled in loop()
      y++;
    }
    
@@ -99,7 +95,6 @@ void WiFi_Conect()
   display.display();
 
    TBLOG_LN(WiFi.status());
-   digitalWrite(LED_STATUS, HIGH); // Було LOW
 }
 
 void WIFI_AP_MODE()
@@ -109,9 +104,17 @@ void WIFI_AP_MODE()
      WiFi.disconnect(true);
      WiFi.mode(WIFI_OFF);
      delay(500);
-     WiFi.softAP(WiFi.hostname(), "", 4, false, 5);
-     digitalWrite(LED_STATUS, HIGH); // Було LOW
-
+     
+     // SSID: ESP-XXXXXX (last 6 chars of MAC)
+     String chipId = WiFi.macAddress();
+     chipId.replace(":", "");
+     String ssid = "ESP-" + chipId.substring(chipId.length() - 6);
+     
+     WiFi.softAP(ssid.c_str(), "", 4, false, 5);
+     
+     // Start Captive Portal DNS
+     dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
+     
      display.display();
      display.clearDisplay();
      display.setTextColor(WHITE);

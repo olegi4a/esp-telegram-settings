@@ -229,6 +229,91 @@ void handle_api_reboot() {
 }
 
 // ============================================================
+//  GET /api/wifi/scan — сканування Wi-Fi мереж
+// ============================================================
+void handle_api_wifi_scan() {
+  int n = WiFi.scanNetworks();
+  String out = "[";
+  for (int i = 0; i < n; ++i) {
+    if (i > 0) out += ",";
+    out += "{\"ssid\":\"" + WiFi.SSID(i) + "\",\"rssi\":" + String(WiFi.RSSI(i)) + "}";
+  }
+  out += "]";
+  _sendJson(200, out);
+}
+
+// ============================================================
+//  POST /api/wifi/test — Запуск тестового підключення до Wi-Fi
+// ============================================================
+bool   wifi_test_active = false;
+uint32_t wifi_test_start = 0;
+String wifi_test_result = "";
+String wifi_test_ip = "";
+
+void handle_api_wifi_test() {
+  if (WebServer.method() == HTTP_OPTIONS) {
+    _sendJson(204, "");
+    return;
+  }
+  JsonDocument doc;
+  DeserializationError err = deserializeJson(doc, WebServer.arg("plain"));
+  if (err) {
+    _sendJson(400, "{\"ok\":false,\"error\":\"bad json\"}");
+    return;
+  }
+
+  String ssid = doc["ssid"] | "";
+  String pass = doc["pass"] | "";
+
+  if (ssid.isEmpty()) {
+    _sendJson(400, "{\"ok\":false,\"error\":\"empty ssid\"}");
+    return;
+  }
+
+  // Запускаємо WIFI_AP_STA, щоб не втратити AP, та пробуємо під'єднатись до STA
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.begin(ssid.c_str(), pass.c_str());
+
+  wifi_test_active = true;
+  wifi_test_start = millis();
+  wifi_test_result = "testing";
+  wifi_test_ip = "";
+
+  _sendJson(200, "{\"ok\":true,\"msg\":\"test started\"}");
+}
+
+// ============================================================
+//  GET /api/wifi/status — Перевірка статусу тестового підключення
+// ============================================================
+void handle_api_wifi_status() {
+  if (!wifi_test_active) {
+    _sendJson(200, "{\"status\":\"idle\"}");
+    return;
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    wifi_test_result = "success";
+    wifi_test_ip = WiFi.localIP().toString();
+    wifi_test_active = false;
+  } else if (millis() - wifi_test_start > 15000) {
+    // 15 секунд таймаут
+    wifi_test_result = "fail";
+    wifi_test_active = false;
+    WiFi.disconnect();
+    // Повертаємось до AP only
+    WiFi.mode(WIFI_AP);
+  }
+
+  String resp = "{\"status\":\"" + wifi_test_result + "\"";
+  if (wifi_test_result == "success") {
+    resp += ",\"ip\":\"" + wifi_test_ip + "\"";
+  }
+  resp += "}";
+  
+  _sendJson(200, resp);
+}
+
+// ============================================================
 //  OPTIONS catch-all — для CORS preflight
 // ============================================================
 void handle_api_options() {
@@ -341,11 +426,15 @@ void WebServer_Init() {
   WebServer.on("/api/save",    HTTP_POST,   handle_api_save);
   WebServer.on("/api/relay",   HTTP_POST,   handle_api_relay);
   WebServer.on("/api/reboot",  HTTP_GET,    handle_api_reboot);
+  WebServer.on("/api/wifi/scan", HTTP_GET,  handle_api_wifi_scan);
+  WebServer.on("/api/wifi/test", HTTP_POST, handle_api_wifi_test);
+  WebServer.on("/api/wifi/status", HTTP_GET,  handle_api_wifi_status);
 
   // OPTIONS catch-all for CORS preflight
   WebServer.on("/api/mode",    HTTP_OPTIONS, handle_api_options);
   WebServer.on("/api/save",    HTTP_OPTIONS, handle_api_options);
   WebServer.on("/api/relay",   HTTP_OPTIONS, handle_api_options);
+  WebServer.on("/api/wifi/test", HTTP_OPTIONS, handle_api_options);
 
   // === Файлова система (LittleFS) ===
   WebServer.on("/api/fs/list",     HTTP_GET,     handle_api_fs_list);

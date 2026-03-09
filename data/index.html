@@ -810,12 +810,20 @@
       <div class="card-title">Wi-Fi</div>
       <div class="field">
         <label>SSID мережі</label>
-        <input type="text" id="g-sid" placeholder="назва мережі">
+        <div style="display:flex;gap:8px">
+          <input type="text" id="g-sid" placeholder="назва мережі" style="flex:1">
+          <button class="btn btn-sm" style="background:var(--border);color:var(--text)" onclick="scanWifi()">🔍 Знайти</button>
+        </div>
+        <div id="wifi-list" style="display:none;margin-top:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;max-height:150px;overflow-y:auto"></div>
       </div>
       <div class="field">
         <label>Пароль</label>
-        <input type="password" id="g-pas" placeholder="••••••••">
+        <div style="position:relative">
+          <input type="password" id="g-pas" placeholder="••••••••" style="padding-right:40px">
+          <button type="button" onclick="toggleVis('g-pas', this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem">👁️</button>
+        </div>
       </div>
+      <button class="btn btn-sm btn-full" style="background:#23263a;border:1px solid var(--border);color:var(--text);margin-bottom:0" onclick="testWifiConnection()">🔗 Підключитись та зберегти</button>
     </div>
 
     <!-- Time profile boundaries -->
@@ -857,11 +865,17 @@
       <div class="card-title">Telegram</div>
       <div class="field">
         <label>Bot Token</label>
-        <input type="password" id="g-token" placeholder="не показується з міркувань безпеки">
+        <div style="position:relative">
+          <input type="password" id="g-token" placeholder="не показується з міркувань безпеки" style="padding-right:40px">
+          <button type="button" onclick="toggleVis('g-token', this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem">👁️</button>
+        </div>
       </div>
       <div class="field">
         <label>Пароль доступу</label>
-        <input type="number" id="g-pass" placeholder="числовий код">
+        <div style="position:relative">
+          <input type="password" id="g-pass" placeholder="числовий код" style="padding-right:40px">
+          <button type="button" onclick="toggleVis('g-pass', this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem">👁️</button>
+        </div>
       </div>
     </div>
 
@@ -1527,6 +1541,122 @@
       if (!confirm('Перезавантажити пристрій?')) return;
       await apiGet('/api/reboot');
       showToast('🔄 Перезавантаження...');
+    }
+
+    // ============================================================
+    //  UI Enhancements (Password Vis, Wi-Fi Scan)
+    // ============================================================
+    function toggleVis(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.style.opacity = '0.5';
+      } else {
+        input.type = 'password';
+        btn.style.opacity = '1';
+      }
+    }
+
+    async function scanWifi() {
+      const listEl = document.getElementById('wifi-list');
+      listEl.style.display = 'block';
+      listEl.innerHTML = '<div style="padding:10px;text-align:center;color:var(--muted);font-size:.8rem">⏳ Сканування...</div>';
+      
+      const networks = await apiGet('/api/wifi/scan');
+      if (!networks || !networks.length) {
+        listEl.innerHTML = '<div style="padding:10px;text-align:center;color:var(--accent2);font-size:.8rem">❌ Мереж не знайдено</div>';
+        return;
+      }
+
+      listEl.innerHTML = networks.map(n => {
+        const icon = n.rssi >= -60 ? '📶' : n.rssi >= -75 ? '📶' : '🔴';
+        const color = n.rssi >= -60 ? 'var(--green)' : n.rssi >= -75 ? '#f5c542' : 'var(--accent2)';
+        return `<div style="padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center" 
+                  onclick="selectWifi('${n.ssid.replace(/'/g, "\\'")}')">
+                  <span style="font-weight:600">${n.ssid}</span>
+                  <span style="color:${color};font-size:.8rem">${icon} ${n.rssi} dBm</span>
+                </div>`;
+      }).join('');
+    }
+
+    function selectWifi(ssid) {
+      document.getElementById('g-sid').value = ssid;
+      document.getElementById('wifi-list').style.display = 'none';
+    }
+
+    async function testWifiConnection() {
+      const ssid = document.getElementById('g-sid').value.trim();
+      const pass = document.getElementById('g-pas').value;
+
+      if (!ssid) {
+        showToast('❌ Введіть SSID', false);
+        return;
+      }
+
+      showToast('⏳ Підключення... до 15с');
+      
+      const res = await apiPost('/api/wifi/test', { ssid, pass });
+      if (!res || !res.ok) {
+        showToast('❌ Помилка запуску тесту', false);
+        return;
+      }
+
+      // Починаємо опитування статусу
+      const pollInterval = setInterval(async () => {
+        const sr = await apiGet('/api/wifi/status');
+        if (!sr) return; // пропуск при тимчасовій втраті зв'язку (AP change channel)
+
+        if (sr.status === 'success') {
+          clearInterval(pollInterval);
+          // Успішне підключення: зберігаємо налаштування глобально
+          const g = { SID_STA: ssid, PAS_STA: pass };
+          await apiPost('/api/save', { g });
+          
+          // Відправляємо на ребут
+          await apiGet('/api/reboot');
+          
+          showRebootScreen(sr.ip);
+        } else if (sr.status === 'fail') {
+          clearInterval(pollInterval);
+          showToast('❌ Не вдалося підключитися. Перевірте пароль.', false);
+        }
+      }, 2000);
+    }
+
+    function showRebootScreen(newIp) {
+      // Показуємо повноекранне повідомлення про успіх
+      const div = document.createElement('div');
+      div.style.position = 'fixed';
+      div.style.top = '0';
+      div.style.left = '0';
+      div.style.width = '100vw';
+      div.style.height = '100vh';
+      div.style.background = 'var(--bg)';
+      div.style.zIndex = '9999';
+      div.style.display = 'flex';
+      div.style.flexDirection = 'column';
+      div.style.alignItems = 'center';
+      div.style.justifyContent = 'center';
+      div.style.padding = '20px';
+      div.style.textAlign = 'center';
+      
+      div.innerHTML = `
+        <div style="font-size:4rem;margin-bottom:20px">✅</div>
+        <h2 style="color:var(--green);margin-bottom:10px">Підключення успішне!</h2>
+        <p style="color:var(--muted);margin-bottom:20px">Пристрій перезавантажується.</p>
+        <p>Нова IP-адреса: <strong style="color:var(--accent);font-size:1.2rem">${newIp}</strong></p>
+        <p style="margin-top:20px;font-size:0.8rem;color:var(--muted)">Перехід за <span id="redir-timer">10</span> секунд...</p>
+      `;
+      document.body.appendChild(div);
+
+      let s = 10;
+      setInterval(() => {
+        s--;
+        document.getElementById('redir-timer').textContent = s;
+        if (s <= 0) {
+          window.location.href = `http://${newIp}`;
+        }
+      }, 1000);
     }
 
     // ============================================================

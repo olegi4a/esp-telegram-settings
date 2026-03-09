@@ -615,13 +615,13 @@
                         <div class="step-body">
                             <strong>Натисніть і тримайте кнопку на пристрої</strong>
                             <p>Тільки після того, як з'явився текст на екрані! Тримайте доки <strong>синій світлодіод не
-                                    почне блимати</strong>.</p>
+                                    почне блимати.</strong></p>
                         </div>
                     </li>
                     <li>
                         <div class="step-body">
                             <strong>Пристрій перейшов в AP-режим</strong>
-                            <p>Синій LED блимає = режим точки доступу активний. Тепер можна підключатися.</p>
+                            <p>На екрані, на короткий час, зявиться напис великими літерами "AP"</p>
                         </div>
                     </li>
                 </ol>
@@ -660,7 +660,8 @@
                     <li>
                         <div class="step-body">
                             <strong>Знайдіть поля підключення до мережі</strong>
-                            <p>На сторінці є поля <strong>SSID мережі</strong> (назва Wi-Fi) та <strong>Пароль</strong>.
+                            <p>На вкладці "Система" є поля <strong>SSID мережі</strong> (назва Wi-Fi) та
+                                <strong>Пароль.</strong>
                             </p>
                         </div>
                     </li>
@@ -674,7 +675,7 @@
                     <li>
                         <div class="step-body">
                             <strong>Збережіть та перезавантажте</strong>
-                            <p>Натисніть <strong>Зберегти</strong>, потім <strong>Перезавантажити</strong>.</p>
+                            <p>Натисніть <strong>Зберегти</strong>потім <strong>Перезавантажити</strong></p>
                         </div>
                     </li>
                 </ol>
@@ -708,51 +709,62 @@
                     <li>
                         <div class="step-body">
                             <strong>Знайдіть @BotFather в Telegram</strong>
-                            <p>Введіть у пошуку Telegram <code>@BotFather</code> — це офіційний бот від Telegram для
-                                створення інших ботів. Значок — синій кружечок з "Verified" позначкою.</p>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="step-body">
-                            <strong>Напишіть команду</strong>
-                            <pre>/newbot</pre>
-                        </div>
-                    </li>
-                </ol>
-
-                <h2>Крок 2 — Дайте ботові ім'я та username</h2>
-                <ol class="steps">
-                    <li>
-                        <div class="step-body">
-                            <strong>Введіть ім'я бота</strong>
-                            <p>Це відображуване ім'я — може бути будь-яким українською або англійською. Наприклад:
-                                <code>Мій розумний будинок</code>
+                            <p>Натисніть на - <a href=https://t.me/botfather target="_blank"
+                                    rel="noopener noreferrer">@BotFather</a> — це офіційний сервіс для
+                                створення
+                                ботів.
                             </p>
                         </div>
                     </li>
                     <li>
                         <div class="step-body">
-                            <strong>Введіть username бота</strong>
-                            <p>Технічне ім'я — тільки латиниця, цифри та підкреслення. <strong>Обов'язково закінчується
-                                    на <code>bot</code></strong>. Наприклад: <code>my_home_esp_bot</code></p>
+                            <strong>Відкрийте меню створення</strong>
+                            <p>Натисніть кнопку <strong>"Menu"</strong> ліворуч від поля вводу або кнопку
+                                <strong>"Open"</strong>
+                            </p>
                         </div>
                     </li>
                 </ol>
 
-                <div class="alert warn">
-                    <span class="emoji">⚠️</span>
-                    <span>Username бота має бути унікальним. Якщо такий вже існує — BotFather попросить вигадати
-                        інший.</span>
-                </div>
+                <h2>Крок 2 — Створіть бота у Mini App</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body">
+                            <strong>Оберіть пункт "Create a new bot"</strong>
+                            <strong>Введіть назву (Bot Name)</strong>
+                            <p>У вікні Mini App введіть ім'я свого бота. Це те, що бачитимуть користувачі.
+                            <p>Наприклад:<code>Мій Обігрівач</code></p>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Введіть технічне ім'я (Username)</strong>
+                            <p>Це унікальна адреса бота латиницею. Вона <strong>обов'язково</strong> має закінчуватися
+                                на <code>bot</code>. Наприклад: <code>my_edwic_home_bot</code> - з маленької літери.</p>
+                            <p>Не використовуйте пробіл або спеціальні символи. Можна використовувати лише латинські
+                                літери, цифри та знак підкреслення.</p>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Натисніть "Create"</strong>
+                            <p>Після створення на екрані з'явиться вікно з вашим новим ботом та токеном.</p>
+                        </div>
+                    </li>
+                </ol>
 
-                <h2>Крок 3 — Збережіть токен</h2>
+                <h2>Крок 3 — Скопіюйте Токен</h2>
                 <div class="card">
-                    <p>BotFather надішле повідомлення з <strong>токеном</strong> — довгий рядок вигляду:</p>
+                    <p>у верху вікна буде відображено скритий текст (HTTP API Token)</p>
+                    <strong>щоб скопіювати його:</strong>
+                    <p> натисніть кнопку <code>Copy</code></p>
                     <pre>1234567890:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</pre>
                     <div class="alert warn">
                         <span class="emoji">🔑</span>
-                        <span><strong>Токен — це ключ від бота.</strong> Збережіть його! Хто має токен — може керувати
-                            вашим пристроєм. Нікому не передавайте.</span>
+                        <span><strong>Це ваш секретний ключ.</strong> Надійно збережіть його і нікому не передавайте!
+                            Хто має токен — той повністю контролює ваш пристрій.</span>
                     </div>
                 </div>
 
@@ -772,8 +784,9 @@
                     <li>
                         <div class="step-body">
                             <strong>Знайдіть розділ "Telegram"</strong>
-                            <p>Вставте скопійований токен у поле <strong>Bot Token</strong>. Встановіть числовий
-                                <strong>Пароль доступу</strong> (щоб ніхто сторонній не зміг отримати доступ).
+                            <p>Вставте скопійований токен у поле <strong>Bot Token.</strong> Встановіть числовий
+                                <strong>Створіть пароль доступу</strong> (щоб ніхто сторонній не зміг отримати доступ).
+                            <p>стандартний пароль <code>12345</code></p>
                             </p>
                         </div>
                     </li>
@@ -808,18 +821,16 @@
 
                 <div class="card">
                     <div style="display:grid;grid-template-columns:1fr;gap:8px">
-                        <div style="background:var(--border);border-radius:8px;padding:10px 14px;text-align:center">
-                            <span class="kbd-btn">📊 Основні дані</span>
+                        <div style="display:grid;grid-template-columns:1fr;gap:8px">
+                            <span class="kbd-btn" style="display:block;text-align:center">📊 Основні дані</span>
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                             <span class="kbd-btn" style="display:block;text-align:center">🖐 Ручне керування</span>
                             <span class="kbd-btn" style="display:block;text-align:center">🤖 Автоматичне
                                 керування</span>
                         </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <div style="display:grid;grid-template-columns:1fr;gap:8px">
                             <span class="kbd-btn" style="display:block;text-align:center">🌐 Web-інтерфейс</span>
-                            <span class="kbd-btn" style="display:block;text-align:center">📱 Налаштування
-                                (MiniApp)</span>
                         </div>
                     </div>
                 </div>
@@ -848,10 +859,6 @@
                         <tr>
                             <td>🌐 <strong>Web-інтерфейс</strong></td>
                             <td>Надсилає посилання на локальну веб-сторінку пристрою</td>
-                        </tr>
-                        <tr>
-                            <td>📱 <strong>Налаштування (MiniApp)</strong></td>
-                            <td>Відкриває графічний міні-додаток для детального налаштування</td>
                         </tr>
                     </tbody>
                 </table>

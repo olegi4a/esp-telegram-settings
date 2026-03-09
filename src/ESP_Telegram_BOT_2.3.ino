@@ -1,5 +1,7 @@
 #include "set.h"
 
+DNSServer dnsServer;
+
 void setup()
 {
   pinMode(LED_STATUS, OUTPUT);
@@ -177,6 +179,19 @@ void loop()
 {
   unsigned long currentMillis = millis();
 
+  // LED Status Indication
+  static unsigned long lastLEDBlink = 0;
+  static bool ledState = false;
+  if (WiFi.getMode() == WIFI_AP) {
+    if (currentMillis - lastLEDBlink >= 500) {
+      lastLEDBlink = currentMillis;
+      ledState = !ledState;
+      digitalWrite(LED_STATUS, ledState);
+    }
+  } else {
+    digitalWrite(LED_STATUS, (WiFi.status() == WL_CONNECTED));
+  }
+
   // Обробка Telegram (неблокуюча)
   myBot.tick();
 
@@ -227,6 +242,10 @@ void loop()
   if(!((Time_D < Time_now && Time_N > Time_now && profile == 1) || (Time_D > Time_now && profile == 0) || (Time_N < Time_now && profile == 0) || (WiFi.getMode() == WIFI_AP)))
   {
     RESTART = 3;
+  }
+  
+  if(WiFi.getMode() == WIFI_AP) {
+    dnsServer.processNextRequest();
   }
   
   // [ВИДАЛЕНО] Старий polling-based digitalRead(POWER) — замінено ISR в PowerMonitor.ino
