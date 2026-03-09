@@ -5,24 +5,19 @@
 //  Файли статики (Home.html тощо) обслуговуються через FS.ino.
 // ============================================================
 
-// --- Встановлення CORS заголовків (дозволяє fetch з браузера) ---
-static void _setCORS() {
-  WebServer.sendHeader("Access-Control-Allow-Origin",  "*");
-  WebServer.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  WebServer.sendHeader("Access-Control-Allow-Headers", "Content-Type");
-  WebServer.sendHeader("Cache-Control",                "no-cache");
-}
-
 // --- Шаблон відповіді JSON ---
 static void _sendJson(int code, String json) {
-  _setCORS();
-  WebServer.send(code, "application/json", json);
+  WebServer.sendHeader(F("Access-Control-Allow-Origin"),  F("*"));
+  WebServer.sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST, OPTIONS"));
+  WebServer.sendHeader(F("Access-Control-Allow-Headers"), F("Content-Type"));
+  WebServer.sendHeader(F("Cache-Control"),                F("no-cache"));
+  WebServer.send(code, F("application/json"), json);
 }
 
 // ============================================================
 //  GET /api/status — живі дані (температура, реле, режим тощо)
 // ============================================================
-void api_status() {
+void handle_api_status() {
   JsonDocument doc;
   doc["temp"]    = serialized(String(Temperature, 1));
   doc["hum"]     = Humedity;
@@ -51,7 +46,7 @@ void api_status() {
 // ============================================================
 //  GET /api/config — повна конфігурація (глобальна + обидва профілі)
 // ============================================================
-void api_config() {
+void handle_api_config() {
   JsonDocument doc;
 
   // Глобальні налаштування
@@ -105,8 +100,8 @@ void api_config() {
 // ============================================================
 //  GET /api/history_ram — повертає тільки RAM буфер
 // ============================================================
-void api_history_ram() {
-  _setCORS();
+void handle_api_history_ram() {
+  WebServer.sendHeader("Access-Control-Allow-Origin",  "*");
   WebServer.setContentLength(CONTENT_LENGTH_UNKNOWN);
   WebServer.send(200, "application/x-ndjson", "");
   Logger_streamRamToWeb();
@@ -118,10 +113,9 @@ void api_history_ram() {
 //  POST /api/save — зберегти налаштування (JSON-тіло запиту)
 //  Формат: {"t":"D"|"N"|"B", "s":{...profile fields...}, "g":{...global...}}
 // ============================================================
-void api_save() {
+void handle_api_save() {
   if (WebServer.method() == HTTP_OPTIONS) {
-    _setCORS();
-    WebServer.send(204);
+    _sendJson(204, "");
     return;
   }
 
@@ -139,20 +133,7 @@ void api_save() {
 
   // Глобальні налаштування
   if (!g.isNull()) {
-    if (!g["Time_D_h"].isNull())  Time_D = g["Time_D_h"].as<int>() * 3600;
-    if (!g["Time_N_h"].isNull())  Time_N = g["Time_N_h"].as<int>() * 3600;
-    if (!g["SID_STA"].isNull())   SID_STA = g["SID_STA"].as<String>();
-    if (!g["PAS_STA"].isNull())   PAS_STA = g["PAS_STA"].as<String>();
-    if (!g["timezone_str"].isNull() && g["timezone_str"].as<String>().length() > 3) {
-      timezone_str = g["timezone_str"].as<String>();
-      configTime(timezone_str.c_str(), ntpServerName, ntpServerName2);
-    }
-    if (!g["TB_Token"].isNull() && g["TB_Token"].as<String>().length() > 10) {
-      TB_Token = g["TB_Token"].as<String>();
-      myBot.setToken(TB_Token);
-    }
-    if (!g["TB_pasword"].isNull()) TB_pasword = g["TB_pasword"].as<long>();
-    Save_Config();
+    Update_Global_Config(g);
   }
 
   // Параметри профілю
@@ -183,10 +164,9 @@ void api_save() {
 //  POST /api/mode — перемикання режимів (manual/auto) без запису у файл
 //  Тіло: {"mode":"manual"} або {"mode":"auto"}
 // ============================================================
-void api_mode() {
+void handle_api_mode() {
   if (WebServer.method() == HTTP_OPTIONS) {
-    _setCORS();
-    WebServer.send(204);
+    _sendJson(204, "");
     return;
   }
   JsonDocument doc;
@@ -195,9 +175,10 @@ void api_mode() {
 
   if (req == "manual") {
     Statatus_sensor_control = 0;
+    digitalWrite(LED_BOOTON, HIGH);
     Logger_addEntry(14);
   } else if (req == "auto") {
-    restoreAutomationMode();
+    restoreAutomationMode(); // restoreAutomationMode internally updates LED_BOOTON
     Logger_addEntry(14 + Statatus_sensor_control);
   } else {
     _sendJson(400, "{\"ok\":false,\"error\":\"bad mode\"}");
@@ -212,10 +193,9 @@ void api_mode() {
 //  POST /api/relay — керування реле
 //  Тіло: {"state":1} або {"state":0} або {"state":-1} для toggle
 // ============================================================
-void api_relay() {
+void handle_api_relay() {
   if (WebServer.method() == HTTP_OPTIONS) {
-    _setCORS();
-    WebServer.send(204);
+    _sendJson(204, "");
     return;
   }
   if (Statatus_sensor_control != 0) {
@@ -232,7 +212,6 @@ void api_relay() {
   else                newState = !digitalRead(RELE); // toggle
 
   digitalWrite(RELE, newState);
-  Logger_addEntry(1); // 1 = relay toggle event
 
   String resp = "{\"ok\":true,\"relay\":" + String(newState ? "1" : "0") + "}";
   _sendJson(200, resp);
@@ -241,9 +220,8 @@ void api_relay() {
 // ============================================================
 //  GET /api/reboot — перезавантаження пристрою
 // ============================================================
-void api_reboot() {
-  _setCORS();
-  WebServer.send(200, "application/json", "{\"ok\":true,\"msg\":\"rebooting\"}");
+void handle_api_reboot() {
+  _sendJson(200, "{\"ok\":true,\"msg\":\"rebooting\"}");
   Logger_addEntry(11); // 11 = Перезавантаження
   Logger_flushToFile();
   delay(500);
@@ -253,9 +231,8 @@ void api_reboot() {
 // ============================================================
 //  OPTIONS catch-all — для CORS preflight
 // ============================================================
-void api_options() {
-  _setCORS();
-  WebServer.send(204);
+void handle_api_options() {
+  _sendJson(204, "");
 }
 
 // ============================================================
@@ -279,7 +256,7 @@ static void _addDirToList(String path, String& out, bool& first) {
   }
 }
 
-void api_fs_list() {
+void handle_api_fs_list() {
   String out = "[";
   bool first = true;
   _addDirToList("/", out, first);
@@ -290,7 +267,7 @@ void api_fs_list() {
 // ============================================================
 //  GET /api/fs/download?file=/Config.json — стримінг файлу
 // ============================================================
-void api_fs_download() {
+void handle_api_fs_download() {
   if (!WebServer.hasArg("file")) {
     _sendJson(400, "{\"ok\":false,\"error\":\"missing file param\"}");
     return;
@@ -310,7 +287,7 @@ void api_fs_download() {
     _sendJson(500, "{\"ok\":false,\"error\":\"open failed\"}");
     return;
   }
-  _setCORS();
+  WebServer.sendHeader("Access-Control-Allow-Origin",  "*");
   // Встановлюємо Content-Disposition щоб браузер зберігав файл
   String fname = path.substring(path.lastIndexOf('/') + 1);
   WebServer.sendHeader("Content-Disposition", "attachment; filename=\"" + fname + "\"");
@@ -325,7 +302,7 @@ void api_fs_download() {
 static File _uploadFile;
 static String _uploadFileName;
 
-void api_fs_upload_handler() {
+void handle_api_fs_upload_handler() {
   HTTPUpload& upload = WebServer.upload();
   if (upload.status == UPLOAD_FILE_START) {
     _uploadFileName = upload.filename;
@@ -342,7 +319,7 @@ void api_fs_upload_handler() {
   }
 }
 
-void api_fs_upload_done() {
+void handle_api_fs_upload_done() {
   if (_uploadFileName.isEmpty()) {
     _sendJson(500, "{\"ok\":false,\"error\":\"upload failed\"}");
     return;
@@ -356,34 +333,27 @@ void api_fs_upload_done() {
 //  Ініціалізація WebServer (всі маршрути)
 // ============================================================
 void WebServer_Init() {
-  // === Нові REST API ===
-  WebServer.on("/api/status",  HTTP_GET,    api_status);
-  WebServer.on("/api/config",  HTTP_GET,    api_config);
-  WebServer.on("/api/mode",    HTTP_POST,   api_mode);
-  WebServer.on("/api/mode",    HTTP_OPTIONS, api_options);
-  WebServer.on("/api/history_ram", HTTP_GET, api_history_ram);
-  WebServer.on("/api/save",    HTTP_POST,   api_save);
-  WebServer.on("/api/relay",   HTTP_POST,   api_relay);
-  WebServer.on("/api/reboot",  HTTP_GET,    api_reboot);
-  // OPTIONS для CORS preflight (браузер надсилає перед POST)
-  WebServer.on("/api/save",    HTTP_OPTIONS, api_options);
-  WebServer.on("/api/relay",   HTTP_OPTIONS, api_options);
+  // === REST API ===
+  WebServer.on("/api/status",  HTTP_GET,    handle_api_status);
+  WebServer.on("/api/config",  HTTP_GET,    handle_api_config);
+  WebServer.on("/api/mode",    HTTP_POST,   handle_api_mode);
+  WebServer.on("/api/history_ram", HTTP_GET, handle_api_history_ram);
+  WebServer.on("/api/save",    HTTP_POST,   handle_api_save);
+  WebServer.on("/api/relay",   HTTP_POST,   handle_api_relay);
+  WebServer.on("/api/reboot",  HTTP_GET,    handle_api_reboot);
 
-  WebServer.on("/Reboot",                   handle_Reboot);
+  // OPTIONS catch-all for CORS preflight
+  WebServer.on("/api/mode",    HTTP_OPTIONS, handle_api_options);
+  WebServer.on("/api/save",    HTTP_OPTIONS, handle_api_options);
+  WebServer.on("/api/relay",   HTTP_OPTIONS, handle_api_options);
 
-  // === Файлова система (бекап / оновлення веб-файлів) ===
-  WebServer.on("/api/fs/list",     HTTP_GET,     api_fs_list);
-  WebServer.on("/api/fs/download", HTTP_GET,     api_fs_download);
-  WebServer.on("/api/fs/upload",   HTTP_POST,    api_fs_upload_done, api_fs_upload_handler);
-  WebServer.on("/api/fs/upload",   HTTP_OPTIONS, api_options);
+  // === Файлова система (LittleFS) ===
+  WebServer.on("/api/fs/list",     HTTP_GET,     handle_api_fs_list);
+  WebServer.on("/api/fs/download", HTTP_GET,     handle_api_fs_download);
+  WebServer.on("/api/fs/upload",   HTTP_POST,    handle_api_fs_upload_done, handle_api_fs_upload_handler);
+  WebServer.on("/api/fs/upload",   HTTP_OPTIONS, handle_api_options);
 
   WebUpdater.setup(&WebServer);
   WebServer.begin();
-  TBLOG_LN(F("WebServer begin (REST API ready)"));
-}
-
-void handle_Reboot() {
-  WebServer.send(200, "text/plain", "Rebooting device...");
-  delay(1000);
-  ESP.restart();
+  TBLOG_LN(F("WebServer begin (API ready)"));
 }

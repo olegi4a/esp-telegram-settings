@@ -177,21 +177,24 @@ bool Patch_Profile(String filename, JsonObject s) {
     doc["profile"] = (filename == "/D_profile.json") ? 1 : 0;
   }
   
-  if (!s["Sensor_set"].isNull())              doc["Sensor_set"]              = s["Sensor_set"].as<String>().toFloat();
-  if (!s["Sensor_histeresis"].isNull())       doc["Sensor_histeresis"]       = s["Sensor_histeresis"].as<String>().toFloat();
-  if (!s["Statatus_sensor_control"].isNull()) doc["Statatus_sensor_control"] = s["Statatus_sensor_control"].as<String>().toInt();
-  if (!s["Rele_status"].isNull())             doc["Rele_status"]             = (bool)s["Rele_status"].as<String>().toInt();
-  if (!s["Start_status"].isNull())            doc["Start_status"]            = s["Start_status"].as<String>().toInt();
-  if (!s["Time_on"].isNull())                 doc["Time_on"]                 = s["Time_on"].as<String>().toInt();
-  if (!s["Time_off"].isNull())                doc["Time_off"]                = s["Time_off"].as<String>().toInt();
-  if (!s["Alarm_start"].isNull())             doc["Alarm_start"]             = (bool)s["Alarm_start"].as<String>().toInt();
-  if (!s["Alarm_data_u"].isNull())            doc["Alarm_data_u"]            = s["Alarm_data_u"].as<String>().toFloat();
-  if (!s["Alarm_data_d"].isNull())            doc["Alarm_data_d"]            = s["Alarm_data_d"].as<String>().toFloat();
-  if (!s["Alarm_data_set"].isNull())          doc["Alarm_data_set"]          = s["Alarm_data_set"].as<String>().toInt();
-  if (!s["trend"].isNull())                   doc["trend"]                   = s["trend"].as<String>().toInt();
-  if (!s["widget_status"].isNull())           doc["widget_status"]           = s["widget_status"].as<String>().toInt();
-  if (!s["Alarm_power"].isNull())             doc["Alarm_power"]             = s["Alarm_power"].as<String>().toInt();
-  if (!s["relay_change_notify"].isNull())     doc["relay_change_notify"]     = (bool)s["relay_change_notify"].as<String>().toInt();
+  auto patchF = [&](const char* k, const char* sk) { if (s.containsKey(k)) doc[k] = s[k].as<float>(); else if (s.containsKey(sk)) doc[k] = s[sk].as<float>(); };
+  auto patchI = [&](const char* k, const char* sk) { if (s.containsKey(k)) doc[k] = s[k].as<int>(); else if (s.containsKey(sk)) doc[k] = s[sk].as<int>(); };
+
+  patchF("Sensor_set", "ss");
+  patchF("Sensor_histeresis", "sh");
+  patchI("Statatus_sensor_control", "sc");
+  if (s.containsKey("Rele_status")) doc["Rele_status"] = s["Rele_status"].as<int>() == 1;
+  patchI("Start_status", "sts");
+  patchI("Time_on", "ton");
+  patchI("Time_off", "tof");
+  patchI("Alarm_start", "ast");
+  patchF("Alarm_data_u", "au");
+  patchF("Alarm_data_d", "ad");
+  patchI("Alarm_data_set", "as");
+  patchI("trend", "tr");
+  patchI("widget_status", "w");
+  patchI("Alarm_power", "ap");
+  patchI("relay_change_notify", "rn");
 
   File fw = LittleFS.open(filename, "w");
   if (!fw) return false;
@@ -211,7 +214,31 @@ void restoreAutomationMode() {
 
   if (!error) {
     Statatus_sensor_control = doc["Statatus_sensor_control"] | 0;
+    digitalWrite(LED_BOOTON, (Statatus_sensor_control == 0));
     TBLOG("Automation mode restored from "); TBLOG(profil_name); 
     TBLOG(": "); TBLOG_LN(Statatus_sensor_control);
   }
+}
+// Оновлення глобальних налаштувань з JSON об'єкту
+void Update_Global_Config(JsonObject g) {
+  if (g.isNull()) return;
+  
+  if (!g["Time_D_h"].isNull())  Time_D = g["Time_D_h"].as<int>() * 3600;
+  if (!g["Time_N_h"].isNull())  Time_N = g["Time_N_h"].as<int>() * 3600;
+  if (!g["SID_STA"].isNull())   SID_STA = g["SID_STA"].as<String>();
+  if (!g["PAS_STA"].isNull())   PAS_STA = g["PAS_STA"].as<String>();
+  
+  if (!g["timezone_str"].isNull() && g["timezone_str"].as<String>().length() > 3) {
+    timezone_str = g["timezone_str"].as<String>();
+    configTime(timezone_str.c_str(), ntpServerName, ntpServerName2);
+  }
+  
+  if (!g["TB_Token"].isNull() && g["TB_Token"].as<String>().length() > 10) {
+    TB_Token = g["TB_Token"].as<String>();
+    myBot.setToken(TB_Token);
+  }
+  
+  if (!g["TB_pasword"].isNull()) TB_pasword = g["TB_pasword"].as<long>();
+  
+  Save_Config();
 }

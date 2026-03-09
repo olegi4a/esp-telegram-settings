@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDwIC Control — Інструкція користувача</title>
+    <style>
+        :root {
+            --accent: #6c63ff;
+            --accent2: #ff6584;
+            --green: #43c67a;
+            --yellow: #f5c542;
+            --bg: #0f1117;
+            --card: #1a1d27;
+            --border: #2a2d3e;
+            --text: #e8eaf0;
+            --muted: #8892a4;
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* === TOP NAV === */
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header .logo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent);
+            flex: 1;
+        }
+
+        header .logo span {
+            color: var(--text);
+        }
+
+        /* === SIDEBAR NAV === */
+        .layout {
+            display: flex;
+            min-height: calc(100vh - 56px);
+        }
+
+        aside {
+            width: 230px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+            flex-shrink: 0;
+            position: sticky;
+            top: 56px;
+            height: calc(100vh - 56px);
+            overflow-y: auto;
+        }
+
+        aside .nav-group {
+            margin-bottom: 6px;
+        }
+
+        aside .nav-label {
+            font-size: .65rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            padding: 8px 18px 4px;
+        }
+
+        aside button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 18px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: .88rem;
+            text-align: left;
+            transition: background .15s, color .15s;
+            border-radius: 0;
+        }
+
+        aside button:hover {
+            background: rgba(108, 99, 255, .08);
+            color: var(--text);
+        }
+
+        aside button.active {
+            background: rgba(108, 99, 255, .18);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        aside button .icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* === CONTENT === */
+        main {
+            flex: 1;
+            padding: 28px 24px;
+            max-width: 740px;
+        }
+
+        section {
+            display: none;
+        }
+
+        section.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 28px 0 12px;
+            color: var(--accent);
+        }
+
+        h3 {
+            font-size: .95rem;
+            font-weight: 700;
+            margin: 20px 0 8px;
+            color: var(--text);
+        }
+
+        p {
+            margin-bottom: 12px;
+            color: #c5cad8;
+        }
+
+        ul,
+        ol {
+            padding-left: 20px;
+            margin-bottom: 12px;
+            color: #c5cad8;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        strong {
+            color: var(--text);
+        }
+
+        .subtitle {
+            font-size: .95rem;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        /* === CARDS === */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: .7rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        /* === STEPS === */
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            padding: 0;
+        }
+
+        .steps li {
+            counter-increment: step;
+            display: flex;
+            gap: 14px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+
+        .steps li::before {
+            content: counter(step);
+            background: var(--accent);
+            color: #fff;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: .85rem;
+            margin-top: 1px;
+        }
+
+        .steps li .step-body {
+            flex: 1;
+        }
+
+        .steps li .step-body strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: .95rem;
+        }
+
+        .steps li .step-body p,
+        .steps li .step-body ul {
+            margin: 4px 0;
+        }
+
+        /* === ALERTS === */
+        .alert {
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 14px 0;
+            font-size: .88rem;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .alert.warn {
+            background: rgba(245, 197, 66, .1);
+            border-left: 3px solid var(--yellow);
+        }
+
+        .alert.info {
+            background: rgba(108, 99, 255, .1);
+            border-left: 3px solid var(--accent);
+        }
+
+        .alert.tip {
+            background: rgba(67, 198, 122, .1);
+            border-left: 3px solid var(--green);
+        }
+
+        .alert .emoji {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* === CODE === */
+        code {
+            background: var(--border);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: .85rem;
+            color: #9fa8da;
+        }
+
+        pre {
+            background: #0a0c12;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-family: 'Courier New', monospace;
+            font-size: .83rem;
+            color: #9fa8da;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        /* === TABLE === */
+        .tbl {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .tbl th {
+            background: var(--border);
+            padding: 8px 12px;
+            text-align: left;
+            font-size: .8rem;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+
+        .tbl td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: .88rem;
+            vertical-align: top;
+        }
+
+        .tbl tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* === BADGE === */
+        .badge {
+            display: inline-block;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        .badge.green {
+            background: rgba(67, 198, 122, .15);
+            color: var(--green);
+        }
+
+        .badge.yellow {
+            background: rgba(245, 197, 66, .15);
+            color: var(--yellow);
+        }
+
+        .badge.red {
+            background: rgba(255, 101, 132, .15);
+            color: var(--accent2);
+        }
+
+        .badge.blue {
+            background: rgba(108, 99, 255, .2);
+            color: var(--accent);
+        }
+
+        /* === KEYBOARD BUTTON === */
+        .kbd-btn {
+            display: inline-block;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: .82rem;
+            margin: 3px;
+            white-space: nowrap;
+        }
+
+        /* === PHONE MOCKUP === */
+        .msg-mock {
+            background: #1a1d27;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: .8rem;
+            line-height: 1.5;
+            color: #c5cad8;
+            white-space: pre;
+            overflow-x: auto;
+            text-align: left;
+            margin: 10px 0;
+        }
+
+        /* === BOTTOM NAV (mobile) === */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 6px 0 10px;
+            justify-content: space-around;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .bottom-nav button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: .6rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 3px 4px;
+            border-radius: 6px;
+            transition: color .15s;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bottom-nav button .icon {
+            font-size: 1.2rem;
+        }
+
+        .bottom-nav button span.label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .bottom-nav button.active {
+            color: var(--accent);
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 640px) {
+            aside {
+                display: none;
+            }
+
+            main {
+                padding: 18px 14px 80px;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .bottom-nav {
+                display: flex;
+            }
+
+            /* Таблиці — вертикальний вигляд */
+            .tbl thead {
+                display: none;
+            }
+
+            .tbl,
+            .tbl tbody,
+            .tbl tr,
+            .tbl td {
+                display: block;
+                width: 100%;
+            }
+
+            .tbl tr {
+                margin-bottom: 10px;
+                background: var(--border);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            .tbl td {
+                padding: 7px 12px;
+                border-bottom: 1px solid rgba(255, 255, 255, .05);
+                font-size: .83rem;
+            }
+
+            .tbl td:first-child {
+                font-weight: 700;
+                background: rgba(108, 99, 255, .1);
+                color: var(--accent);
+            }
+
+            .tbl td:last-child {
+                border-bottom: none;
+            }
+
+            /* Двоколонкові гриди → одна колонка */
+            [style*="grid-template-columns:1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Текстовий дашборд — не виходить за межі */
+            .msg-mock {
+                font-size: .7rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+                overflow-x: auto;
+            }
+
+            /* Клавіатурні кнопки — перенос */
+            .kbd-btn {
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            pre {
+                font-size: .75rem;
+                word-break: break-all;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">EDwIC <span>Control</span></div>
+        <span style="color:var(--muted);font-size:.82rem">Інструкція користувача</span>
+    </header>
+
+    <div class="layout">
+
+        <!-- === SIDEBAR === -->
+        <aside>
+            <div class="nav-group">
+                <div class="nav-label">Початок роботи</div>
+                <button class="active" onclick="show('start')" id="nav-start"><span class="icon">🚀</span> Перше
+                    включення</button>
+                <button onclick="show('wifi')" id="nav-wifi"><span class="icon">📡</span> Підключення Wi-Fi</button>
+                <button onclick="show('bot')" id="nav-bot"><span class="icon">🤖</span> Telegram бот</button>
+            </div>
+            <div class="nav-group">
+                <div class="nav-label">Керування</div>
+                <button onclick="show('tg')" id="nav-tg"><span class="icon">💬</span> Telegram чат</button>
+                <button onclick="show('miniapp')" id="nav-miniapp"><span class="icon">📱</span> MiniApp
+                    налаштування</button>
+                <button onclick="show('web')" id="nav-web"><span class="icon">🌐</span> Веб-інтерфейс</button>
+            </div>
+            <div class="nav-group">
+                <div class="nav-label">Допомога</div>
+                <button onclick="show('faq')" id="nav-faq"><span class="icon">❓</span> Часті питання</button>
+            </div>
+        </aside>
+
+        <!-- === MAIN CONTENT === -->
+        <main>
+
+            <!-- ====== ПЕРШЕ ВКЛЮЧЕННЯ ====== -->
+            <section id="start" class="active">
+                <h1>🚀 Перше включення</h1>
+                <p class="subtitle">Три кроки для початку роботи з пристроєм</p>
+
+                <div class="card">
+                    <div class="card-title">Що знадобиться</div>
+                    <ul>
+                        <li>Смартфон або комп'ютер з Wi-Fi</li>
+                        <li>Доступ до вашого домашнього роутера (знати назву мережі і пароль)</li>
+                        <li>Telegram — встановлений на телефоні</li>
+                    </ul>
+                </div>
+
+                <h2>Схема першого налаштування</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body">
+                            <strong>Підключіть пристрій до вашої Wi-Fi мережі</strong>
+                            <p>Через режим точки доступу (AP-режим). Детально — у розділі <a href="#"
+                                    onclick="show('wifi')" style="color:var(--accent)">📡 Підключення Wi-Fi</a></p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Створіть Telegram бота та отримайте токен</strong>
+                            <p>Потрібно зробити один раз через @BotFather. Детально — у розділі <a href="#"
+                                    onclick="show('bot')" style="color:var(--accent)">🤖 Telegram бот</a></p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Введіть токен у веб-інтерфейсі та перезапустіть</strong>
+                            <p>Відкрийте веб-інтерфейс пристрою за IP-адресою → вкладка Система → поле "Bot Token"</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="alert tip">
+                    <span class="emoji">✅</span>
+                    <span>Після цих трьох кроків — знайдіть бота в Telegram, напишіть <code>/start</code>, введіть
+                        пароль і починайте користуватися!</span>
+                </div>
+            </section>
+
+            <!-- ====== Wi-Fi ====== -->
+            <section id="wifi">
+                <h1>📡 Підключення до Wi-Fi</h1>
+                <p class="subtitle">Як вперше з'єднати пристрій з вашою домашньою мережею</p>
+
+                <div class="alert warn">
+                    <span class="emoji">⚠️</span>
+                    <span>Новий пристрій не знає пароль вашого Wi-Fi. Потрібно один раз налаштувати через режим точки
+                        доступу.</span>
+                </div>
+
+                <h2>Крок 1 — Увімкніть AP-режим</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body">
+                            <strong>Увімкніть живлення пристрою</strong>
+                            <p>Зачекайте кілька секунд — на екрані з'явиться текст завантаження.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Натисніть і тримайте кнопку на пристрої</strong>
+                            <p>Тільки після того, як з'явився текст на екрані! Тримайте доки <strong>синій світлодіод не
+                                    почне блимати</strong>.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Пристрій перейшов в AP-режим</strong>
+                            <p>Синій LED блимає = режим точки доступу активний. Тепер можна підключатися.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="alert warn">
+                    <span class="emoji">⚠️</span>
+                    <span><strong>Не натискайте кнопку до появи тексту!</strong> Якщо натиснути занадто рано — AP-режим
+                        не активується і потрібно спробувати ще раз.</span>
+                </div>
+
+                <h2>Крок 2 — Підключіться до точки доступу</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body">
+                            <strong>Відкрийте налаштування Wi-Fi на телефоні</strong>
+                            <p>У списку мереж з'явиться нова мережа з приблизно такою назвою: <code>EDwIC-XXXX</code>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Підключіться до неї</strong>
+                            <p>Пароль не потрібен — підключення відкрите.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Відкрийте браузер і перейдіть за адресою</strong>
+                            <pre>http://192.168.4.1</pre>
+                        </div>
+                    </li>
+                </ol>
+
+                <h2>Крок 3 — Налаштуйте Wi-Fi</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body">
+                            <strong>Знайдіть поля підключення до мережі</strong>
+                            <p>На сторінці є поля <strong>SSID мережі</strong> (назва Wi-Fi) та <strong>Пароль</strong>.
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Введіть дані вашої домашньої мережі</strong>
+                            <p>Точно так, як написано на роутері або у налаштуваннях Wi-Fi. Великі та малі літери мають
+                                значення!</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Збережіть та перезавантажте</strong>
+                            <p>Натисніть <strong>Зберегти</strong>, потім <strong>Перезавантажити</strong>.</p>
+                        </div>
+                    </li>
+                </ol>
+
+                <h2>Результат</h2>
+                <div class="card">
+                    <p>Після перезавантаження пристрій підключиться до вашої Wi-Fi. На екрані на кілька секунд з'явиться
+                        <strong>IP-адреса</strong> (наприклад <code>192.168.1.100</code>).
+                    </p>
+                    <div class="alert tip">
+                        <span class="emoji">💡</span>
+                        <span><strong>Запишіть або сфотографуйте IP-адресу!</strong> За нею можна відкривати
+                            веб-інтерфейс пристрою будь-коли, поки ви у тій самій Wi-Fi мережі.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ====== TELEGRAM BOT ====== -->
+            <section id="bot">
+                <h1>🤖 Створення Telegram бота</h1>
+                <p class="subtitle">Потрібно зробити один раз — займе 2–3 хвилини</p>
+
+                <div class="card">
+                    <div class="card-title">Чому потрібен свій бот?</div>
+                    <p>Telegram-бот — це ваш особистий "помічник" у Telegram, через якого пристрій надсилає вам
+                        повідомлення та приймає ваші команди. Кожен пристрій має окремого бота.</p>
+                </div>
+
+                <h2>Крок 1 — Відкрийте BotFather</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body">
+                            <strong>Знайдіть @BotFather в Telegram</strong>
+                            <p>Введіть у пошуку Telegram <code>@BotFather</code> — це офіційний бот від Telegram для
+                                створення інших ботів. Значок — синій кружечок з "Verified" позначкою.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Напишіть команду</strong>
+                            <pre>/newbot</pre>
+                        </div>
+                    </li>
+                </ol>
+
+                <h2>Крок 2 — Дайте ботові ім'я та username</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body">
+                            <strong>Введіть ім'я бота</strong>
+                            <p>Це відображуване ім'я — може бути будь-яким українською або англійською. Наприклад:
+                                <code>Мій розумний будинок</code>
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Введіть username бота</strong>
+                            <p>Технічне ім'я — тільки латиниця, цифри та підкреслення. <strong>Обов'язково закінчується
+                                    на <code>bot</code></strong>. Наприклад: <code>my_home_esp_bot</code></p>
+                        </div>
+                    </li>
+                </ol>
+
+                <div class="alert warn">
+                    <span class="emoji">⚠️</span>
+                    <span>Username бота має бути унікальним. Якщо такий вже існує — BotFather попросить вигадати
+                        інший.</span>
+                </div>
+
+                <h2>Крок 3 — Збережіть токен</h2>
+                <div class="card">
+                    <p>BotFather надішле повідомлення з <strong>токеном</strong> — довгий рядок вигляду:</p>
+                    <pre>1234567890:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</pre>
+                    <div class="alert warn">
+                        <span class="emoji">🔑</span>
+                        <span><strong>Токен — це ключ від бота.</strong> Збережіть його! Хто має токен — може керувати
+                            вашим пристроєм. Нікому не передавайте.</span>
+                    </div>
+                </div>
+
+                <h2>Крок 4 — Введіть токен у веб-інтерфейсі</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body">
+                            <strong>Відкрийте веб-інтерфейс пристрою</strong>
+                            <p>У браузері за IP-адресою (наприклад <code>http://192.168.1.100</code>).</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Перейдіть на вкладку Система ⚙️</strong>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Знайдіть розділ "Telegram"</strong>
+                            <p>Вставте скопійований токен у поле <strong>Bot Token</strong>. Встановіть числовий
+                                <strong>Пароль доступу</strong> (щоб ніхто сторонній не зміг отримати доступ).
+                            </p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Збережіть та перезавантажте пристрій</strong>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body">
+                            <strong>Знайдіть свого бота в Telegram і напишіть /start</strong>
+                            <p>Бот повинен відповісти і попросити ввести пароль.</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <!-- ====== TELEGRAM ЧАТ ====== -->
+            <section id="tg">
+                <h1>💬 Керування через Telegram</h1>
+                <p class="subtitle">Доступне будь-де у світі, де є інтернет</p>
+
+                <div class="alert info">
+                    <span class="emoji">🤖</span>
+                    <span>Перед тим як почати — потрібен Telegram бот та токен. Якщо ще не налаштували — перейдіть до
+                        розділу <a href="#" onclick="show('bot')"
+                            style="color:var(--accent);text-decoration:underline">🤖 Створення Telegram бота</a>.</span>
+                </div>
+
+                <h2>Головна клавіатура</h2>
+                <p>Після входу в бота внизу екрана з'являються кнопки для керування:</p>
+
+                <div class="card">
+                    <div style="display:grid;grid-template-columns:1fr;gap:8px">
+                        <div style="background:var(--border);border-radius:8px;padding:10px 14px;text-align:center">
+                            <span class="kbd-btn">📊 Основні дані</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                            <span class="kbd-btn" style="display:block;text-align:center">🖐 Ручне керування</span>
+                            <span class="kbd-btn" style="display:block;text-align:center">🤖 Автоматичне
+                                керування</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                            <span class="kbd-btn" style="display:block;text-align:center">🌐 Web-інтерфейс</span>
+                            <span class="kbd-btn" style="display:block;text-align:center">📱 Налаштування
+                                (MiniApp)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Що робить кожна кнопка</h2>
+                <table class="tbl">
+                    <thead>
+                        <tr>
+                            <th>Кнопка</th>
+                            <th>Що відбувається</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>📊 <strong>Основні дані</strong></td>
+                            <td>Показує стан системи: температура, реле, режим, час роботи, Wi-Fi сигнал</td>
+                        </tr>
+                        <tr>
+                            <td>🖐 <strong>Ручне керування</strong></td>
+                            <td>Вимикає автоматику тимчасово і показує кнопки "Увімкнути / Вимкнути" реле</td>
+                        </tr>
+                        <tr>
+                            <td>🤖 <strong>Автоматичне керування</strong></td>
+                            <td>Повертає автоматику відповідно до збережених налаштувань профілю</td>
+                        </tr>
+                        <tr>
+                            <td>🌐 <strong>Web-інтерфейс</strong></td>
+                            <td>Надсилає посилання на локальну веб-сторінку пристрою</td>
+                        </tr>
+                        <tr>
+                            <td>📱 <strong>Налаштування (MiniApp)</strong></td>
+                            <td>Відкриває графічний міні-додаток для детального налаштування</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Кнопка "Основні дані"</h2>
+                <p>Показує такий дашборд:</p>
+                <div class="msg-mock">📊 <b>Основні дані</b>
+                    ──────────────────────
+                    Статус системи [OK]
+                    ──────────────────────
+                    Температура | +23.5 °C
+                    реле | Включено
+                    ──────────────────────
+                    активний режим | День
+                    час роботи | 5г 12хв
+                    Wi-Fi сигнал | -65 dBm
+                    (нормальний)
+                    Живлення 220В | Присутнє
+                    ──────────────────────</div>
+                <div class="alert info">
+                    <span class="emoji">🚨</span>
+                    <span>Якщо температура вийшла за задані межі — статус змінюється з <code>[OK]</code> на
+                        <code>[ALARM] 🚨</code></span>
+                </div>
+
+                <h2>Ручне керування реле</h2>
+                <p>Після натискання "🖐 Ручне керування" бот надсилає інлайн-кнопки:</p>
+                <div class="card">
+                    <p style="margin-bottom:10px">⚠️ Автоматизацію вимкнено. Перехід в ручний режим.</p>
+                    <div style="display:flex;gap:8px">
+                        <span class="badge green">✅ Увімкнути</span>
+                        <span class="badge red">❌ Вимкнути</span>
+                    </div>
+                </div>
+                <div class="alert warn"><span class="emoji">💡</span><span>Це <strong>тимчасово</strong> — налаштування
+                        профілю не змінюються. Щоб повернути автоматику — натисніть "🤖 Автоматичне керування".</span>
+                </div>
+
+                <h2>Команди (вводяться у чат)</h2>
+                <table class="tbl">
+                    <thead>
+                        <tr>
+                            <th>Команда</th>
+                            <th>Дія</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>/start</code></td>
+                            <td>Вітання та головне меню</td>
+                        </tr>
+                        <tr>
+                            <td><code>/home</code></td>
+                            <td>Показати головну клавіатуру</td>
+                        </tr>
+                        <tr>
+                            <td><code>/settings</code></td>
+                            <td>Текстовий перегляд поточних налаштувань профілів</td>
+                        </tr>
+                        <tr>
+                            <td><code>/reboot</code></td>
+                            <td>Перезавантажити пристрій</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- ====== MINIAPP ====== -->
+            <section id="miniapp">
+                <h1>📱 MiniApp — Налаштування</h1>
+                <p class="subtitle">Графічний інтерфейс налаштувань прямо в Telegram</p>
+
+                <h2>Як відкрити</h2>
+                <p>Натисніть кнопку <span class="kbd-btn">📱 Налаштування (MiniApp)</span> у головній клавіатурі
+                    Telegram.</p>
+
+                <div class="alert info">
+                    <span class="emoji">💡</span>
+                    <span>MiniApp відкривається у вікні поверх Telegram. Ви залишаєтеся в додатку.</span>
+                </div>
+
+                <h2>Профілі — Денний та Нічний</h2>
+                <p>Пристрій підтримує два незалежних профілі налаштувань:</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0">
+                    <div class="card" style="text-align:center">
+                        <div style="font-size:2rem;margin-bottom:6px">☀️</div>
+                        <strong>Денний</strong>
+                        <p style="font-size:.8rem;margin-top:4px">Активний вдень (час задається у налаштуваннях)</p>
+                    </div>
+                    <div class="card" style="text-align:center">
+                        <div style="font-size:2rem;margin-bottom:6px">🌙</div>
+                        <strong>Нічний</strong>
+                        <p style="font-size:.8rem;margin-top:4px">Активний вночі після заходу сонця</p>
+                    </div>
+                </div>
+
+                <h2>Режими роботи реле</h2>
+                <table class="tbl">
+                    <thead>
+                        <tr>
+                            <th>Режим</th>
+                            <th>Опис</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge blue">Ручний</span></td>
+                            <td>Реле керується тільки вручну (кнопками в чаті або веб)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge green">По датчику</span></td>
+                            <td>Реле вмикається/вимикається залежно від температури</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge yellow">По таймеру</span></td>
+                            <td>Реле циклічно вмикається і вимикається через заданий час</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Параметри автоматики по датчику</h2>
+                <div class="card">
+                    <p><strong>Уставка (°C)</strong> — температура, при якій реле спрацьовує.</p>
+                    <p><strong>Гістерезис (°C)</strong> — "розмитість" спрацювання, щоб реле не перемикалося надто
+                        часто. Наприклад, уставка 25°C, гістерезис 1°C: реле вмикається при 25°C, вимикається при 24°C.
+                    </p>
+                </div>
+
+                <h2>Параметри таймера</h2>
+                <div class="card">
+                    <p><strong>Час ON (хвилин)</strong> — скільки хвилин реле буде увімкненим.</p>
+                    <p><strong>Час OFF (хвилин)</strong> — скільки хвилин реле буде вимкненим. Потім цикл повторюється.
+                    </p>
+                </div>
+
+                <h2>Як зберегти налаштування</h2>
+                <ol class="steps">
+                    <li>
+                        <div class="step-body"><strong>Вибрати профіль</strong>
+                            <p>Денний, Нічний або Обидва одночасно.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="step-body"><strong>Змінити потрібні параметри</strong></div>
+                    </li>
+                    <li>
+                        <div class="step-body"><strong>Натиснути кнопку 💾 Зберегти</strong>
+                            <p>Бот надішле підтвердження у чат.</p>
+                        </div>
+                    </li>
+                </ol>
+                <div class="alert warn">
+                    <span class="emoji">⚠️</span>
+                    <span>Без натискання <strong>"💾 Зберегти"</strong> зміни не застосуються і зникнуть при закритті
+                        MiniApp!</span>
+                </div>
+            </section>
+
+            <!-- ====== ВЕБ-ІНТЕРФЕЙС ====== -->
+            <section id="web">
+                <h1>🌐 Локальний веб-інтерфейс</h1>
+                <p class="subtitle">Повноцінне керування через браузер у вашій Wi-Fi мережі</p>
+
+                <div class="alert info">
+                    <span class="emoji">📡</span>
+                    <span>Веб-інтерфейс доступний <strong>тільки якщо ваш пристрій (телефон/комп'ютер) підключено до
+                            тієї ж Wi-Fi мережі</strong>, що й ESP-пристрій.</span>
+                </div>
+
+                <h2>Як відкрити</h2>
+                <p>Варіант 1: натисніть <span class="kbd-btn">🌐 Web-інтерфейс</span> у Telegram — бот надішле
+                    посилання.<br>
+                    Варіант 2: введіть IP-адресу пристрою безпосередньо у браузері.</p>
+
+                <h2>Вкладка 📊 Дашборд</h2>
+                <div class="card">
+                    <ul>
+                        <li>Поточна <strong>температура</strong>, вологість, тиск (залежно від датчика)</li>
+                        <li>Стан <strong>реле</strong> — перемикач вмикання/вимикання</li>
+                        <li>Вибір <strong>режиму</strong>: Ручний або Автоматичний</li>
+                        <li><strong>Графік</strong> температури/вологості (за добу, тиждень, конкретну дату)</li>
+                        <li><strong>Журнал подій</strong> — останні 20 дій пристрою</li>
+                    </ul>
+                </div>
+
+                <h2>Вкладка ⚙️ Профілі</h2>
+                <div class="card">
+                    <p>Детальне налаштування Денного та Нічного профілів. Аналог MiniApp, але у браузері. Після змін —
+                        <strong>💾 Зберегти профіль</strong>.
+                    </p>
+                </div>
+
+                <h2>Вкладка 🔧 Система</h2>
+                <div class="card">
+                    <table class="tbl">
+                        <tbody>
+                            <tr>
+                                <td><strong>Стан пристрою</strong></td>
+                                <td>IP, час роботи, RAM, Wi-Fi сигнал</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Wi-Fi</strong></td>
+                                <td>Зміна мережі та пароля</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Межі профілів</strong></td>
+                                <td>Час початку дня і ночі</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Часовий пояс</strong></td>
+                                <td>Вибір с кнопок або ручно</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Telegram</strong></td>
+                                <td>Токен бота та пароль доступу</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert warn">
+                    <span class="emoji">⚠️</span>
+                    <span>Будьте обережні із полем <strong>Bot Token</strong>! Якщо ввести невірний токен — бот
+                        перестане відповідати. Після зміни — обов'язково перезавантажте пристрій.</span>
+                </div>
+            </section>
+
+            <!-- ====== FAQ ====== -->
+            <section id="faq">
+                <h1>❓ Часті питання</h1>
+
+                <div class="card">
+                    <h3>Реле не вмикається при натисканні у Telegram</h3>
+                    <p>Переконайтеся, що активовано <strong>ручний режим</strong> — натисніть "🖐 Ручне керування",
+                        після чого з'являться кнопки увімк/вимк. В автоматичному режимі ручне перемикання заблоковано.
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h3>Бот не відповідає</h3>
+                    <p>Можливі причини:</p>
+                    <ul>
+                        <li>Пристрій знеструмлений або завис — перевірте живлення або перезавантажте</li>
+                        <li>Пристрій втратив Wi-Fi — перевірте роутер</li>
+                        <li>Невірний Bot Token — перевірте у веб-інтерфейсі (вкладка Система)</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>Веб-сторінка не відкривається</h3>
+                    <p>Переконайтеся, що:</p>
+                    <ul>
+                        <li>Ваш телефон/комп'ютер <strong>підключений до тієї ж Wi-Fi мережі</strong>, що й пристрій
+                        </li>
+                        <li>IP-адреса введена правильно (без помилок)</li>
+                        <li>Пристрій увімкнений і з'єднаний з Wi-Fi</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>Налаштування в MiniApp не зберігаються</h3>
+                    <p>Обов'язково натисніть кнопку <strong>💾 Зберегти</strong> всередині MiniApp. Лише після цього бот
+                        надішле підтвердження у чат і налаштування застосуються.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Статус показує [ALARM] 🚨</h3>
+                    <p>Температура вийшла за задані межі (верхній або нижній поріг). Перевірте стан обладнання. Щоб
+                        прибрати тривогу — змініть межі у MiniApp або веб-інтерфейсі, або вимкніть опцію "Тривога
+                        активна" у налаштуваннях.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Не знаю IP-адресу пристрою</h3>
+                    <p>Три способи дізнатися:</p>
+                    <ul>
+                        <li>Натисніть "🌐 Web-інтерфейс" у Telegram — бот надішле посилання з IP</li>
+                        <li>Перезавантажте пристрій — IP-адреса на кілька секунд з'явиться на екрані</li>
+                        <li>Зайдіть в налаштування вашого роутера — там видно всі підключені пристрої</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>Забув пароль доступу до бота</h3>
+                    <p>Пароль доступу можна змінити у веб-інтерфейсі: вкладка <strong>Система ⚙️</strong> → розділ
+                        Telegram → поле "Пароль доступу" → Зберегти → Перезавантажити.</p>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- BOTTOM NAV (mobile) -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="active" onclick="show('start')" id="bnav-start"><span class="icon">🚀</span><span
+                class="label">Старт</span></button>
+        <button onclick="show('wifi')" id="bnav-wifi"><span class="icon">📡</span><span
+                class="label">Wi-Fi</span></button>
+        <button onclick="show('tg')" id="bnav-tg"><span class="icon">💬</span><span
+                class="label">Telegram</span></button>
+        <button onclick="show('web')" id="bnav-web"><span class="icon">🌐</span><span class="label">Веб</span></button>
+        <button onclick="show('faq')" id="bnav-faq"><span class="icon">❓</span><span class="label">FAQ</span></button>
+    </nav>
+
+    <script>
+        const sections = ['start', 'wifi', 'bot', 'tg', 'miniapp', 'web', 'faq'];
+
+        function show(id) {
+            sections.forEach(s => {
+                document.getElementById(s).classList.toggle('active', s === id);
+                const nb = document.getElementById('nav-' + s);
+                const bnb = document.getElementById('bnav-' + s);
+                if (nb) nb.classList.toggle('active', s === id);
+                if (bnb) bnb.classList.toggle('active', s === id);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>

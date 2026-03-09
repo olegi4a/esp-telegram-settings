@@ -50,107 +50,104 @@ String buildSettingsTable() {
 
     auto getS = [](const JsonDocument& d, const char* k, float def) { return String(d[k] | def, 1); };
     auto getI = [](const JsonDocument& d, const char* k, int def) { return String(d[k] | def); };
-    auto getB = [](const JsonDocument& d, const char* k, bool def) { return String((d[k] | def) ? "✅" : "❌"); };
+    auto getB = [](const JsonDocument& d, const char* k, bool def) { 
+        JsonVariantConst v = d[k];
+        bool val = v.isNull() ? def : (v.is<bool>() ? v.as<bool>() : (v.as<int>() == 1));
+        return val ? String("✅") : String("❌"); 
+    };
     auto getM = [](const JsonDocument& d) {
         int m = d["Statatus_sensor_control"] | 0;
-        return String((m == 1) ? "Датч" : (m == 2) ? "Тайм" : "Ручн");
+        return (m == 1) ? String("Датч") : (m == 2) ? String("Тайм") : String("Ручн");
     };
     auto getSt = [](const JsonDocument& d) {
-        return String((d["Start_status"] | 0) ? "Увімк" : "Вимк ");
+        return (d["Start_status"] | 0) ? String("Увімк") : String("Вимк ");
     };
 
-    String t = "Поточні налаштування профілів\n\n<pre>";
-    t += "Налаштування    | День  | Ніч\n";
-    t += "──────────────────────────────\n";
-    t += "Режим роботи    | " + getM(dD) + "  | " + getM(dN) + " \n";
-    t += "Реле при старті | " + getSt(dD) + " | " + getSt(dN) + " \n";
-    t += "──────────────────────────────\n";
-    t += String("автоматика по датчику\n");
-    t += "Уставка     °C  | " + getS(dD, "Sensor_set", 20.0) + "  | " + getS(dN, "Sensor_set", 18.0) + " \n";
-    t += "Гістерезис  °C  | " + getS(dD, "Sensor_histeresis", 1.0) + "   | " + getS(dN, "Sensor_histeresis", 1.5) + "  \n";
-    t += "──────────────────────────────\n";
-    t += String("автоматика по таймеру\n");
-    t += "Таймер ON       | " + getI(dD, "Time_on", 1) + "хв   | " + getI(dN, "Time_on", 1) + "хв \n";
-    t += "Таймер OFF      | " + getI(dD, "Time_off", 1) + "хв   | " + getI(dN, "Time_off", 1) + "хв \n";
-    t += "──────────────────────────────\n";
-    t += String("Тривога по температурі\n");
-    t += "Верхня межа °C  | " + getS(dD, "Alarm_data_u", 30.0) + "  | " + getS(dN, "Alarm_data_u", 28.0) + " \n";
-    t += "МНижня межа °C  | " + getS(dD, "Alarm_data_d", 15.0) + "  | " + getS(dN, "Alarm_data_d", 12.0) + " \n";
-    t += "Тривога активна | " + getB(dD, "Alarm_data_set", false) + "    | " + getB(dN, "Alarm_data_set", false) + "  \n";
-    t += "Тенденція       | " + getB(dD, "trend", false) + "    | " + getB(dN, "trend", false) + "  \n";
-    t += "──────────────────────────────\n";
-    t += String("Сповіщення\n");
-    t += "перезавантаження| " + getB(dD, "Alarm_start", true) + "    | " + getB(dN, "Alarm_start", true) + "  \n";
-    t += "збій живлення   | " + getB(dD, "Alarm_power", true) + "    | " + getB(dN, "Alarm_power", false) + "  \n";
-    t += "зміна стану реле| " + getB(dD, "relay_change_notify", false) + "    | " + getB(dN, "relay_change_notify", false) + "  \n";
-    t += "Віджет(раз/5хв) | " + getB(dD, "widget_status", false) + "    | " + getB(dN, "widget_status", false) + "  \n";
-    t += "───────────────────────────────\n";
+    String t = F("Поточні налаштування профілів\n\n<pre>");
+    t += F("Налаштування    | День | Ніч\n");
+    t += F("──────────────────────────────\n");
+    t += F("Режим роботи    | "); t += getM(dD); t += F(" | "); t += getM(dN); t += F(" \n");
+    t += F("Реле при старті | "); t += getSt(dD); t += F(" | "); t += getSt(dN); t += F(" \n");
+    t += F("──────────────────────────────\n");
+    t += F("автоматика по датчику\n");
+    t += F("Уставка         | "); t += getS(dD, "Sensor_set", 22.5); t += F(" | "); t += getS(dN, "Sensor_set", 18.0); t += F(" \n");
+    t += F("Гістерезис      | "); t += getS(dD, "Sensor_histeresis", 1.0); t += F("  | "); t += getS(dN, "Sensor_histeresis", 1.5); t += F(" \n");
+    t += F("──────────────────────────────\n");
+    t += F("автоматика по таймеру\n");
+    t += F("Таймер ON       | "); t += getI(dD, "Time_on", 10); t += F("хв  | "); t += getI(dN, "Time_on", 30); t += F("хв \n");
+    t += F("Таймер OFF      | "); t += getI(dD, "Time_off", 20); t += F("хв  | "); t += getI(dN, "Time_off", 60); t += F("хв \n");
+    t += F("──────────────────────────────\n");
+    t += F("Тривога по температурі\n");
+    t += F("Межа Max        | "); t += getS(dD, "Alarm_data_u", 30.0); t += F(" | "); t += getS(dN, "Alarm_data_u", 28.0); t += F(" \n");
+    t += F("Межа Min        | "); t += getS(dD, "Alarm_data_d", 15.0); t += F(" | "); t += getS(dN, "Alarm_data_d", 12.0); t += F(" \n");
+    t += F("Тривога актив   | "); t += getB(dD, "Alarm_data_set", false); t += F("   | "); t += getB(dN, "Alarm_data_set", false); t += F(" \n");
+    t += F("Тенденція       | "); t += getB(dD, "trend", false); t += F("   | "); t += getB(dN, "trend", false); t += F(" \n");
+    t += F("──────────────────────────────\n");
+    t += F("Сповіщення\n");
+    t += F("перезавантаження| "); t += getB(dD, "Alarm_start", true); t += F("   | "); t += getB(dN, "Alarm_start", true); t += F(" \n");
+    t += F("збій живлення   | "); t += getB(dD, "Alarm_power", true); t += F("   | "); t += getB(dN, "Alarm_power", false); t += F(" \n");
+    t += F("зміну реле      | "); t += getB(dD, "relay_change_notify", false); t += F("   | "); t += getB(dN, "relay_change_notify", false); t += F(" \n");
+    t += F("Тривога актив   | "); t += getB(dD, "Alarm_data_set", false); t += F("   | "); t += getB(dN, "Alarm_data_set", false); t += F(" \n");
+    t += F("Віджет(раз/5хв) | "); t += getB(dD, "widget_status", false); t += F("   | "); t += getB(dN, "widget_status", false); t += F(" \n");
+    t += F("Збереження логу | 15 хв        \n");
+    t += F("───────────────────────────────\n");
     
     char bufD[10], bufN[10];
     sprintf(bufD, "%02d:00", (Time_D > 0 ? Time_D / 3600 : 8));
     sprintf(bufN, "%02d:00", (Time_N > 0 ? Time_N / 3600 : 20));
-    t += "☀️ День: " + String(bufD) + " | 🌙 Ніч: " + String(bufN) + "\n";
-    t += "</pre>";
+    t += F("☀️ День: "); t += String(bufD); t += F(" | 🌙 Ніч: "); t += String(bufN); t += "\n";
+    t += F("</pre>");
     return t;
 }
 
-
 // Формування графічного дашборду стану системи
 String buildDashboard() {
-    // 1. Розрахунок часу роботи (Uptime)
     unsigned long ms = millis();
     int total_m = ms / 60000;
     int h = total_m / 60;
     int m = total_m % 60;
     
-    // 2. Статус живлення 220В
-    String pwr = "Присутнє";
-    if (is_usb_mode) pwr = "Відсутнє (USB)";
-    else if (digitalRead(POWER) == LOW) pwr = "Відсутнє";
+    String pwr = F("Присутнє");
+    if (is_usb_mode) pwr = F("Відсутнє (USB)");
+    else if (digitalRead(POWER) == LOW) pwr = F("Відсутнє");
 
-    // 3. Статус реле та режим
-    String rel = digitalRead(RELE) ? "Включено" : "Виключено";
-    String mod = (profile == 1) ? "День" : "Ніч";
-
-    // 4. Температура
+    String rel = digitalRead(RELE) ? F("Включено") : F("Виключено");
+    String mod = (profile == 1) ? F("День") : F("Ніч");
+    
     String tSign = (Temperature > 0) ? "+" : (Temperature < 0 ? "-" : "");
     String tVal = tSign + String(abs(Temperature), 1);
 
-    // 5. Перевірка тривоги по температурі
     bool isAlarm = (Alarm_data_set == 1) && (Temperature > Alarm_data_u || Temperature < Alarm_data_d);
-    String sysStatus = isAlarm ? "[ALARM] 🚨" : "[OK]";
+    String sysStatus = isAlarm ? F("[ALARM] 🚨") : F("[OK]");
 
-    // Побудова таблиці (моноширинний блок)
-    String t = "<pre>";
-    t += "─────────────────────────────────\n";
-    t += "  Статус системи      " + sysStatus + "\n";
-    t += "─────────────────────────────────\n";
-    t += " Температура    |  " + tVal + " °C\n";
+    String t = F("<pre>");
+    t += F("─────────────────────────────────\n");
+    t += F("  Статус системи      "); t += sysStatus; t += "\n";
+    t += F("─────────────────────────────────\n");
+    t += F(" Температура    |  "); t += tVal; t += F(" °C\n");
     
-    if (sensorType == S_BME280 || sensorType == S_HTU21) {
-        t += " Вологість      |  " + String((int)Humedity) + "%\n";
+    if (Humedity != 255 && (sensorType == S_BME280 || sensorType == S_HTU21)) {
+        t += F(" Вологість      |  "); t += String((int)Humedity); t += "%\n";
     }
     if (sensorType == S_BME280 && Pressure > 0) {
-        t += " тиск           |  " + String((int)Pressure) + "ph\n";
+        t += F(" Тиск           |  "); t += String((int)Pressure); t += F(" hPa\n");
     }
     
-    t += " реле           |  " + rel + "\n";
-    t += "─────────────────────────────────\n";
-    t += "─────────────────────────────────\n";
-    t += " активний режим |  " + mod + "\n";
+    t += F(" Реле           |  "); t += rel; t += "\n";
+    t += F("─────────────────────────────────\n");
+    t += F(" Активний режим |  "); t += mod; t += "\n";
     
     char upBuf[20];
     sprintf(upBuf, "%dг %02dхв", h, m);
-    t += " час роботи     |  " + String(upBuf) + "\n";
+    t += F(" Час роботи     |  "); t += String(upBuf); t += "\n";
     
-    // Wi-Fi RSSI
     int rssi = WiFi.RSSI();
-    String wifiQual = (rssi >= -60) ? "відмінний" : (rssi >= -75) ? "нормальний" : (rssi >= -85) ? "слабкий" : "критичний";
-    t += " Wi-Fi сигнал   |  " + String(rssi) + " dBm (" + wifiQual + ")\n";
+    String wifiQual = (rssi >= -60) ? F("відмінний") : (rssi >= -75) ? F("нормальний") : (rssi >= -85) ? F("слабкий") : F("критичний");
+    t += F(" Wi-Fi сигнал   |  "); t += String(rssi); t += F(" dBm ("); t += wifiQual; t += F(")\n");
     
-    t += " Живлення 220В  |  " + pwr + "\n";
-    t += "─────────────────────────────────\n";
-    t += "</pre>";
+    t += F(" Живлення 220В  |  "); t += pwr; t += "\n";
+    t += F("─────────────────────────────────\n");
+    t += F("</pre>");
     
     return t;
 }
@@ -163,88 +160,87 @@ void sendBasicData(int64_t senderId) {
 
 void widget() {
   if (widget_status) {
-    String msg = "R:" + String(digitalRead(RELE)) + " T:" + String(Temperature) + " H:" + String(Humedity) + " S:" + String(Statatus_sensor_control);
-    myBot.sendMessage(fb::Message(msg, alluser));
+    String msg = F("🌡: "); msg += String(Temperature, 1);
+    msg += F(" | реле:"); msg += digitalRead(RELE) ? F("✅") : F("❌");
+    msg += F(" | "); msg += (profile == 1) ? F("☀️") : F("🌙");
+    
+    fb::Message m(msg, alluser);
+    m.notification = false; // Беззвучне повідомлення
+    myBot.sendMessage(m);
   }
 }
 
-// Вітальне повідомлення з описом можливостей та кнопкою реєстрації команд
 void sendWelcomeMessage(int64_t senderId) {
-    String welcomeMsg =
-      "⚡ <b>EDwIC Control Bot</b>\n"
-      "─────────────────\n"
-      "🧠 Бот керування ESP8266 через Telegram.\n\n"
-      "<b>🔧 Можливості:</b>\n"
-      "• 🔌 Керування реле (ручне / авто)\n"
-      "• 🌡 Моніторинг температури / вологості\n"
-      "• ⏱ Автоматика (датчик / таймер)\n"
-      "• ☀️ / 🌙 Денний і нічний профілі\n"
-      "• 🔔 Сповіщення тривоги / зміни стану\n\n"
-      "💡 <i>Якщо не бачите кнопку 'меню📋' поряд із полем вводу:\n"
-      "зареєструйте команди кнопкою нижче.</i>";
+    String welcomeMsg = F("⚡️ <b>EDwIC Control Bot</b>\n");
+    welcomeMsg += F("─────────────────\n");
+    welcomeMsg += F("🧠 Бот керування ESP8266 через Telegram.\n\n");
+    welcomeMsg += F("🔧 <b>Можливості:</b>\n");
+    welcomeMsg += F("• 🔌 Керування реле (ручне / авто)\n");
+    welcomeMsg += F("• 🌡 Моніторинг температури / вологості\n");
+    welcomeMsg += F("• ⏱️ Автоматика (датчик / таймер)\n");
+    welcomeMsg += F("• ☀️ / 🌙 Денний і нічний профілі\n");
+    welcomeMsg += F("• 🔔 Сповіщення тривоги / зміни стану\n\n");
+    welcomeMsg += F("💡 Якщо не бачите кнопку 'меню📋' поряд із полем вводу:\n");
+    welcomeMsg += F("зареєструйте команди кнопкою нижче.");
 
     fb::Message mw(welcomeMsg, senderId);
     mw.setModeHTML();
-    fb::InlineMenu regMenu("📋 Зареєструвати команди", "reg_commands");
+    fb::InlineMenu regMenu(F("📋 Реєстрація команд"), "reg_commands");
     mw.setInlineMenu(regMenu);
     myBot.sendMessage(mw);
 }
 
-// /settings slash команда — ОДНА inline клавіатура з таблицею:
-void sendSettingsInlineMenu(int64_t senderId) {
-  TBLOG(F("settingsInline heap: ")); TBLOG_LN(ESP.getFreeHeap());
-
+void sendSettingsMenu(int64_t senderId) {
   String msgText = buildSettingsTable();
-  msgText += "ℹ️ Щоб налаштувати параметри профілю, скористайтеся:\n";
-  msgText += "- В чаті (оберіть профіль длязміни кнопкою нижче)\n";
-  msgText += "- Налаштуваннями в MiniApp (потребує Інтернет)'\n";
-  msgText += "- локальний веб інтерфейс (локальна мережа)'\n\n";
-  msgText += "<i>Відповідні посилання ви знайдете на головній клавіатурі</i>";
+  msgText += F("\n<b>Для переналаштування оберіть варіант:</b>\n");
+  msgText += F("• прямо в чаті (оберіть профіль нижче)\n");
+  msgText += F("• 📱 MiniApp (через інтернет)\n");
+  msgText += F("• <a href=\"http://"); msgText += WiFi.localIP().toString(); msgText += F("\">локальний веб-інтерфейс</a>");
 
   fb::Message m(msgText, senderId);
   m.setModeHTML();
 
-  fb::InlineKeyboard settingsK;
-  
-  // Ряд 1: Кнопки профілю
-  settingsK.addButton(profile == 1 ? "☀️ День ✅" : "☀️ День", "new_prof:D");
-  settingsK.addButton(profile == 0 ? "🌙 Ніч ✅" : "🌙 Ніч", "new_prof:N");
-  settingsK.addButton("💾 Обидва", "new_prof:B");
-
-  m.setKeyboard(&settingsK);
+  // Inline buttons for profile switching UNDER the message
+  fb::InlineKeyboard profileK;
+  profileK.addButton(profile == 1 ? F("☀️ День ✅") : F("☀️ День"), "new_prof:D");
+  profileK.addButton(profile == 0 ? F("🌙 Ніч ✅") : F("🌙 Ніч"), "new_prof:N");
+  m.setKeyboard(&profileK);
   myBot.sendMessage(m);
-}
 
-// Функція для відправки головного меню (Reply Keyboard) з підтримкою WebApp
-void sendMainMenu(int64_t senderId) {
-  fb::Message m("🏠 Головне меню", senderId);
+  // Separate Keyboard (Reply Keyboard) for MiniApp to allow sendData()
+  fb::Message mk(F("⚙️"), senderId);
   fb::Keyboard kb;
   kb.resize = true;
   
-  kb.addButton("Основні дані");
-  kb.newRow();
-  kb.addButton("Ручне керування");
-  kb.addButton("Автоматичне керування");
-  kb.newRow();
-  
-  // Кнопка-посилання на IP
-  kb.addButton("🌐 Web-інтерфейс");
-  
-  // Кнопка WebApp (повинна бути в Reply-клавіатурі для відправки даних!)
   String url = getFullWebAppURL();
   gson::Str waBtn;
   waBtn('{');
-  waBtn["text"] = "📱 Налаштування (MiniApp)";
+  waBtn["text"] = F("📱 MiniApp");
   waBtn["web_app"]('{');
   waBtn["url"] = url;
   waBtn('}');
   waBtn('}');
   kb.addButton(waBtn);
+  kb.addButton(F("🔔 Стати головним (тривоги)"));
+  kb.newRow();
+  mk.setKeyboard(&kb);
+  myBot.sendMessage(mk);
+}
+
+void sendMainMenu(int64_t senderId) {
+  fb::Message m(F("🏠 Головне меню"), senderId);
+  fb::Keyboard kb;
+  kb.resize = true;
+  kb.addButton(F("Основні дані"));
+  kb.newRow();
+  kb.addButton(F("Ручне керування"));
+  kb.addButton(F("Автоматичне керування"));
+  kb.newRow();
+  kb.addButton(F("🌐 Web-інтерфейс"));
   
   m.setKeyboard(&kb);
   myBot.sendMessage(m);
 }
-
 
 byte user_find(int64_t num) {
   for (byte i = 0; i < 10; i++) {
@@ -253,11 +249,8 @@ byte user_find(int64_t num) {
   return 200;
 }
 
-
-// Реєстрація slash-команд через нативний FastBot2 API (без HTTP клієнта!)
+// Реєстрація slash-команд через нативний FastBot2 API
 void registerBotCommands(int64_t senderId) {
-  TBLOG_LN("Registering bot commands via native FastBot2 API...");
-
   fb::MyCommands cmds;
   cmds.addCommand("start",    "🚀 Запуск / Авторизація");
   cmds.addCommand("home",     "🏠 Головне меню");
@@ -265,10 +258,8 @@ void registerBotCommands(int64_t senderId) {
   cmds.addCommand("settings", "⚙️ Налаштування профілів");
 
   fb::Result r = myBot.setMyCommands(cmds);
-  TBLOG("setMyCommands result ok: "); TBLOG_LN(!r.isError());
-
   if (!r.isError()) {
-    myBot.sendMessage(fb::Message(
+    myBot.sendMessage(fb::Message(F(
       "✅ Команди зареєстровано!\n\n"
       "📋 Кнопка меню команд з'явиться біля поля вводу,\n"
       "але лише після того як ви:\n"
@@ -276,10 +267,10 @@ void registerBotCommands(int64_t senderId) {
       "  2️⃣ Повернетесь назад\n\n"
       "➡️ Будь ласка, зробіть це зараз!\n\n"
       "📋 Зареєстровано:\n"
-      "/start, /reboot, /settings",
+      "/start, /reboot, /settings"),
       senderId));
   } else {
-    myBot.sendMessage(fb::Message("\u274c \u041f\u043e\u043c\u0438\u043b\u043a\u0430 \u0440\u0435\u0454\u0441\u0442\u0440\u0430\u0446\u0456\u0457 \u043a\u043e\u043c\u0430\u043d\u0434.", senderId));
+    myBot.sendMessage(fb::Message(F("❌ Помилка реєстрації команд."), senderId));
   }
 }
 
