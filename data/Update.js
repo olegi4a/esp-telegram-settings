@@ -59,7 +59,7 @@ async function checkVersion() {
     if (!r.ok) throw new Error('GitHub API: ' + r.status);
     githubRelease = await r.json();
 
-    // tag_name може бути "v2.3.2" або "2.3.2" — нормалізуємо
+    // Повертаємо логіку на теги (tag_name)
     const remoteVer = githubRelease.tag_name.replace(/^v/, '');
     document.getElementById('gh-new').textContent = remoteVer;
 
@@ -70,14 +70,22 @@ async function checkVersion() {
       cl.style.display = 'block';
     }
 
+    const btnUpd = document.getElementById('btn-update');
+    const btnRe  = document.getElementById('btn-reinstall');
+    
+    btnUpd.style.display = 'none';
+    btnRe.style.display  = 'none';
+
     if (remoteVer !== currentVersion) {
       // Є оновлення
-      const btnUpd = document.getElementById('btn-update');
       document.getElementById('btn-new-ver').textContent = remoteVer;
       btnUpd.style.display = 'block';
       pendingRelease = githubRelease;
     } else {
-      document.getElementById('gh-new').textContent = remoteVer + ' (встановлено)';
+      // Версія збігається — даємо можливість перевстановити
+      document.getElementById('btn-re-ver').textContent = remoteVer;
+      btnRe.style.display = 'block';
+      pendingRelease = githubRelease;
     }
   } catch (e) {
     document.getElementById('gh-new').textContent = '❌ Помилка: ' + e.message;
@@ -225,17 +233,18 @@ async function runGithubUpdate() {
   // Блокуємо кнопки на час оновлення
   document.getElementById('btn-check').disabled = true;
   document.getElementById('btn-update').disabled = true;
+  document.getElementById('btn-reinstall').disabled = true;
 
   // Знаходимо manifest у assets релізу
   const assets = pendingRelease.assets || [];
   const manifestAsset = assets.find(a => a.name === 'release_manifest.json');
 
-  const remoteVer = pendingRelease.tag_name.replace(/^v/, '');
+  const remoteTag = pendingRelease.tag_name;
   let manifest = null;
   if (manifestAsset) {
     try {
       addLog(logList, 'spin', 'Завантаження manifest...');
-      const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteVer}/release_manifest.json`;
+      const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteTag}/release_manifest.json`;
       const mr = await fetch(rawUrl);
       manifest = await mr.json();
       updateLastLog(logList, 'ok', 'Manifest отримано');
@@ -257,7 +266,7 @@ async function runGithubUpdate() {
 
     addLog(logList, 'spin', `Оновлення ${fname}...`);
     try {
-      const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteVer}/${fname}`;
+      const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteTag}/${fname}`;
       const fr = await fetch(rawUrl);
       if (!fr.ok) throw new Error('HTTP ' + fr.status);
       const blob = await fr.blob();
@@ -276,12 +285,13 @@ async function runGithubUpdate() {
     addLog(logList, 'err', 'Файл прошивки не знайдено в релізі');
     document.getElementById('btn-check').disabled = false;
     document.getElementById('btn-update').disabled = false;
+    document.getElementById('btn-reinstall').disabled = false;
     return;
   }
 
   addLog(logList, 'spin', 'Завантаження прошивки з GitHub...');
   try {
-    const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteVer}/${fwName}`;
+    const rawUrl = `https://raw.githubusercontent.com/olegi4a/esp-telegram-settings/main/releases/${remoteTag}/${fwName}`;
     const fwr = await fetch(rawUrl);
     if (!fwr.ok) throw new Error('HTTP ' + fwr.status);
     const fwBlob = await fwr.blob();
@@ -297,9 +307,9 @@ async function runGithubUpdate() {
     updateLastLog(logList, 'ok', 'Прошивка завантажена!');
 
   } catch (e) {
-    updateLastLog(logList, 'err', 'Прошивка — помилка: ' + e.message);
     document.getElementById('btn-check').disabled = false;
     document.getElementById('btn-update').disabled = false;
+    document.getElementById('btn-reinstall').disabled = false;
     return;
   }
 

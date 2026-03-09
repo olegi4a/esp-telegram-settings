@@ -11,7 +11,7 @@
 #include <FastBot2.h>
 
 // Версія прошивки (порівнюється з GitHub releases tag_name)
-#define FIRMWARE_VERSION "EDwIC-3.4"
+#define FIRMWARE_VERSION "EDwIC-3.4.2"
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>

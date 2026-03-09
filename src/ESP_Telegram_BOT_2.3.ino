@@ -21,7 +21,7 @@ void setup()
   display.println("EDwIC");
   display.setTextSize(1);
   display.setCursor(23,30);
-  display.println("3.4");
+  display.println("3.4.2");
   display.display();
   delay(2000);
   

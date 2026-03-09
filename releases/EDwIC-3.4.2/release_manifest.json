@@ -1,0 +1,11 @@
+{
+  "version": "EDwIC-3.4.2",
+  "web_files": [
+    "index.html",
+    "Update.html",
+    "Update.js",
+    "Update.css",
+    "jquery.js"
+  ],
+  "firmware": "firmware.bin"
+}
