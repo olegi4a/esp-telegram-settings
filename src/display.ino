@@ -106,46 +106,43 @@ static void display_ip_page() {
 
   String ip = WiFi.localIP().toString();
 
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.print("IP:");
+  // Розбиваємо IP на 2 рядки для великого шрифту
+  int dotIdx = ip.indexOf('.', ip.indexOf('.') + 1);
+  String part1 = ip.substring(0, dotIdx + 1);
+  String part2 = ip.substring(dotIdx + 1);
 
-  // Розбиваємо IP на 2 рядки якщо довгий
-  display.setTextSize(1);
-  // Показуємо IP розбитий по крапці
-  int dotIdx = ip.lastIndexOf('.');
-  if (dotIdx > 0 && ip.length() > 12) {
-    String part1 = ip.substring(0, dotIdx + 1);
-    String part2 = ip.substring(dotIdx + 1);
-    display.setCursor(0, 10);
-    display.print(part1);
-    display.setCursor(0, 20);
-    display.print(part2);
-  } else {
-    display.setCursor(0, 10);
-    display.print(ip);
-  }
+  display.setFont(&TomThumb);
+  display.setTextSize(2);
 
-  // Підказка: "SCAN QR ->"
-  display.setTextSize(1);
-  display.setCursor(0, 38);
-  display.print("v QR next");
+  // Рядок 1 (висота 10px, базова лінія Y=20)
+  display.getTextBounds(part1, 0, 0, &x1, &y1, &w, &h);
+  display.setCursor((64 - w) / 2, 20);
+  display.print(part1);
+
+  // Рядок 2 (висота 10px, базова лінія Y=40)
+  display.getTextBounds(part2, 0, 0, &x1, &y1, &w, &h);
+  display.setCursor((64 - w) / 2, 40);
+  display.print(part2);
+
+  display.setFont(); // Скидання шрифту
 }
 
 // --- Відображення QR-коду ---
 #ifdef USE_QR_CODE
 #include <qrcode.h>
 static void display_qr_page() {
-  String url = "http://" + WiFi.localIP().toString();
+  // Використовуємо лише IP (без "http://"), щоб влізти у Версію 1 (макс 17 байтів).
+  // Це дозволить зменшити розмір матриці з 25x25 (v2) до 21x21 (v1).
+  String url = WiFi.localIP().toString(); 
   
   QRCode qrcode;
-  uint8_t qrcodeBytes[qrcode_getBufferSize(2)];
-  qrcode_initText(&qrcode, qrcodeBytes, 2, ECC_LOW, url.c_str());
+  uint8_t qrcodeBytes[qrcode_getBufferSize(1)];
+  qrcode_initText(&qrcode, qrcodeBytes, 1, ECC_LOW, url.c_str());
 
-  // qrcode.size = 25 для версії 2
-  // Масштаб: 1 піксель/модуль (25x25 займає 25x25 px → вміщується в 64x48)
-  // Центруємо: offsetX = (64-25)/2=19, offsetY = (48-25)/2=11
-  int scale = 1;
+  // qrcode.size = 21 для версії 1
+  // Масштаб: 2 пікселі/модуль (42x42 пікселі → ідеально вміщується в 64x48)
+  // Центруємо: offsetX = (64-42)/2=11, offsetY = (48-42)/2=3
+  int scale = 2;
   int offX = (64 - qrcode.size * scale) / 2;
   int offY = (48 - qrcode.size * scale) / 2;
   if (offX < 0) offX = 0;
