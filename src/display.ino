@@ -1,56 +1,32 @@
 // (Шрифти FreeFonts прибрані, використовується строгий класичний шрифт)
 #include <Fonts/TomThumb.h>
 
-// WiFi icon bitmaps (10x10 pixels)
+// WiFi icon bitmaps (16x16 pixels)
 static const uint8_t PROGMEM wifi_on_bmp[] = {
-  0b00000000, 0b00000000,
-  0b00111100, 0b00000000,
-  0b01000010, 0b00000000,
-  0b10011001, 0b00000000,
-  0b00100100, 0b00000000,
-  0b01011010, 0b00000000,
-  0b00000000, 0b00000000,
-  0b00011000, 0b00000000,
-  0b00011000, 0b00000000,
-  0b00000000, 0b00000000
+  0x00, 0x00, 0x00, 0x00, 0x07, 0xE0, 0x1F, 0xF8, 
+  0x38, 0x1C, 0x70, 0x0E, 0x67, 0xE6, 0x0F, 0xF0, 
+  0x1C, 0x38, 0x18, 0x18, 0x03, 0xC0, 0x07, 0xE0, 
+  0x07, 0xE0, 0x03, 0xC0, 0x00, 0x00, 0x00, 0x00
 };
 static const uint8_t PROGMEM wifi_off_bmp[] = {
-  0b10000000, 0b01000000,
-  0b01111100, 0b00000000,
-  0b00100010, 0b00000000,
-  0b10011001, 0b00000000,
-  0b00100100, 0b00000000,
-  0b01011010, 0b00000000,
-  0b00000100, 0b00000000,
-  0b00011010, 0b00000000,
-  0b00011001, 0b00000000,
-  0b00000000, 0b01000000
+  0xC0, 0x00, 0x60, 0x00, 0x37, 0xE0, 0x1F, 0xF8, 
+  0x3C, 0x1C, 0x73, 0x0E, 0x67, 0xC6, 0x0F, 0xF0, 
+  0x1C, 0x78, 0x18, 0x38, 0x03, 0xD8, 0x07, 0xEC, 
+  0x07, 0xE6, 0x03, 0xC3, 0x00, 0x01, 0x00, 0x00
 };
 
-// Telegram icon bitmaps (10x10 pixels) - Paper Plane
+// Telegram icon bitmaps (16x16 pixels) - Paper Plane
 static const uint8_t PROGMEM tg_on_bmp[] = {
-  0b00000000, 0b11000000,
-  0b00000001, 0b10000000,
-  0b00000011, 0b00000000,
-  0b00000110, 0b00000000,
-  0b10001100, 0b00000000,
-  0b11011111, 0b00000000,
-  0b01110100, 0b00000000,
-  0b00100100, 0b00000000,
-  0b00000100, 0b00000000,
-  0b00000100, 0b00000000
+  0x00, 0x03, 0x00, 0x07, 0x00, 0x0F, 0x00, 0x1F, 
+  0x00, 0x3F, 0x00, 0x7F, 0x7F, 0xFF, 0x3F, 0xFF, 
+  0x1F, 0xDF, 0x03, 0x8F, 0x03, 0x07, 0x03, 0x03, 
+  0x03, 0x01, 0x03, 0x18, 0x03, 0xF0, 0x01, 0xC0
 };
 static const uint8_t PROGMEM tg_off_bmp[] = {
-  0b10000000, 0b11000000,
-  0b01000001, 0b10000000,
-  0b00100011, 0b00000000,
-  0b00010110, 0b00000000,
-  0b10001100, 0b00000000,
-  0b11011011, 0b00000000,
-  0b01110101, 0b00000000,
-  0b00100100, 0b10000000,
-  0b00000100, 0b01000000,
-  0b00000100, 0b00100000
+  0xC0, 0x03, 0x60, 0x07, 0x30, 0x0F, 0x18, 0x1F, 
+  0x0C, 0x3F, 0x06, 0x7F, 0x7F, 0xFF, 0x3F, 0xFF, 
+  0x1F, 0xFF, 0x03, 0xBF, 0x03, 0x1F, 0x03, 0x0B, 
+  0x03, 0x05, 0x03, 0x1A, 0x03, 0xF1, 0x01, 0xC0
 };
 
 // --- Відображення головного вікна ---
@@ -108,18 +84,18 @@ static void display_main() {
   // --- 4. Нижні кути: іконки WiFi (Ліво) + TG (Право) ---
   bool wifiOk = (WiFi.status() == WL_CONNECTED);
 
-  // WiFi: Лівий нижній кут (X=0, Y=38)
+  // WiFi: Лівий нижній кут (X=0, Y=32, розмір 16x16)
   if (wifiOk) {
-    display.drawBitmap(0, 38, wifi_on_bmp, 10, 10, WHITE);
+    display.drawBitmap(0, 32, wifi_on_bmp, 16, 16, WHITE);
   } else {
-    display.drawBitmap(0, 38, wifi_off_bmp, 10, 10, WHITE);
+    display.drawBitmap(0, 32, wifi_off_bmp, 16, 16, WHITE);
   }
 
-  // Telegram: Правий нижній кут (X=54, Y=38)
+  // Telegram: Правий нижній кут (X=48, Y=32, розмір 16x16)
   if (wifiOk && tg_connected) {
-    display.drawBitmap(54, 38, tg_on_bmp, 10, 10, WHITE);
+    display.drawBitmap(48, 32, tg_on_bmp, 16, 16, WHITE);
   } else {
-    display.drawBitmap(54, 38, tg_off_bmp, 10, 10, WHITE);
+    display.drawBitmap(48, 32, tg_off_bmp, 16, 16, WHITE);
   }
 }
 
