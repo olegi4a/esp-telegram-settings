@@ -1,5 +1,5 @@
-#include <Fonts/FreeSans9pt7b.h>
-#include <Fonts/FreeSansBold9pt7b.h>
+// (Шрифти FreeFonts прибрані, використовується строгий класичний шрифт)
+
 
 // WiFi icon bitmaps (10x10 pixels)
 static const uint8_t PROGMEM wifi_on_bmp[] = {
@@ -69,8 +69,8 @@ static void display_main() {
   }
 
   // --- 2. Верхня частина: Температура ---
-  display.setFont(&FreeSansBold9pt7b);
-  display.setTextSize(1);
+  display.setFont();      // Повертаємо строгий піксельний шрифт (дефолтний)
+  display.setTextSize(2); // Розмір 2 (10x14 пікселів)
   String topText;
   if (sensorType == S_NONE) {
     topText = "none";
@@ -80,12 +80,12 @@ static void display_main() {
     topText = String(Temperature, 1);
   }
   display.getTextBounds(topText, 0, 0, &x1, &y1, &w, &h);
-  // FreeFonts малюються від базової лінії (знизу вгору), Y - це координата базової лінії
-  display.setCursor((64 - w) / 2, 16); 
+  // Дефолтний шрифт малюється від верхнього лівого кута (Y - це верхня межа)
+  display.setCursor((64 - w) / 2, 0); 
   display.print(topText);
 
   // --- 3. Нижня частина: Вологість або Час ---
-  display.setFont(&FreeSans9pt7b);
+  display.setTextSize(1); // Розмір 1 (5x7 пікселів)
   String bottomText;
   if (sensorType == S_BME280 || sensorType == S_HTU21) {
     bottomText = String((int)Humedity) + "%";
@@ -97,11 +97,8 @@ static void display_main() {
     bottomText = String(timeStr);
   }
   display.getTextBounds(bottomText, 0, 0, &x1, &y1, &w, &h);
-  display.setCursor((64 - w) / 2, 36);
+  display.setCursor((64 - w) / 2, 27);
   display.print(bottomText);
-
-  // Скидаємо шрифт до дефолтного
-  display.setFont();
 
   // --- 4. Нижні кути: іконки WiFi (Ліво) + TG (Право) ---
   bool wifiOk = (WiFi.status() == WL_CONNECTED);
