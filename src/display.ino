@@ -1,25 +1,56 @@
-// WiFi icon bitmaps (8x8 pixels)
-// Connected: dot + 3 arcs up
+#include <Fonts/FreeSans9pt7b.h>
+#include <Fonts/FreeSansBold9pt7b.h>
+
+// WiFi icon bitmaps (10x10 pixels)
 static const uint8_t PROGMEM wifi_on_bmp[] = {
-  0b00000000,
-  0b00111100,
-  0b01000010,
-  0b00111100,
-  0b00011000,
-  0b00011000,
-  0b00001000,
-  0b00000000
+  0b00000000, 0b00000000,
+  0b00111100, 0b00000000,
+  0b01000010, 0b00000000,
+  0b10011001, 0b00000000,
+  0b00100100, 0b00000000,
+  0b01011010, 0b00000000,
+  0b00000000, 0b00000000,
+  0b00011000, 0b00000000,
+  0b00011000, 0b00000000,
+  0b00000000, 0b00000000
 };
-// Disconnected: same but crossed out
 static const uint8_t PROGMEM wifi_off_bmp[] = {
-  0b10000001,
-  0b00111100,
-  0b01000010,
-  0b00111100,
-  0b00011000,
-  0b00011000,
-  0b10001000,
-  0b00000000
+  0b10000000, 0b01000000,
+  0b01111100, 0b00000000,
+  0b00100010, 0b00000000,
+  0b10011001, 0b00000000,
+  0b00100100, 0b00000000,
+  0b01011010, 0b00000000,
+  0b00000100, 0b00000000,
+  0b00011010, 0b00000000,
+  0b00011001, 0b00000000,
+  0b00000000, 0b01000000
+};
+
+// Telegram icon bitmaps (10x10 pixels) - Paper Plane
+static const uint8_t PROGMEM tg_on_bmp[] = {
+  0b00000000, 0b11000000,
+  0b00000001, 0b10000000,
+  0b00000011, 0b00000000,
+  0b00000110, 0b00000000,
+  0b10001100, 0b00000000,
+  0b11011111, 0b00000000,
+  0b01110100, 0b00000000,
+  0b00100100, 0b00000000,
+  0b00000100, 0b00000000,
+  0b00000100, 0b00000000
+};
+static const uint8_t PROGMEM tg_off_bmp[] = {
+  0b10000000, 0b11000000,
+  0b01000001, 0b10000000,
+  0b00100011, 0b00000000,
+  0b00010110, 0b00000000,
+  0b10001100, 0b00000000,
+  0b11011011, 0b00000000,
+  0b01110101, 0b00000000,
+  0b00100100, 0b10000000,
+  0b00000100, 0b01000000,
+  0b00000100, 0b00100000
 };
 
 // --- Відображення головного вікна ---
@@ -27,18 +58,19 @@ static void display_main() {
   int16_t x1, y1;
   uint16_t w, h;
 
-  // --- 1. Роздільна лінія (Y=22): статус реле ---
-  bool releState = digitalRead(RELE);
+  // --- 1. Роздільна лінія (Y=21): статус реле ---
+  // Використовуємо Start_status: 1 = включено, 0 = виключено
   for (int x = 0; x < 64; x += 4) {
-    if (releState) {
-      display.drawFastHLine(x, 22, 3, WHITE); // суцільні штрихи — ON
+    if (Start_status == 1) {
+      display.drawFastHLine(x, 21, 3, WHITE); // суцільні штрихи — ON
     } else {
-      display.drawPixel(x, 22, WHITE);        // крапки — OFF
+      display.drawPixel(x, 21, WHITE);        // крапки — OFF
     }
   }
 
-  // --- 2. Верхня частина: Температура або "none" (шрифт size=2, 0..21) ---
-  display.setTextSize(2);
+  // --- 2. Верхня частина: Температура ---
+  display.setFont(&FreeSansBold9pt7b);
+  display.setTextSize(1);
   String topText;
   if (sensorType == S_NONE) {
     topText = "none";
@@ -48,11 +80,12 @@ static void display_main() {
     topText = String(Temperature, 1);
   }
   display.getTextBounds(topText, 0, 0, &x1, &y1, &w, &h);
-  display.setCursor((64 - w) / 2, 11 - h / 2);
+  // FreeFonts малюються від базової лінії (знизу вгору), Y - це координата базової лінії
+  display.setCursor((64 - w) / 2, 16); 
   display.print(topText);
 
-  // --- 3. Нижня частина: Вологість або Час (шрифт size=1, рядки 24..36) ---
-  display.setTextSize(1);
+  // --- 3. Нижня частина: Вологість або Час ---
+  display.setFont(&FreeSans9pt7b);
   String bottomText;
   if (sensorType == S_BME280 || sensorType == S_HTU21) {
     bottomText = String((int)Humedity) + "%";
@@ -64,26 +97,27 @@ static void display_main() {
     bottomText = String(timeStr);
   }
   display.getTextBounds(bottomText, 0, 0, &x1, &y1, &w, &h);
-  display.setCursor((64 - w) / 2, 29 - h / 2);
+  display.setCursor((64 - w) / 2, 36);
   display.print(bottomText);
 
-  // --- 4. Нижня смуга (Y=39): WiFi + TG статус ---
+  // Скидаємо шрифт до дефолтного
+  display.setFont();
+
+  // --- 4. Нижні кути: іконки WiFi (Ліво) + TG (Право) ---
   bool wifiOk = (WiFi.status() == WL_CONNECTED);
 
-  // WiFi іконка (8x8 bitmap) або перекреслена
+  // WiFi: Лівий нижній кут (X=0, Y=38)
   if (wifiOk) {
-    display.drawBitmap(2, 39, wifi_on_bmp, 8, 8, WHITE);
+    display.drawBitmap(0, 38, wifi_on_bmp, 10, 10, WHITE);
   } else {
-    display.drawBitmap(2, 39, wifi_off_bmp, 8, 8, WHITE);
+    display.drawBitmap(0, 38, wifi_off_bmp, 10, 10, WHITE);
   }
 
-  // TG статус: текст "TG" + підкреслення або перекреслення
-  display.setTextSize(1);
-  display.setCursor(16, 39);
-  display.print("TG");
-  if (!wifiOk || !tg_connected) {
-    // Перекреслення: лінія через "TG" (приблизно 12px wide, 8px high)
-    display.drawLine(15, 39, 28, 46, WHITE);
+  // Telegram: Правий нижній кут (X=54, Y=38)
+  if (wifiOk && tg_connected) {
+    display.drawBitmap(54, 38, tg_on_bmp, 10, 10, WHITE);
+  } else {
+    display.drawBitmap(54, 38, tg_off_bmp, 10, 10, WHITE);
   }
 }
 

@@ -20,6 +20,17 @@ void FS_INIT(void)
 
 void handleNotFound()
 { 
+  // Captive Portal Redirect
+  if (WiFi.getMode() == WIFI_AP) {
+    String reqHost = WebServer.hostHeader();
+    String apIP = WiFi.softAPIP().toString();
+    if (reqHost != apIP) {
+      WebServer.sendHeader("Location", String("http://") + apIP + String("/"), true);
+      WebServer.send(302, "text/plain", "Redirecting to Captive Portal");
+      return;
+    }
+  }
+
   if (!handleFileRead(WebServer.uri())) 
   {
     WebServer.send(404, "text/plain", "FileNotFound");
