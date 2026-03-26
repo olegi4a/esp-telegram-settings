@@ -1,5 +1,5 @@
 // (Шрифти FreeFonts прибрані, використовується строгий класичний шрифт)
-
+#include <Fonts/TomThumb.h>
 
 // WiFi icon bitmaps (10x10 pixels)
 static const uint8_t PROGMEM wifi_on_bmp[] = {
@@ -85,7 +85,8 @@ static void display_main() {
   display.print(topText);
 
   // --- 3. Нижня частина: Вологість або Час ---
-  display.setTextSize(1); // Розмір 1 (5x7 пікселів)
+  display.setFont(&TomThumb); // Строгий піксельний міні-шрифт (3x5 пікселів)
+  display.setTextSize(2);     // Збільшуємо його в 2 рази = 6x10 пікселів!
   String bottomText;
   if (sensorType == S_BME280 || sensorType == S_HTU21) {
     bottomText = String((int)Humedity) + "%";
@@ -97,8 +98,12 @@ static void display_main() {
     bottomText = String(timeStr);
   }
   display.getTextBounds(bottomText, 0, 0, &x1, &y1, &w, &h);
-  display.setCursor((64 - w) / 2, 27);
+  // Базова лінія (Y=35), щоб центрирувати між Y=22 та Y=39
+  display.setCursor((64 - w) / 2, 35);
   display.print(bottomText);
+
+  // Скидаємо шрифт назад до дефолтного для наступних екранів
+  display.setFont();
 
   // --- 4. Нижні кути: іконки WiFi (Ліво) + TG (Право) ---
   bool wifiOk = (WiFi.status() == WL_CONNECTED);
