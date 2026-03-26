@@ -1,0 +1,7 @@
+{
+  "version": "EDwIC-3.5",
+  "web_files": [
+    "index.html"
+  ],
+  "firmware": "firmware.bin"
+}

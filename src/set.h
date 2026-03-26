@@ -15,7 +15,7 @@ const byte DNS_PORT = 53;
 extern DNSServer dnsServer;
 
 // Версія прошивки (порівнюється з GitHub releases tag_name)
-#define FIRMWARE_VERSION "EDwIC-3.4.4"
+#define FIRMWARE_VERSION "EDwIC-3.5.0"
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -156,5 +156,13 @@ byte   trend;
 unsigned long   Alarm_data_milis;
 bool   relay_change_notify;
 bool   last_rele_state;
+
+// Telegram connection status & bot info (not saved to flash)
+bool   tg_connected = false;
+String botName      = "";
+static unsigned long tg_last_check = 0; // щохвилинна перевірка
+
+// Display menu page: 0=main, 1=IP, 2=QR
+byte   display_page = 0;
 
 // Keyboards removed as they are now handled dynamically via FastBot2 API.

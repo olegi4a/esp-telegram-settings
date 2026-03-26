@@ -19,7 +19,10 @@ static void _sendJson(int code, String json) {
 // ============================================================
 void handle_api_status() {
   JsonDocument doc;
-  doc["temp"]    = serialized(String(Temperature, 1));
+  // Температура: якщо -127 (датчик відсутній) — повертаємо спеціальне значення
+  bool sensorOk = (Temperature > -100.0f);
+  doc["sensor_ok"] = sensorOk;
+  doc["temp"]    = sensorOk ? serialized(String(Temperature, 1)) : serialized(String(-127));
   doc["hum"]     = Humedity;
   doc["press"]   = serialized(String(Pressure, 1));
   doc["relay"]   = digitalRead(RELE);
@@ -37,6 +40,9 @@ void handle_api_status() {
   doc["log_max"]   = Logger_getMax();
   doc["wifi_rssi"] = WiFi.RSSI();
   doc["version"]   = FIRMWARE_VERSION;
+  // Telegram статус та назва бота
+  doc["tg_ok"]    = tg_connected;
+  doc["bot_name"] = botName;
 
   String out;
   serializeJson(doc, out);
@@ -52,12 +58,13 @@ void handle_api_config() {
   // Глобальні налаштування
   JsonObject g = doc["global"].to<JsonObject>();
   g["SID_STA"]      = SID_STA;
+  g["PAS_STA"]      = PAS_STA;         // реальний пароль WiFi
   g["Time_D_h"]     = Time_D / 3600;
   g["Time_N_h"]     = Time_N / 3600;
   g["alluser"]      = alluser;
   g["timezone_str"] = timezone_str;
-  g["has_token"]    = (TB_Token.length() > 0);
-  g["has_pass"]     = (TB_pasword != 12345);
+  g["TB_Token"]     = TB_Token;        // реальний токен бота
+  g["TB_pasword"]   = TB_pasword;      // реальний пароль доступу
 
   // Поточний профіль (активний)
   JsonObject cur = doc["current"].to<JsonObject>();

@@ -1,5 +1,8 @@
 void Telegram_Callback(fb::Update& update)
 {
+  // \u0411\u0443\u0434\u044c-\u044f\u043a\u0430 \u0430\u043a\u0442\u0438\u0432\u043d\u0456\u0441\u0442\u044c \u0432\u0456\u0434 Telegram \u2014 \u0437\u043d\u0430\u0447\u0438\u0442\u044c TG online
+  tg_connected = true;
+  tg_last_check = millis();
   TBLOG("Update: "); TBLOG_LN((int)update.type());
   fb::MessageRead msg = update.message();
   int64_t senderId = msg.from().id().toInt64();

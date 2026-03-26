@@ -6,6 +6,10 @@ DallasTemperature DS(&oneWire);
 // Called once from sensor_init()
 static bool _ds_available = false;
 
+// DS18B20 fail counter: skip -127 for up to 10 consecutive read errors
+static byte _ds_fail_count = 0;
+#define DS_FAIL_THRESHOLD 10
+
 void sensor_init()
 {
   TBLOG_LN("Scanning for sensors...");
@@ -34,6 +38,7 @@ void sensor_init()
       sensorType  = S_DS18B20;
       Sensor_fund = 1;
       _ds_available = true;
+      _ds_fail_count = 0;
       TBLOG_LN("DS18B20 found!");
     } else {
       sensorType  = S_NONE;
@@ -45,36 +50,66 @@ void sensor_init()
 
 void sensor_read()
 {
-  if (Sensor_fund == 0) return;
+  static uint32_t last_retry = 0;
+  
+  if (Sensor_fund == 0) {
+    // Якщо датчик не знайдено, пробуємо ініціалізацію кожні 30 секунд
+    if (millis() - last_retry > 30000 || last_retry == 0) {
+      last_retry = millis();
+      TBLOG_LN("No sensor active, retrying initialization...");
+      sensor_init();
+    }
+    if (Sensor_fund == 0) return;
+  }
 
   switch (sensorType) {
     case S_BME280:
       Temperature = BME.readTemperature();
       Humedity    = (byte)BME.readHumidity();
       Pressure    = BME.readPressure() / 133.3224f;
+      // Перевірка на "зависання" або збій I2C (BME280 повертає NAN)
+      if (isnan(Temperature)) {
+        TBLOG_LN("BME280 error, re-init...");
+        sensor_init();
+      }
       break;
 
     case S_HTU21:
-      // GyverHTU21D: request/read sequence
       HTU.requestTemperature();
       HTU.requestHumidity();
-      delay(55); // wait for conversion
+      delay(55); 
       Temperature = HTU.getTemperature();
       Humedity    = (byte)HTU.getHumidity();
       Pressure    = 0;
+      if (Temperature < -40 || Humedity > 100) {
+        TBLOG_LN("HTU21 error, re-init...");
+        sensor_init();
+      }
       break;
 
     case S_DS18B20:
-      // DallasTemperature API
-      DS.requestTemperatures();
-      delay(100); // 9-bit takes ~95ms
-      Temperature = DS.getTempCByIndex(0);
-      if (Temperature == DEVICE_DISCONNECTED_C || Temperature < -50) {
-        TBLOG_LN("DS18B20 lost, re-scanning...");
-        sensor_init();
+      {
+        DS.requestTemperatures();
+        delay(100); 
+        float t = DS.getTempCByIndex(0);
+        if (t == DEVICE_DISCONNECTED_C || t < -50) {
+          _ds_fail_count++;
+          TBLOG("DS18B20 read error, fail_count="); TBLOG_LN(_ds_fail_count);
+          if (_ds_fail_count >= DS_FAIL_THRESHOLD) {
+            // Датчик справді відсутній — фіксуємо -127 та намагаємось реініціалізувати
+            TBLOG_LN("DS18B20 confirmed absent, re-init...");
+            Temperature = -127.0f;
+            sensor_init();
+          }
+          // else: залишаємо попереднє значення Temperature без змін
+        } else {
+          // Успішне читання — скидаємо лічильник збоїв
+          _ds_fail_count = 0;
+          Temperature = t;
+        }
+        Humedity = 255;
+        Pressure = 0;
       }
-      Humedity    = 255;
-      Pressure    = 0;
       break;
 
     default:
