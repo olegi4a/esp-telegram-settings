@@ -1,7 +1,7 @@
-{
-  "version": "EDwIC-3.5.0",
-  "web_files": [
-    "index.html"
-  ],
-  "firmware": "firmware.bin"
+﻿{
+    "firmware":  "firmware.bin",
+    "version":  "EDwIC-3.5.0",
+    "web_files":  [
+                      "index.html"
+                  ]
 }
