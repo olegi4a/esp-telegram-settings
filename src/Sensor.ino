@@ -30,9 +30,10 @@ void sensor_init()
   // 3. Try DS18B20 (OneWire GPIO5) — DallasTemperature API
   else {
     DS.begin();
-    DS.setResolution(9); // 9-bit resolution ~95ms conversion
+    DS.setResolution(12); // 12-bit resolution (precision 0.0625) ~750ms
+    DS.setWaitForConversion(false); // Асинхронний запит, щоб не блокувати головний цикл
     DS.requestTemperatures();
-    delay(100);
+    delay(750); // Очікуємо 750мс тільки 1 раз при ініціалізації
     float t = DS.getTempCByIndex(0);
     if (t != DEVICE_DISCONNECTED_C && t > -50) {
       sensorType  = S_DS18B20;
@@ -89,9 +90,9 @@ void sensor_read()
 
     case S_DS18B20:
       {
-        DS.requestTemperatures();
-        delay(100); 
-        float t = DS.getTempCByIndex(0);
+        float t = DS.getTempCByIndex(0); // Беремо вже готовий результат з минулого разу
+        DS.requestTemperatures();        // Одразу відправляємо асинхронний запит на новий (без delay)
+        
         if (t == DEVICE_DISCONNECTED_C || t < -50) {
           _ds_fail_count++;
           TBLOG("DS18B20 read error, fail_count="); TBLOG_LN(_ds_fail_count);
