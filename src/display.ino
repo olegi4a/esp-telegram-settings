@@ -76,10 +76,17 @@ static void display_main() {
         }
     }
   } else {
-    // Не підключено — просто X
-    display.setTextSize(1);
-    display.setCursor(0, 40);
-    display.print("X");
+    // Не підключено — показуємо AP або X
+    display.setFont(&TomThumb);
+    display.setTextSize(2);
+    if (WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
+      display.setCursor(0, 47);
+      display.print("AP");
+    } else {
+      display.setCursor(0, 47);
+      display.print("X");
+    }
+    display.setFont();
   }
 
   // Telegram: Правий нижній кут
