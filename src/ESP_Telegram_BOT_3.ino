@@ -199,6 +199,7 @@ void setup()
 void loop()
 {
   unsigned long currentMillis = millis();
+  wifi_test_periodicTick();
 
   // --- Auto AP Logic ---
   static unsigned long wifi_disconnected_ms = 0;

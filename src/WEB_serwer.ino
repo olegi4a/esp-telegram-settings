@@ -284,8 +284,12 @@ void handle_api_wifi_test() {
   wifi_test_old_ssid = WiFi.SSID();
   wifi_test_old_pass = WiFi.psk();
 
-  // Запускаємо WIFI_AP_STA, щоб не втратити AP, та пробуємо під'єднатись до STA
-  WiFi.mode(WIFI_AP_STA);
+  // Якщо ми вже в STA і підключені — залишаємось в STA (на запит користувача)
+  // Якщо ми в AP або не підключені — вмикаємо AP_STA для страховки
+  if (WiFi.getMode() != WIFI_STA) {
+    WiFi.mode(WIFI_AP_STA);
+  }
+  
   WiFi.begin(ssid.c_str(), pass.c_str());
 
   wifi_test_active = true;
@@ -297,35 +301,46 @@ void handle_api_wifi_test() {
 }
 
 // ============================================================
+//  wifi_test_periodicTick — Фоновий моніторинг тесту (викликається з loop)
+// ============================================================
+void wifi_test_periodicTick() {
+  if (!wifi_test_active) return;
+
+  if (WiFi.status() == WL_CONNECTED) {
+    wifi_test_result = "success";
+    wifi_test_ip = WiFi.localIP().toString();
+    wifi_test_active = false;
+    wifi_test_done_ms = millis();
+    TBLOG_LN(F("WiFi Test: SUCCESS"));
+    
+    // Завжди повертаємось до старої мережі, щоб браузер міг "зловити" відповідь
+    if (wifi_test_old_ssid.length() > 0) {
+      WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
+    }
+  } 
+  else if (millis() - wifi_test_start > 25000) { // Тайм-аут 25с
+    wifi_test_result = "fail";
+    wifi_test_active = false;
+    wifi_test_done_ms = millis();
+    TBLOG_LN(F("WiFi Test: FAIL (timeout)"));
+    
+    // Повертаємось до старої мережі
+    if (wifi_test_old_ssid.length() > 0) {
+      WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
+    } else {
+      WiFi.disconnect(false);
+    }
+  }
+}
+
+// ============================================================
 //  GET /api/wifi/status — Перевірка статусу тестового підключення
 // ============================================================
 void handle_api_wifi_status() {
-  // 1. Оновлюємо статус, поки тест іще активний
+  // 1. Якщо тест активний — повертаємо "testing"
   if (wifi_test_active) {
-    if (WiFi.status() == WL_CONNECTED) {
-      wifi_test_result = "success";
-      wifi_test_ip = WiFi.localIP().toString();
-      wifi_test_active = false;
-      wifi_test_done_ms = millis();
-      
-      // Повертаємось до попередньої мережі, якщо вона була (щоб браузер міг отримати відповідь)
-      if (wifi_test_old_ssid.length() > 0) {
-        WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
-      } else {
-        WiFi.disconnect(false);
-      }
-    } else if (millis() - wifi_test_start > 20000) { // збільшено таймаут до 20с
-      wifi_test_result = "fail";
-      wifi_test_active = false;
-      wifi_test_done_ms = millis();
-      
-      // Повертаємось до попередньої мережі
-      if (wifi_test_old_ssid.length() > 0) {
-        WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
-      } else {
-        WiFi.disconnect(false); // відключити STA, але не чіпати режим WiFi
-      }
-    }
+    _sendJson(200, "{\"status\":\"testing\"}");
+    return;
   }
 
   // 2. Повертаємо "idle", якщо тест не активний і кеш результату вже минув (30 сек)
