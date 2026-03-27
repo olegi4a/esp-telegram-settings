@@ -1,33 +1,6 @@
-// (Шрифти FreeFonts прибрані, використовується строгий класичний шрифт)
+// (Шрифти та бітмапи оновлено)
 #include <Fonts/TomThumb.h>
 
-// WiFi icon bitmaps (16x16 pixels)
-static const uint8_t PROGMEM wifi_on_bmp[] = {
-  0x00, 0x00, 0x00, 0x00, 0x07, 0xE0, 0x1F, 0xF8, 
-  0x38, 0x1C, 0x70, 0x0E, 0x67, 0xE6, 0x0F, 0xF0, 
-  0x1C, 0x38, 0x18, 0x18, 0x03, 0xC0, 0x07, 0xE0, 
-  0x07, 0xE0, 0x03, 0xC0, 0x00, 0x00, 0x00, 0x00
-};
-static const uint8_t PROGMEM wifi_off_bmp[] = {
-  0xC0, 0x00, 0x60, 0x00, 0x37, 0xE0, 0x1F, 0xF8, 
-  0x3C, 0x1C, 0x73, 0x0E, 0x67, 0xC6, 0x0F, 0xF0, 
-  0x1C, 0x78, 0x18, 0x38, 0x03, 0xD8, 0x07, 0xEC, 
-  0x07, 0xE6, 0x03, 0xC3, 0x00, 0x01, 0x00, 0x00
-};
-
-// Telegram icon bitmaps (16x16 pixels) - Paper Plane
-static const uint8_t PROGMEM tg_on_bmp[] = {
-  0x00, 0x03, 0x00, 0x07, 0x00, 0x0F, 0x00, 0x1F, 
-  0x00, 0x3F, 0x00, 0x7F, 0x7F, 0xFF, 0x3F, 0xFF, 
-  0x1F, 0xDF, 0x03, 0x8F, 0x03, 0x07, 0x03, 0x03, 
-  0x03, 0x01, 0x03, 0x18, 0x03, 0xF0, 0x01, 0xC0
-};
-static const uint8_t PROGMEM tg_off_bmp[] = {
-  0xC0, 0x03, 0x60, 0x07, 0x30, 0x0F, 0x18, 0x1F, 
-  0x0C, 0x3F, 0x06, 0x7F, 0x7F, 0xFF, 0x3F, 0xFF, 
-  0x1F, 0xFF, 0x03, 0xBF, 0x03, 0x1F, 0x03, 0x0B, 
-  0x03, 0x05, 0x03, 0x1A, 0x03, 0xF1, 0x01, 0xC0
-};
 
 // --- Відображення головного вікна ---
 static void display_main() {
@@ -81,21 +54,41 @@ static void display_main() {
   // Скидаємо шрифт назад до дефолтного для наступних екранів
   display.setFont();
 
-  // --- 4. Нижні кути: іконки WiFi (Ліво) + TG (Право) ---
+  // --- 4. Нижні кути: WiFi bars (Ліво) + TG text (Право) ---
   bool wifiOk = (WiFi.status() == WL_CONNECTED);
-
-  // WiFi: Лівий нижній кут (X=0, Y=32, розмір 16x16)
+  
+  // WiFi Bars: Лівий ніжній кут (Y=47)
   if (wifiOk) {
-    display.drawBitmap(0, 32, wifi_on_bmp, 16, 16, WHITE);
+    int32_t rssi = WiFi.RSSI();
+    int bars = 0;
+    if (rssi > -55)      bars = 4;
+    else if (rssi > -65) bars = 3;
+    else if (rssi > -75) bars = 2;
+    else                 bars = 1;
+
+    for (int i = 0; i < 4; i++) {
+        int barH = (i + 1) * 2 + 1; // 3, 5, 7, 9 px
+        if (i < bars) {
+            display.fillRect(i * 3, 48 - barH, 2, barH, WHITE);
+        } else {
+            display.drawRect(i * 3, 48 - barH, 2, barH, WHITE); // контур для порожніх паличок
+        }
+    }
   } else {
-    display.drawBitmap(0, 32, wifi_off_bmp, 16, 16, WHITE);
+    // Не підключено — просто X
+    display.setTextSize(1);
+    display.setCursor(0, 40);
+    display.print("X");
   }
 
-  // Telegram: Правий нижній кут (X=48, Y=32, розмір 16x16)
+  // Telegram: Правий нижній кут
+  display.setTextSize(1);
   if (wifiOk && tg_connected) {
-    display.drawBitmap(48, 32, tg_on_bmp, 16, 16, WHITE);
+    display.setCursor(52, 40);
+    display.print("TG");
   } else {
-    display.drawBitmap(48, 32, tg_off_bmp, 16, 16, WHITE);
+    display.setCursor(58, 40);
+    display.print("X");
   }
 }
 
