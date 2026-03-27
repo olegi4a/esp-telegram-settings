@@ -11,7 +11,7 @@ static void display_main() {
   bool actualRelay = digitalRead(RELE);
   for (int x = 0; x < 64; x += 4) {
     if (actualRelay) {
-      display.drawFastHLine(x, 21, 3, WHITE); // суцільні штрихи — ON
+      display.drawFastHLine(x, 21, 5, WHITE); // суцільні штрихи — ON
     } else {
       display.drawPixel(x, 21, WHITE);        // крапки — OFF
     }
@@ -102,7 +102,7 @@ static void display_main() {
 }
 
 // --- Відображення вікна IP адреси ---
-static void display_ip_page() {
+void display_ip_page() {
   int16_t x1, y1;
   uint16_t w, h;
 

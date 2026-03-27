@@ -93,91 +93,67 @@ void setup()
       }
   }
 
-  if(WiFi.getMode() != WIFI_AP)
-  { 
+  // --- СИНХРОНІЗАЦІЯ ЧАСУ ---
+  if(WiFi.getMode() != WIFI_AP) {
     display.clearDisplay();
-    display.setTextColor(WHITE);
-    display.setCursor(2,1);
-    display.println("  MY IP:  ");
-    display.println(WiFi.localIP());
-    display.display();
-  
-    TBLOG(F("WIFI mode: "));
-    TBLOG_LN(WiFi.getMode());
-    TBLOG(F("WiFi connected: "));
-    TBLOG_LN(WiFi.localIP());
-
-    delay(2000);
-
+    display_ip_page();
     TBLOG_LN("Starting NTP Sync");
-    // NTP + POSIX timezone (handles DST automatically)
     configTime(timezone_str.c_str(), ntpServerName, ntpServerName2);
-
-    // NTP має ПРІОРИТЕТ — чекаємо до 10 секунд
-    TBLOG("Waiting for NTP time");
     time_t nowTimeRead = time(nullptr);
     byte timeout = 0;
     while (nowTimeRead < 1500000000 && timeout < 50) {
-      delay(200);
-      TBLOG(".");
-      nowTimeRead = time(nullptr);
-      timeout++;
+      delay(200); TBLOG("."); nowTimeRead = time(nullptr); timeout++;
     }
-    TBLOG_LN("");
-
     if (nowTimeRead >= 1500000000) {
-      // NTP синхронізовано — точний час
       setTime(nowTimeRead);
       setSyncProvider(getNtpTime);
       setSyncInterval(3600);
       TBLOG_LN(F("Boot: NTP OK"));
       Logger_addEntry(13); // 13 = Час синхронізовано
-    } else {
-      // NTP недоступний — fallback по history.json
-      TBLOG_LN(F("Boot: NTP FAILED, trying history.json fallback..."));
-      uint32_t lastTs = History_loadLastTimestamp();
-      if (lastTs > 1500000000) {
-        time_t estimated = (time_t)(lastTs + (millis() / 1000));
-        setTime(estimated);
-        TBLOG(F("Boot: estimated time from history: ")); TBLOG_LN((long)estimated);
-      } else {
-        TBLOG_LN(F("Boot: No history. Night profile default."));
-      }
     }
+  }
 
-    time_t t = time(nullptr);
-    struct tm *tm_info = localtime(&t);
-    Time_now = (tm_info->tm_hour * 3600) + (tm_info->tm_min * 60);
-
-    // Завантажуємо ОБИДВА профілі, щоб у пам'яті були дані для обох (для WebApp)
-    Load_Profile("/D_profile.json");
-    Load_Profile("/N_profile.json");
-
-    if(Time_D < Time_now && Time_N > Time_now)
-    {
-       TBLOG_LN(" day profile active ");
-       Load_Profile("/D_profile.json"); // Активуємо денний
-       profile = 1;
+  // 2. Fallback до останнього збереженого часу (якщо NTP не спрацював АБО ми в AP)
+  if (time(nullptr) < 1500000000) {
+    TBLOG_LN(F("Boot: No NTP, trying history.json fallback..."));
+    uint32_t lastTs = History_loadLastTimestamp();
+    if (lastTs > 1500000000) {
+      time_t estimated = (time_t)(lastTs + (millis() / 1000));
+      setTime(estimated);
+      TBLOG(F("Boot: estimated time from history: ")); TBLOG_LN((long)estimated);
     }
-    else
-    {
-       TBLOG_LN(" Night profile active ");
-       Load_Profile("/N_profile.json"); // Активуємо нічний (вже завантажений, але для логіки)
-       profile = 0;
-    }
-    
-    // Встановлення токену Telegram та колбеку
+  }
+
+  // --- ЗАГАЛЬНІ НАЛАШТУВАННЯ ТА ПРОФІЛІ ---
+  time_t t_now = time(nullptr);
+  struct tm *tm_info = localtime(&t_now);
+  Time_now = (tm_info->tm_hour * 3600) + (tm_info->tm_min * 60);
+
+  // Завантажуємо ОБИДВА профілі, щоб у пам'яті були дані для обох (для WebApp)
+  Load_Profile("/D_profile.json");
+  Load_Profile("/N_profile.json");
+
+  if(Time_D < Time_now && Time_N > Time_now) {
+     TBLOG_LN(" Day profile active ");
+     Load_Profile("/D_profile.json"); // Активуємо денний
+     profile = 1;
+  } else {
+     TBLOG_LN(" Night profile active ");
+     Load_Profile("/N_profile.json"); // Активуємо нічний
+     profile = 0;
+  }
+
+  // --- ТЕЛЕГРАМ (Тільки для STA режиму) ---
+  if (WiFi.getMode() != WIFI_AP) {
     myBot.setToken(TB_Token);
-    myBot.setTimeout(8500); // Збільшений таймаут (разом з DNS займе ~10с)
-    myBot.client.setBufferSizes(3072, 512); // оптимізація RAM MbedTLS
+    myBot.setTimeout(8500);
+    myBot.client.setBufferSizes(3072, 512);
     myBot.onUpdate(Telegram_Callback);
     
-    // Отримуємо ім'я бота один раз при старті (тільки в RAM)
-    // Перевикористовуємо myBot.client — без другого SSL стеку
-    if (TB_Token.length() > 0) {
+    if (TB_Token.length() > 10) {
       HTTPClient http;
       String url = String(F("https://api.telegram.org/bot")) + TB_Token + F("/getMe");
-      http.begin(myBot.client, url); // ревюз SSL клієнта бота
+      http.begin(myBot.client, url);
       int code = http.GET();
       if (code == 200) {
         String body = http.getString();
@@ -189,9 +165,6 @@ void setup()
           if (end > start) botName = "@" + body.substring(start, end);
         }
         tg_connected = true;
-        TBLOG(F("Bot name: ")); TBLOG_LN(botName);
-      } else {
-        TBLOG(F("getMe HTTP code: ")); TBLOG_LN(code);
       }
       http.end();
       tg_last_check = millis();
