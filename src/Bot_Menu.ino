@@ -130,7 +130,7 @@ String buildDashboard() {
         t += F(" Вологість      |  "); t += String((int)Humedity); t += "%\n";
     }
     if (sensorType == S_BME280 && Pressure > 0) {
-        t += F(" Тиск           |  "); t += String((int)Pressure); t += F(" hPa\n");
+        t += F(" Тиск           |  "); t += String((int)(Pressure + 0.5f)); t += F(" mmHg\n");
     }
     
     t += F(" Реле           |  "); t += rel; t += "\n";

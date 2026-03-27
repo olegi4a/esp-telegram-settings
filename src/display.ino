@@ -24,7 +24,7 @@ static void display_main() {
   if (sensorType == S_NONE) {
     topText = "none";
   } else if (Temperature <= -100.0f) {
-    topText = "N/A"; // DS18B20 відсутній
+    topText = "none"; // DS18B20 відсутній
   } else {
     topText = String(Temperature, 1);
   }

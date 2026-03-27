@@ -24,7 +24,7 @@ void handle_api_status() {
   doc["sensor_ok"] = sensorOk;
   doc["temp"]    = sensorOk ? serialized(String(Temperature, 1)) : serialized(String(-127));
   doc["hum"]     = Humedity;
-  doc["press"]   = serialized(String(Pressure, 1));
+  doc["press"]   = (int)(Pressure + 0.5f); // округлення до цілого mmHg
   doc["relay"]   = digitalRead(RELE);
   doc["mode"]    = Statatus_sensor_control;  // 0=manual,1=sensor,2=timer
   doc["profile"] = profile;                  // 0=night,1=day
