@@ -15,7 +15,7 @@ const byte DNS_PORT = 53;
 extern DNSServer dnsServer;
 
 // Версія прошивки (порівнюється з GitHub releases tag_name)
-#define FIRMWARE_VERSION "EDwIC-3.5.9"
+#define FIRMWARE_VERSION "EDwIC-3.5.10"
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -42,6 +42,7 @@ void sendMainMenu(int64_t senderId);
 void restoreAutomationMode();
 void Logger_periodicTick();
 void display_ip_page();
+extern bool wifi_test_active;
 
 extern bool is_usb_mode;
 extern volatile bool powerFailFlag;

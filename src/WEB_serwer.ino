@@ -256,6 +256,7 @@ bool   wifi_test_active = false;
 uint32_t wifi_test_start = 0;
 String wifi_test_result = "";
 String wifi_test_ip = "";
+uint32_t wifi_test_done_ms = 0; // час завершення тесту (для кешу результату)
 
 void handle_api_wifi_test() {
   if (WebServer.method() == HTTP_OPTIONS) {
@@ -293,30 +294,40 @@ void handle_api_wifi_test() {
 //  GET /api/wifi/status — Перевірка статусу тестового підключення
 // ============================================================
 void handle_api_wifi_status() {
-  if (!wifi_test_active) {
+  // 1. Оновлюємо статус, поки тест іще активний
+  if (wifi_test_active) {
+    if (WiFi.status() == WL_CONNECTED) {
+      wifi_test_result = "success";
+      wifi_test_ip = WiFi.localIP().toString();
+      wifi_test_active = false;
+      wifi_test_done_ms = millis();
+    } else if (millis() - wifi_test_start > 20000) { // збільшено таймаут до 20с
+      wifi_test_result = "fail";
+      wifi_test_active = false;
+      wifi_test_done_ms = millis();
+      WiFi.disconnect(false); // відключити STA, але не чіпати режим WiFi
+    }
+  }
+
+  // 2. Повертаємо "idle", якщо тест не активний і кеш результату вже минув (30 сек)
+  if (!wifi_test_active && (wifi_test_result.length() == 0 || wifi_test_result == "idle")) {
+    _sendJson(200, "{\"status\":\"idle\"}");
+    return;
+  }
+  
+  if (!wifi_test_active && wifi_test_done_ms > 0 && (millis() - wifi_test_done_ms > 30000)) {
+    wifi_test_result = "";
+    wifi_test_done_ms = 0;
     _sendJson(200, "{\"status\":\"idle\"}");
     return;
   }
 
-  if (WiFi.status() == WL_CONNECTED) {
-    wifi_test_result = "success";
-    wifi_test_ip = WiFi.localIP().toString();
-    wifi_test_active = false;
-  } else if (millis() - wifi_test_start > 15000) {
-    // 15 секунд таймаут
-    wifi_test_result = "fail";
-    wifi_test_active = false;
-    WiFi.disconnect();
-    // Повертаємось до AP only
-    WiFi.mode(WIFI_AP);
-  }
-
+  // 3. Віддаємо поточний або закешований результат
   String resp = "{\"status\":\"" + wifi_test_result + "\"";
   if (wifi_test_result == "success") {
     resp += ",\"ip\":\"" + wifi_test_ip + "\"";
   }
   resp += "}";
-  
   _sendJson(200, resp);
 }
 
@@ -450,6 +461,17 @@ void WebServer_Init() {
   WebServer.on("/api/fs/upload",   HTTP_OPTIONS, handle_api_options);
 
   WebUpdater.setup(&WebServer);
+
+  // Captive Portal (Redirect all unknown requests to 192.168.4.1 in AP mode)
+  WebServer.onNotFound([]() {
+    if (WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
+      WebServer.sendHeader("Location", "http://192.168.4.1", true);
+      WebServer.send(302, "text/plain", "");
+    } else {
+      WebServer.send(404, "text/plain", "Not found");
+    }
+  });
+
   WebServer.begin();
   TBLOG_LN(F("WebServer begin (API ready)"));
 }

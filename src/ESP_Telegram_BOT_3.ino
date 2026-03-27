@@ -209,9 +209,11 @@ void loop()
     if (wifi_disconnected_ms != 0) {
       wifi_disconnected_ms = 0; // Скидання таймера
       if (WiFi.getMode() == WIFI_AP_STA) {
-        TBLOG_LN(F("WiFi restored. Disabling Auto-AP."));
-        WiFi.softAPdisconnect(true);
-        WiFi.mode(WIFI_STA);
+        if (!wifi_test_active) {
+          TBLOG_LN(F("WiFi restored. Disabling Auto-AP."));
+          WiFi.softAPdisconnect(true);
+          WiFi.mode(WIFI_STA);
+        }
       }
     }
   } else {
