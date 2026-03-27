@@ -214,10 +214,48 @@ void loop()
 {
   unsigned long currentMillis = millis();
 
-  // LED Status Indication
+  // --- Auto AP Logic ---
+  static unsigned long wifi_disconnected_ms = 0;
+  static bool first_loop_check = true;
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    first_loop_check = false;
+    if (wifi_disconnected_ms != 0) {
+      wifi_disconnected_ms = 0; // Скидання таймера
+      if (WiFi.getMode() == WIFI_AP_STA) {
+        TBLOG_LN(F("WiFi restored. Disabling Auto-AP."));
+        WiFi.softAPdisconnect(true);
+        WiFi.mode(WIFI_STA);
+      }
+    }
+  } else {
+    if (WiFi.getMode() != WIFI_AP) {
+      if (wifi_disconnected_ms == 0) wifi_disconnected_ms = currentMillis;
+      
+      bool triggerAP = false;
+      if (first_loop_check) {
+        triggerAP = true; // Відсутній при завантаженні - AP відразу
+        first_loop_check = false;
+      } else if (currentMillis - wifi_disconnected_ms >= 120000) {
+        triggerAP = true; // Зник більше ніж на 2 хв
+      }
+
+      if (WiFi.getMode() == WIFI_STA && triggerAP) {
+        TBLOG_LN(F("WiFi lost. Auto-AP started."));
+        WiFi.mode(WIFI_AP_STA);
+        String chipId = WiFi.macAddress();
+        chipId.replace(":", "");
+        String ap_ssid = "ESP-" + chipId.substring(chipId.length() - 6);
+        WiFi.softAP(ap_ssid.c_str(), "", 4, false, 5);
+        dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
+      }
+    }
+  }
+
+  // LED Status Indication (Блимає якщо AP або втрачено зв'язок)
   static unsigned long lastLEDBlink = 0;
   static bool ledState = false;
-  if (WiFi.getMode() == WIFI_AP) {
+  if (WiFi.getMode() == WIFI_AP || (WiFi.getMode() == WIFI_AP_STA && WiFi.status() != WL_CONNECTED)) {
     if (currentMillis - lastLEDBlink >= 500) {
       lastLEDBlink = currentMillis;
       ledState = !ledState;
@@ -307,7 +345,7 @@ void loop()
     RESTART = 3;
   }
   
-  if(WiFi.getMode() == WIFI_AP) {
+  if(WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
     dnsServer.processNextRequest();
   }
   
