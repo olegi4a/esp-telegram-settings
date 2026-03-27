@@ -209,6 +209,20 @@ void setup()
   }
   Alarm_data_milis = millis() + 60000;
   Logger_addEntry(4); // 4 = Запуск пристрою
+
+  // Відображення "UPDATE" на OLED під час OTA оновлення
+  Update.onStart([]() {
+    TBLOG_LN(F("OTA Update Started!"));
+    display.clearDisplay();
+    display.setFont(&TomThumb);
+    display.setTextSize(2);
+    // Центрування "UPDATE" (~48px) та "..." (~24px) для екрану 64х48
+    display.setCursor(8, 20);
+    display.print(F("UPDATE"));
+    display.setCursor(20, 40);
+    display.print(F("..."));
+    display.display();
+  });
 }
 
 void loop()
