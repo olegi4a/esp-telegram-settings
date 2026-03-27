@@ -8,9 +8,10 @@ static void display_main() {
   uint16_t w, h;
 
   // --- 1. Роздільна лінія (Y=21): статус реле ---
-  // Використовуємо Start_status: 1 = включено, 0 = виключено
+  // Показуємо РЕАЛЬНИЙ стан заліза:
+  bool actualRelay = digitalRead(RELE);
   for (int x = 0; x < 64; x += 4) {
-    if (Start_status == 1) {
+    if (actualRelay) {
       display.drawFastHLine(x, 21, 3, WHITE); // суцільні штрихи — ON
     } else {
       display.drawPixel(x, 21, WHITE);        // крапки — OFF
@@ -82,14 +83,16 @@ static void display_main() {
   }
 
   // Telegram: Правий нижній кут
-  display.setTextSize(1);
+  display.setFont(&TomThumb);
+  display.setTextSize(2);
   if (wifiOk && tg_connected) {
-    display.setCursor(52, 40);
+    display.setCursor(47, 47); // Підігнано під край екрану 64х48
     display.print("TG");
   } else {
-    display.setCursor(58, 40);
+    display.setCursor(56, 47);
     display.print("X");
   }
+  display.setFont(); // Скидання для інших екранів
 }
 
 // --- Відображення вікна IP адреси ---
