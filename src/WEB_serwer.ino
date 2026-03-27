@@ -318,7 +318,7 @@ void wifi_test_periodicTick() {
       WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
     }
   } 
-  else if (millis() - wifi_test_start > 25000) { // Тайм-аут 25с
+  else if (millis() - wifi_test_start > 30000) { // Тайм-аут 30с
     wifi_test_result = "fail";
     wifi_test_active = false;
     wifi_test_done_ms = millis();
@@ -349,7 +349,8 @@ void handle_api_wifi_status() {
     return;
   }
   
-  if (!wifi_test_active && wifi_test_done_ms > 0 && (millis() - wifi_test_done_ms > 30000)) {
+  
+  if (!wifi_test_active && wifi_test_done_ms > 0 && (millis() - wifi_test_done_ms > 60000)) {
     wifi_test_result = "";
     wifi_test_done_ms = 0;
     _sendJson(200, "{\"status\":\"idle\"}");
