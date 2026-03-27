@@ -257,6 +257,8 @@ uint32_t wifi_test_start = 0;
 String wifi_test_result = "";
 String wifi_test_ip = "";
 uint32_t wifi_test_done_ms = 0; // час завершення тесту (для кешу результату)
+String wifi_test_old_ssid = "";
+String wifi_test_old_pass = "";
 
 void handle_api_wifi_test() {
   if (WebServer.method() == HTTP_OPTIONS) {
@@ -277,6 +279,10 @@ void handle_api_wifi_test() {
     _sendJson(400, "{\"ok\":false,\"error\":\"empty ssid\"}");
     return;
   }
+
+  // Зберігаємо поточне з'єднання
+  wifi_test_old_ssid = WiFi.SSID();
+  wifi_test_old_pass = WiFi.psk();
 
   // Запускаємо WIFI_AP_STA, щоб не втратити AP, та пробуємо під'єднатись до STA
   WiFi.mode(WIFI_AP_STA);
@@ -301,11 +307,24 @@ void handle_api_wifi_status() {
       wifi_test_ip = WiFi.localIP().toString();
       wifi_test_active = false;
       wifi_test_done_ms = millis();
+      
+      // Повертаємось до попередньої мережі, якщо вона була (щоб браузер міг отримати відповідь)
+      if (wifi_test_old_ssid.length() > 0) {
+        WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
+      } else {
+        WiFi.disconnect(false);
+      }
     } else if (millis() - wifi_test_start > 20000) { // збільшено таймаут до 20с
       wifi_test_result = "fail";
       wifi_test_active = false;
       wifi_test_done_ms = millis();
-      WiFi.disconnect(false); // відключити STA, але не чіпати режим WiFi
+      
+      // Повертаємось до попередньої мережі
+      if (wifi_test_old_ssid.length() > 0) {
+        WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
+      } else {
+        WiFi.disconnect(false); // відключити STA, але не чіпати режим WiFi
+      }
     }
   }
 
@@ -461,16 +480,6 @@ void WebServer_Init() {
   WebServer.on("/api/fs/upload",   HTTP_OPTIONS, handle_api_options);
 
   WebUpdater.setup(&WebServer);
-
-  // Captive Portal (Redirect all unknown requests to 192.168.4.1 in AP mode)
-  WebServer.onNotFound([]() {
-    if (WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
-      WebServer.sendHeader("Location", "http://192.168.4.1", true);
-      WebServer.send(302, "text/plain", "");
-    } else {
-      WebServer.send(404, "text/plain", "Not found");
-    }
-  });
 
   WebServer.begin();
   TBLOG_LN(F("WebServer begin (API ready)"));

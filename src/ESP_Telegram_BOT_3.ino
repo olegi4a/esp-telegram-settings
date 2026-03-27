@@ -209,7 +209,9 @@ void loop()
     if (wifi_disconnected_ms != 0) {
       wifi_disconnected_ms = 0; // Скидання таймера
       if (WiFi.getMode() == WIFI_AP_STA) {
-        if (!wifi_test_active) {
+        // Якщо тест іде, АБО якщо щойно завершився (кеш результату ще діє - 30 сек)
+        bool test_just_finished = (!wifi_test_active && wifi_test_done_ms > 0 && (millis() - wifi_test_done_ms <= 30000));
+        if (!wifi_test_active && !test_just_finished) {
           TBLOG_LN(F("WiFi restored. Disabling Auto-AP."));
           WiFi.softAPdisconnect(true);
           WiFi.mode(WIFI_STA);
