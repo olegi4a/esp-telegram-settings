@@ -106,7 +106,7 @@ void display_ip_page() {
   int16_t x1, y1;
   uint16_t w, h;
 
-  String ip = WiFi.localIP().toString();
+  String ip = (WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
 
   // Розбиваємо IP на 2 рядки для великого шрифту
   int dotIdx = ip.indexOf('.', ip.indexOf('.') + 1);
@@ -136,7 +136,7 @@ void display_ip_page() {
 static void display_qr_page() {
   // Використовуємо лише IP (без "http://"), щоб влізти у Версію 1 (макс 17 байтів).
   // Це дозволить зменшити розмір матриці з 25x25 (v2) до 21x21 (v1).
-  String url = WiFi.localIP().toString(); 
+  String url = (WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) ? WiFi.softAPIP().toString() : WiFi.localIP().toString(); 
   
   QRCode qrcode;
   uint8_t qrcodeBytes[qrcode_getBufferSize(1)];
