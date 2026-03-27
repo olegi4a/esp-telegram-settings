@@ -168,7 +168,8 @@ void setup()
     
     // Встановлення токену Telegram та колбеку
     myBot.setToken(TB_Token);
-    myBot.client.setBufferSizes(3072, 512);
+    myBot.setTimeout(8500); // Збільшений таймаут (разом з DNS займе ~10с)
+    myBot.client.setBufferSizes(3072, 512); // оптимізація RAM MbedTLS
     myBot.onUpdate(Telegram_Callback);
     
     // Отримуємо ім'я бота один раз при старті (тільки в RAM)
@@ -265,33 +266,45 @@ void loop()
     digitalWrite(LED_STATUS, (WiFi.status() == WL_CONNECTED));
   }
 
-  // Обробка Telegram (неблокуюча)
-  myBot.tick();
-  // Трекинг TG: якщо прийшов callback — позначає online
-  // (tg_last_check оновлюється в Telegram_Callback)
-  
-  // Щохвилинна перевірка TG через HTTP getMe
-  // myBot.client вільний після tick() — ревюзимо без другого SSL стеку
-  if (WiFi.getMode() != WIFI_AP && WiFi.status() == WL_CONNECTED && millis() - tg_last_check >= 60000) {
+  // Обробка Telegram. Використовуємо сам tick() як інструмент перевірки з'єднання!
+  static unsigned long last_tick = 0;
+  if (WiFi.getMode() != WIFI_AP && WiFi.status() == WL_CONNECTED) {
+    // Якщо онлайн - викликаємо постійно (для миттєвого прийому повідомлень).
+    // Якщо офлайн - викликаємо раз на 10 секунд (щоб перевірити, чи не з'явився інтернет).
+    if (tg_connected || millis() - last_tick >= 10000) {  
+      last_tick = millis();
+      unsigned long start_t = millis();
+      
+      myBot.tick(); // Якщо інтернет є - виконується швидше. Немає - таймаут ~10с.
+      
+      if (millis() - start_t > 9000) {
+        if (tg_connected) TBLOG_LN("TG offline (tick timeout)");
+        tg_connected = false;
+      } else {
+        if (!tg_connected) TBLOG_LN("TG online (tick fast)");
+        tg_connected = true;
+      }
+    }
+  } else {
+    tg_connected = false; // Немає WiFi - немає Telegram
+  }
+
+  // Отримуємо ім'я бота для Web-інтерфейсу (тільки якщо ми в онлайні і ім'я ще не отримане)
+  if (tg_connected && botName.isEmpty() && millis() - tg_last_check >= 10000) {
     tg_last_check = millis();
     HTTPClient http;
+    http.setTimeout(8000); 
     String url = String(F("https://api.telegram.org/bot")) + TB_Token + F("/getMe");
-    http.begin(myBot.client, url); // ревюз SSL клієнта бота
-    int httpCode = http.GET();
-    if (httpCode == 200) {
-      tg_connected = true;
-      if (botName.isEmpty()) {
-        String body = http.getString();
-        const char* uKey = "\"username\":\"";
-        int uIdx = body.indexOf(uKey);
-        if (uIdx >= 0) {
-          int start = uIdx + strlen(uKey);
-          int end = body.indexOf('"', start);
-          if (end > start) botName = "@" + body.substring(start, end);
-        }
+    http.begin(myBot.client, url); 
+    if (http.GET() == 200) {
+      String body = http.getString();
+      const char* uKey = "\"username\":\"";
+      int uIdx = body.indexOf(uKey);
+      if (uIdx >= 0) {
+        int start = uIdx + strlen(uKey);
+        int end = body.indexOf('"', start);
+        if (end > start) botName = "@" + body.substring(start, end);
       }
-    } else {
-      tg_connected = false;
     }
     http.end();
   }
