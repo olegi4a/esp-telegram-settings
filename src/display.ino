@@ -127,6 +127,7 @@ void display_ip_page() {
   display.print(part2);
 
   display.setFont(); // Скидання шрифту
+  display.display();
 }
 
 // --- Відображення QR-коду ---

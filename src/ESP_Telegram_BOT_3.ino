@@ -95,8 +95,6 @@ void setup()
 
   // --- СИНХРОНІЗАЦІЯ ЧАСУ ---
   if(WiFi.getMode() != WIFI_AP) {
-    display.clearDisplay();
-    display_ip_page();
     TBLOG_LN("Starting NTP Sync");
     configTime(timezone_str.c_str(), ntpServerName, ntpServerName2);
     time_t nowTimeRead = time(nullptr);

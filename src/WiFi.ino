@@ -73,28 +73,34 @@ void WiFi_Conect()
    display.setTextColor(WHITE);
    display.setCursor(2,1);
    display.setTextSize(1);
-   
-   switch (WiFi.status()) {
-    case 1:
-      display.println("no ssid");
-      display.println("available");
-      break;
-    case 4:
-      display.println("password");
-      display.println("false");
-      break;
-    case 3:
-      display.println("conection");
-      display.println("true");
-      break;
-    default:
-    display.println("conection");
-      display.println("error");
-  }
+      switch (WiFi.status()) {
+      case 1: // WL_NO_SSID_AVAIL
+        display.println(F("no ssid"));
+        display.println(F("available"));
+        break;
+      case 4: // WL_WRONG_PASSWORD
+        display.println(F("password"));
+        display.println(F("false"));
+        break;
+      case 3: // WL_CONNECTED
+        display.println(F("conection"));
+        display.println(F("true"));
+        break;
+      default:
+        display.println(F("conection"));
+        display.println(F("error"));
+        break;
+    }
 
-  display.display();
+    display.display();
+    delay(2000); // Даємо 2 секунди на читання будь-якого статусу (успіх чи помилка)
 
-   TBLOG_LN(WiFi.status());
+    if (WiFi.status() == 3) {
+      display.clearDisplay();
+      display_ip_page();
+    }
+
+    TBLOG_LN(WiFi.status());
 }
 
 void WIFI_AP_MODE()
