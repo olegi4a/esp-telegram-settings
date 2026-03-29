@@ -1666,23 +1666,79 @@
       const pollInterval = setInterval(async () => {
         const sr = await apiGet('/api/wifi/status');
         if (!sr) return; 
+        console.log('WiFi Status:', sr.status);
 
         if (sr.status === 'success') {
           clearInterval(pollInterval);
           hideWifiModal();
-          const g = { SID_STA: ssid, PAS_STA: pass };
-          await apiPost('/api/save', { g });
-          await apiGet('/api/reboot');
-          showRebootScreen(sr.ip);
+          // Переходимо до екрану підтвердження (пристрій вже повернувся у стару мережу)
+          showConfirmScreen(ssid, sr.ip);
         } else if (sr.status === 'fail') {
           clearInterval(pollInterval);
           hideWifiModal();
           showToast('❌ Не вдалося підключитися. Перевірте пароль.', false);
+        } else if (sr.status === 'idle') {
+          clearInterval(pollInterval);
+          hideWifiModal();
+          showToast('⚠️ Тест завершено або скинуто пристроєм', false);
         }
       }, 3000);
     }
 
+    function showConfirmScreen(ssid, newIp) {
+      const id = 'wifi-confirm-overlay';
+      if (document.getElementById(id)) return;
+      
+      const div = document.createElement('div');
+      div.id = id;
+      div.style = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center";
+      
+      div.innerHTML = `
+        <div style="font-size:4rem;margin-bottom:20px">🌐</div>
+        <h2 style="color:var(--green);margin-bottom:10px">Мережа доступна!</h2>
+        <p style="color:var(--muted);margin-bottom:15px">Пристрій успішно перевірив з'єднання з "${ssid}".</p>
+        <p style="margin-bottom:30px">Нова IP-адреса: <strong style="color:var(--accent);font-size:1.2rem">${newIp}</strong></p>
+        
+        <div style="width:100%;max-width:300px">
+          <div class="spinner" style="margin:0 auto 15px"></div>
+          <p style="font-size:0.9rem;color:var(--text)">Автоматичне підтвердження через 2 секунди...</p>
+        </div>
+      `;
+      document.body.appendChild(div);
+
+      // Автоматичне підтвердження через 2 секунди
+      setTimeout(() => {
+        confirmWifiSwitch();
+      }, 2000);
+    }
+
+    async function confirmWifiSwitch() {
+      const btn = document.getElementById('confirm-wifi-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Збереження...';
+      }
+      
+      const res = await apiPost('/api/wifi/confirm', {});
+      if (res && res.ok) {
+        // Видаляємо вікно підтвердження перед показом екрана ребуту
+        const overlay = document.getElementById('wifi-confirm-overlay');
+        if (overlay) overlay.remove();
+        
+        // Отримуємо IP зі статусу (ми його вже знаємо з попереднього кроку)
+        const sr = await apiGet('/api/wifi/status');
+        showRebootScreen(sr.ip || location.hostname);
+      } else {
+        alert('Помилка при підтвердженні. Спробуйте ще раз або перезавантажте сторінку.');
+        if (btn) {
+           btn.disabled = false;
+           btn.textContent = '✅ Підтвердити та перейти';
+        }
+      }
+    }
+
     function showRebootScreen(newIp) {
+      // Показуємо повноекранне повідомлення про перезавантаження
       // Показуємо повноекранне повідомлення про успіх
       const div = document.createElement('div');
       div.style.position = 'fixed';
@@ -1700,19 +1756,21 @@
       div.style.textAlign = 'center';
       
       div.innerHTML = `
-        <div style="font-size:4rem;margin-bottom:20px">✅</div>
-        <h2 style="color:var(--green);margin-bottom:10px">Підключення успішне!</h2>
-        <p style="color:var(--muted);margin-bottom:20px">Пристрій перезавантажується.</p>
+        <div style="font-size:4rem;margin-bottom:20px">🔄</div>
+        <h2 style="color:var(--accent);margin-bottom:10px">Перезавантаження...</h2>
+        <p style="color:var(--muted);margin-bottom:20px">Зачекайте 15-20 секунд, поки пристрій підключиться до нової мережі.</p>
         <p>Нова IP-адреса: <a href="http://${newIp}" target="_blank" style="color:var(--accent);font-size:1.2rem;font-weight:700;text-decoration:underline">${newIp}</a></p>
-        <p style="margin-top:20px;font-size:0.8rem;color:var(--muted)">Перехід за <span id="redir-timer">10</span> секунд...</p>
+        <p style="margin-top:20px;font-size:0.8rem;color:var(--muted)">Ви зможете перейти за посиланням або дочекатись таймера: <span id="redir-timer">20</span>с</p>
       `;
       document.body.appendChild(div);
 
-      let s = 10;
-      setInterval(() => {
+      let s = 20;
+      const timer = setInterval(() => {
         s--;
-        document.getElementById('redir-timer').textContent = s;
+        const el = document.getElementById('redir-timer');
+        if (el) el.textContent = s;
         if (s <= 0) {
+          clearInterval(timer);
           window.location.href = `http://${newIp}`;
         }
       }, 1000);

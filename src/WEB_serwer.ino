@@ -44,9 +44,14 @@ void handle_api_status() {
   doc["tg_ok"]    = tg_connected;
   doc["bot_name"] = botName;
 
-  String out;
-  serializeJson(doc, out);
-  _sendJson(200, out);
+  // Прямий стрімінг JSON-відповіді для уникнення фрагментації пам'яті
+  WebServer.sendHeader(F("Access-Control-Allow-Origin"),  F("*"));
+  WebServer.sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST, OPTIONS"));
+  WebServer.sendHeader(F("Access-Control-Allow-Headers"), F("Content-Type"));
+  WebServer.sendHeader(F("Cache-Control"),                F("no-cache"));
+  WebServer.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  WebServer.send(200, F("application/json"), "");
+  serializeJson(doc, WebServer);
 }
 
 // ============================================================
@@ -98,9 +103,14 @@ void handle_api_config() {
   addProfile("day",   "/D_profile.json");
   addProfile("night", "/N_profile.json");
 
-  String out;
-  serializeJson(doc, out);
-  _sendJson(200, out);
+  // Використовуємо прямий стрімінг JSON для уникнення фрагментації пам'яті
+  WebServer.sendHeader(F("Access-Control-Allow-Origin"),  F("*"));
+  WebServer.sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST, OPTIONS"));
+  WebServer.sendHeader(F("Access-Control-Allow-Headers"), F("Content-Type"));
+  WebServer.sendHeader(F("Cache-Control"),                F("no-cache"));
+  WebServer.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  WebServer.send(200, F("application/json"), "");
+  serializeJson(doc, WebServer);
 }
 
 
@@ -256,9 +266,13 @@ bool   wifi_test_active = false;
 uint32_t wifi_test_start = 0;
 String wifi_test_result = "";
 String wifi_test_ip = "";
+String wifi_test_new_ssid = "";
+String wifi_test_new_pass = "";
 uint32_t wifi_test_done_ms = 0; // час завершення тесту (для кешу результату)
 String wifi_test_old_ssid = "";
 String wifi_test_old_pass = "";
+uint8_t wifi_test_old_mode = WIFI_STA; // режим Wi-Fi до тесту
+uint8_t wifi_test_status = 0; // 0: idle, 1: testing, 2: wait_confirm
 
 void handle_api_wifi_test() {
   if (WebServer.method() == HTTP_OPTIONS) {
@@ -280,19 +294,24 @@ void handle_api_wifi_test() {
     return;
   }
 
-  // Зберігаємо поточне з'єднання
-  wifi_test_old_ssid = WiFi.SSID();
-  wifi_test_old_pass = WiFi.psk();
+  wifi_test_new_ssid = ssid;
+  wifi_test_new_pass = pass;
 
-  // Якщо ми вже в STA і підключені — залишаємось в STA (на запит користувача)
-  // Якщо ми в AP або не підключені — вмикаємо AP_STA для страховки
+  // Зберігаємо поточні налаштування перед тестом
+  wifi_test_old_ssid = SID_STA;
+  wifi_test_old_pass = PAS_STA;
+  wifi_test_old_mode = WiFi.getMode();
+
+  // Вимикаємо АП для чистоти тесту, якщо ми були в AP_STA
   if (WiFi.getMode() != WIFI_STA) {
-    WiFi.mode(WIFI_AP_STA);
+    WiFi.mode(WIFI_STA);
   }
   
+  WiFi.disconnect();
   WiFi.begin(ssid.c_str(), pass.c_str());
 
   wifi_test_active = true;
+  wifi_test_status = 1; // testing
   wifi_test_start = millis();
   wifi_test_result = "testing";
   wifi_test_ip = "";
@@ -304,28 +323,35 @@ void handle_api_wifi_test() {
 //  wifi_test_periodicTick — Фоновий моніторинг тесту (викликається з loop)
 // ============================================================
 void wifi_test_periodicTick() {
-  if (!wifi_test_active) return;
+  if (!wifi_test_active || wifi_test_status != 1) return;
+  
+  // Даємо 2 секунди "тиші"
+  if (millis() - wifi_test_start < 2000) return;
 
   if (WiFi.status() == WL_CONNECTED) {
     wifi_test_result = "success";
     wifi_test_ip = WiFi.localIP().toString();
-    wifi_test_active = false;
+    wifi_test_status = 2; // wait_confirm
     wifi_test_done_ms = millis();
-    TBLOG_LN(F("WiFi Test: SUCCESS"));
+    TBLOG_LN(F("WiFi Test: SUCCESS. Reconnecting to old network to report..."));
     
-    // Завжди повертаємось до старої мережі, щоб браузер міг "зловити" відповідь
+    // ПОВЕРТАЄМОСЬ до старої мережі (щоб браузер міг забрати результат)
     if (wifi_test_old_ssid.length() > 0) {
+      WiFi.disconnect();
+      WiFi.mode(wifi_test_old_mode); // Встановлюємо попередній режим
       WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
     }
-  } 
+  }
   else if (millis() - wifi_test_start > 30000) { // Тайм-аут 30с
     wifi_test_result = "fail";
     wifi_test_active = false;
+    wifi_test_status = 0; // idle
     wifi_test_done_ms = millis();
-    TBLOG_LN(F("WiFi Test: FAIL (timeout)"));
+    TBLOG_LN(F("WiFi Test: FAIL. Returning to old network."));
     
-    // Повертаємось до старої мережі
     if (wifi_test_old_ssid.length() > 0) {
+      WiFi.disconnect();
+      WiFi.mode(wifi_test_old_mode); // Встановлюємо попередній режим
       WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
     } else {
       WiFi.disconnect(false);
@@ -337,33 +363,43 @@ void wifi_test_periodicTick() {
 //  GET /api/wifi/status — Перевірка статусу тестового підключення
 // ============================================================
 void handle_api_wifi_status() {
-  // 1. Якщо тест активний — повертаємо "testing"
-  if (wifi_test_active) {
-    _sendJson(200, "{\"status\":\"testing\"}");
-    return;
-  }
-
-  // 2. Повертаємо "idle", якщо тест не активний і кеш результату вже минув (30 сек)
-  if (!wifi_test_active && (wifi_test_result.length() == 0 || wifi_test_result == "idle")) {
-    _sendJson(200, "{\"status\":\"idle\"}");
-    return;
-  }
+  String resp = "{\"status\":\"";
   
-  
-  if (!wifi_test_active && wifi_test_done_ms > 0 && (millis() - wifi_test_done_ms > 60000)) {
-    wifi_test_result = "";
-    wifi_test_done_ms = 0;
-    _sendJson(200, "{\"status\":\"idle\"}");
-    return;
+  if (wifi_test_status == 1) {
+    resp += "testing\"}";
+  } else if (wifi_test_status == 2) {
+    resp += "success\",\"ip\":\"" + wifi_test_ip + "\"}";
+  } else {
+    // idle or fail
+    if (wifi_test_result == "fail") resp += "fail\"}";
+    else resp += "idle\"}";
   }
-
-  // 3. Віддаємо поточний або закешований результат
-  String resp = "{\"status\":\"" + wifi_test_result + "\"";
-  if (wifi_test_result == "success") {
-    resp += ",\"ip\":\"" + wifi_test_ip + "\"";
-  }
-  resp += "}";
   _sendJson(200, resp);
+}
+
+// ============================================================
+//  POST /api/wifi/confirm — Підтвердження переходу на нову мережу
+// ============================================================
+void handle_api_wifi_confirm() {
+  if (wifi_test_status != 2) {
+    _sendJson(400, "{\"ok\":false,\"error\":\"no successful test to confirm\"}");
+    return;
+  }
+
+  // Зберігаємо нові налаштування
+  SID_STA = wifi_test_new_ssid;
+  PAS_STA = wifi_test_new_pass;
+  
+  TBLOG_LN(F("WiFi Confirm: Saving credentials and flushing logs..."));
+  
+  Logger_addEntry(20); // 20 = Налаштування системи
+  Logger_flushToFile(); // ОБОВ'ЯЗКОВО зберігаємо логи перед рестартом
+  Save_Config();
+  
+  _sendJson(200, "{\"ok\":true}");
+  
+  delay(1000);
+  ESP.restart();
 }
 
 // ============================================================
@@ -482,12 +518,14 @@ void WebServer_Init() {
   WebServer.on("/api/wifi/scan", HTTP_GET,  handle_api_wifi_scan);
   WebServer.on("/api/wifi/test", HTTP_POST, handle_api_wifi_test);
   WebServer.on("/api/wifi/status", HTTP_GET,  handle_api_wifi_status);
+  WebServer.on("/api/wifi/confirm", HTTP_POST, handle_api_wifi_confirm);
 
   // OPTIONS catch-all for CORS preflight
   WebServer.on("/api/mode",    HTTP_OPTIONS, handle_api_options);
   WebServer.on("/api/save",    HTTP_OPTIONS, handle_api_options);
-  WebServer.on("/api/relay",   HTTP_OPTIONS, handle_api_options);
+  WebServer.on("/api/wifi/relay",   HTTP_OPTIONS, handle_api_options);
   WebServer.on("/api/wifi/test", HTTP_OPTIONS, handle_api_options);
+  WebServer.on("/api/wifi/confirm", HTTP_OPTIONS, handle_api_options);
 
   // === Файлова система (LittleFS) ===
   WebServer.on("/api/fs/list",     HTTP_GET,     handle_api_fs_list);

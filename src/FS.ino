@@ -21,7 +21,7 @@ void FS_INIT(void)
 void handleNotFound()
 { 
   // Captive Portal Redirect
-  if (WiFi.getMode() == WIFI_AP) {
+  if (WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
     String reqHost = WebServer.hostHeader();
     String apIP = WiFi.softAPIP().toString();
     if (reqHost != apIP) {

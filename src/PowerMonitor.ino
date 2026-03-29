@@ -9,7 +9,7 @@ volatile bool powerFailFlag = false;   // Прапор від ISR
 bool          is_usb_mode   = false;   // true = живлення від USB, ігнорувати POWER пін
 
 // ISR: ОБОВ'ЯЗКОВО ICACHE_RAM_ATTR, виконується з RAM — швидко і безпечно
-IRAM_ATTR void onPowerFail() {
+void IRAM_ATTR onPowerFail() {
   powerFailFlag = true;
 }
 
@@ -75,5 +75,15 @@ void PowerMonitor_handle() {
   TBLOG_LN(F("PowerMonitor: Shutdown complete. Waiting for power death..."));
 
   // 4. Чекаємо фізичного знеструмлення від розряду іоністора
-  while (true) { yield(); }
+  // Якщо живлення відновиться до розряду іоністора, перезавантажуємо пристрій
+  while (true) {
+    yield();
+    // Перевіряємо, чи живлення відновилося (GPIO12 тепер HIGH)
+    if (digitalRead(POWER) == HIGH) {
+      TBLOG_LN(F("PowerMonitor: Power restored, restarting device..."));
+      ESP.restart();
+    }
+  }
+}
+  }
 }

@@ -178,7 +178,7 @@ void setup()
     startMsg.notification = false; // Беззвучне сповіщення
     myBot.sendMessage(startMsg);
   }
-  Alarm_data_milis = millis() + 60000;
+  Alarm_data_milis = millis(); // Встановлюємо точку відліку
   Logger_addEntry(4); // 4 = Запуск пристрою
 
   // Відображення "UPDATE" на OLED під час OTA оновлення
@@ -201,59 +201,40 @@ void loop()
   unsigned long currentMillis = millis();
   wifi_test_periodicTick();
 
-  // --- Auto AP Logic ---
-  static unsigned long wifi_disconnected_ms = 0;
-  static bool first_loop_check = true;
+  // --- WiFi Status & LED Indication ---
+  static wl_status_t last_wifi_status = WL_IDLE_STATUS;
+  wl_status_t current_wifi_status = WiFi.status();
   
-  if (WiFi.status() == WL_CONNECTED) {
-    first_loop_check = false;
-    if (wifi_disconnected_ms != 0) {
-      wifi_disconnected_ms = 0; // Скидання таймера
-      if (WiFi.getMode() == WIFI_AP_STA) {
-        // Якщо тест іде, АБО якщо щойно завершився (кеш результату ще діє - 30 сек)
-        bool test_just_finished = (!wifi_test_active && wifi_test_done_ms > 0 && (millis() - wifi_test_done_ms <= 30000));
-        if (!wifi_test_active && !test_just_finished) {
-          TBLOG_LN(F("WiFi restored. Disabling Auto-AP."));
-          WiFi.softAPdisconnect(true);
-          WiFi.mode(WIFI_STA);
-        }
-      }
-    }
-  } else {
-    if (WiFi.getMode() != WIFI_AP) {
-      if (wifi_disconnected_ms == 0) wifi_disconnected_ms = currentMillis;
-      
-      bool triggerAP = false;
-      if (first_loop_check) {
-        triggerAP = true; // Відсутній при завантаженні - AP відразу
-        first_loop_check = false;
-      } else if (currentMillis - wifi_disconnected_ms >= 120000) {
-        triggerAP = true; // Зник більше ніж на 2 хв
-      }
-
-      if (WiFi.getMode() == WIFI_STA && triggerAP) {
-        TBLOG_LN(F("WiFi lost. Auto-AP started."));
-        WiFi.mode(WIFI_AP_STA);
-        String chipId = WiFi.macAddress();
-        chipId.replace(":", "");
-        String ap_ssid = "ESP-" + chipId.substring(chipId.length() - 6);
-        WiFi.softAP(ap_ssid.c_str(), "", 4, false, 5);
-        dnsServer.start(DNS_PORT, "*", WiFi.softAPIP());
-      }
-    }
+  // Тригеримо швидке миготіння при зміні статусу на "відключено" (початок спроби перепідключення)
+  if (last_wifi_status == WL_CONNECTED && current_wifi_status != WL_CONNECTED) {
+    connecting_blink_end = currentMillis + 2000;
   }
+  last_wifi_status = current_wifi_status;
 
-  // LED Status Indication (Блимає якщо AP або втрачено зв'язок)
   static unsigned long lastLEDBlink = 0;
   static bool ledState = false;
-  if (WiFi.getMode() == WIFI_AP || (WiFi.getMode() == WIFI_AP_STA && WiFi.status() != WL_CONNECTED)) {
+
+  // Виправлення для переповнення millis(): перевіряємо чи поточний час ще не досяг ліміту
+  // (підхід з відніманням для безпеки переповнення)
+  if (connecting_blink_end != 0 && (long)(connecting_blink_end - currentMillis) > 0) {
+    // Швидке миготіння (150мс) — спроба з'єднання
+    if (currentMillis - lastLEDBlink >= 150) {
+      lastLEDBlink = currentMillis;
+      ledState = !ledState;
+      digitalWrite(LED_STATUS, ledState);
+    }
+  } else if (WiFi.getMode() == WIFI_AP || (WiFi.getMode() == WIFI_AP_STA && current_wifi_status != WL_CONNECTED)) {
+    // Звичайне миготіння (500мс) — режим точки доступу (AP)
     if (currentMillis - lastLEDBlink >= 500) {
       lastLEDBlink = currentMillis;
       ledState = !ledState;
       digitalWrite(LED_STATUS, ledState);
     }
+    if (connecting_blink_end != 0) connecting_blink_end = 0; // Скидаємо прапор після завершення
   } else {
-    digitalWrite(LED_STATUS, (WiFi.status() == WL_CONNECTED));
+    // Штатний режим: ON якщо є зв'язок, OFF якщо немає
+    digitalWrite(LED_STATUS, (current_wifi_status == WL_CONNECTED));
+    if (connecting_blink_end != 0) connecting_blink_end = 0;
   }
 
   // Обробка Telegram. Використовуємо сам tick() як інструмент перевірки з'єднання!
@@ -416,11 +397,11 @@ void loop()
     }
   }
   
-  if(Alarm_data_set == 1  && millis() > Alarm_data_milis)
+  if(Alarm_data_set == 1  && (currentMillis - Alarm_data_milis) >= 300000)  // Перевіряємо, чи пройшло 5 хвилин (300000 мс)
   {
     if(Temperature > Alarm_data_u || Temperature < Alarm_data_d)
     {
-      Alarm_data_milis = millis() + 300000;
+      Alarm_data_milis = currentMillis;  // Оновлюємо таймер
       
       if(!(trend == 1 && ((Alarm_data_d > Temperature && Alarm_Temperature < Temperature) ||  (Alarm_data_u < Temperature && Alarm_Temperature > Temperature))))
       {
