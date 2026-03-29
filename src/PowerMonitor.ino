@@ -85,5 +85,3 @@ void PowerMonitor_handle() {
     }
   }
 }
-  }
-}

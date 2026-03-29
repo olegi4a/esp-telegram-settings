@@ -1,0 +1,5 @@
+{
+  "version": "EDwIC-3.6.0",
+  "web_files": ["index.html", "Update.html", "Update.js", "Update.css", "jquery.js"],
+  "firmware": "firmware.bin"
+}

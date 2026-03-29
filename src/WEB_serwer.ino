@@ -49,9 +49,9 @@ void handle_api_status() {
   WebServer.sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST, OPTIONS"));
   WebServer.sendHeader(F("Access-Control-Allow-Headers"), F("Content-Type"));
   WebServer.sendHeader(F("Cache-Control"),                F("no-cache"));
-  WebServer.setContentLength(CONTENT_LENGTH_UNKNOWN);
-  WebServer.send(200, F("application/json"), "");
-  serializeJson(doc, WebServer);
+  String output;
+  serializeJson(doc, output);
+  WebServer.send(200, F("application/json"), output);
 }
 
 // ============================================================
@@ -108,9 +108,9 @@ void handle_api_config() {
   WebServer.sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST, OPTIONS"));
   WebServer.sendHeader(F("Access-Control-Allow-Headers"), F("Content-Type"));
   WebServer.sendHeader(F("Cache-Control"),                F("no-cache"));
-  WebServer.setContentLength(CONTENT_LENGTH_UNKNOWN);
-  WebServer.send(200, F("application/json"), "");
-  serializeJson(doc, WebServer);
+  String output;
+  serializeJson(doc, output);
+  WebServer.send(200, F("application/json"), output);
 }
 
 
@@ -338,7 +338,7 @@ void wifi_test_periodicTick() {
     // ПОВЕРТАЄМОСЬ до старої мережі (щоб браузер міг забрати результат)
     if (wifi_test_old_ssid.length() > 0) {
       WiFi.disconnect();
-      WiFi.mode(wifi_test_old_mode); // Встановлюємо попередній режим
+      WiFi.mode((WiFiMode_t)wifi_test_old_mode); // Встановлюємо попередній режим
       WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
     }
   }
@@ -351,7 +351,7 @@ void wifi_test_periodicTick() {
     
     if (wifi_test_old_ssid.length() > 0) {
       WiFi.disconnect();
-      WiFi.mode(wifi_test_old_mode); // Встановлюємо попередній режим
+      WiFi.mode((WiFiMode_t)wifi_test_old_mode); // Встановлюємо попередній режим
       WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
     } else {
       WiFi.disconnect(false);
