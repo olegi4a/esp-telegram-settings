@@ -15,7 +15,7 @@ const byte DNS_PORT = 53;
 extern DNSServer dnsServer;
 
 // Версія прошивки (порівнюється з GitHub releases tag_name)
-#define FIRMWARE_VERSION "EDwIC-3.5.15"
+#define FIRMWARE_VERSION "EDwIC-3.5.17"
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -41,10 +41,17 @@ void sendSettingsMenu(int64_t senderId);
 void sendMainMenu(int64_t senderId);
 void restoreAutomationMode();
 void Logger_periodicTick();
+void Logger_flushToFile();
 void display_ip_page();
 void wifi_test_periodicTick();
 extern bool wifi_test_active;
 extern uint32_t wifi_test_done_ms;
+extern String wifi_test_new_ssid;
+extern String wifi_test_new_pass;
+extern String wifi_test_old_ssid;
+extern String wifi_test_old_pass;
+extern String wifi_test_ip;
+extern uint8_t wifi_test_status; // 0: idle, 1: testing, 2: wait_confirm
 
 extern bool is_usb_mode;
 extern volatile bool powerFailFlag;
@@ -169,5 +176,8 @@ static unsigned long tg_last_check = 0; // щохвилинна перевірк
 
 // Display menu page: 0=main, 1=IP, 2=QR
 byte   display_page = 0;
+
+// Таймер для швидкого миготіння при спробі підключення до WiFi
+uint32_t connecting_blink_end = 0;
 
 // Keyboards removed as they are now handled dynamically via FastBot2 API.
