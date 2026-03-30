@@ -1618,12 +1618,12 @@
         <div class="spinner" style="width:40px;height:40px;margin-bottom:20px"></div>
         <h3 style="margin-bottom:10px">Підключення до Wi-Fi</h3>
         <p style="color:var(--muted);margin-bottom:15px;font-size:0.9rem">Мережа: <strong style="color:var(--text)">${ssid}</strong></p>
-        <div style="font-size:2.5rem;font-weight:800;color:var(--accent);margin-bottom:10px" id="wifi-timer">15</div>
+        <div style="font-size:2.5rem;font-weight:800;color:var(--accent);margin-bottom:10px" id="wifi-timer">120</div>
         <p style="font-size:0.8rem;color:var(--muted)">Зачекайте, пристрій перевіряє зв'язок...</p>
       `;
       document.body.appendChild(modal);
       
-      let sec = 45;
+      let sec = 120;
       window._wifiTimer = setInterval(() => {
         sec--;
         const el = document.getElementById('wifi-timer');
@@ -1634,7 +1634,7 @@
             if (p) p.textContent = "Майже готово, очікуємо відповідь пристрою...";
           }
         }
-        if (sec <= -30) clearInterval(window._wifiTimer); // Стоп через хвилину+
+        if (sec <= -10) clearInterval(window._wifiTimer); // Стоп
       }, 1000);
     }
 
