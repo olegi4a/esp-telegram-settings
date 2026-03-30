@@ -333,15 +333,25 @@ void handle_api_wifi_test() {
 //  wifi_test_periodicTick — Фоновий моніторинг тесту (викликається з loop)
 // ============================================================
 void wifi_test_periodicTick() {
+  // Очищення стану через 30с після завершення тесту (якщо браузер не відповів)
+  if (!wifi_test_active && (wifi_test_status == 2 || wifi_test_result.length() > 0)) {
+    if (millis() - wifi_test_done_ms > 30000) {
+      wifi_test_status = 0;
+      wifi_test_result = "";
+    }
+  }
+
   if (!wifi_test_active || wifi_test_status != 1) return;
   
   // Даємо 2 секунди "тиші"
   if (millis() - wifi_test_start < 2000) return;
 
-  if (WiFi.status() == WL_CONNECTED) {
+  uint8_t st = WiFi.status();
+  if (st == WL_CONNECTED) {
     wifi_test_result = "success";
     wifi_test_ip = WiFi.localIP().toString();
     wifi_test_status = 2; // wait_confirm
+    wifi_test_active = false;
     wifi_test_done_ms = millis();
     TBLOG_LN(F("WiFi Test: SUCCESS. Reconnecting to old network to report..."));
     
@@ -352,8 +362,11 @@ void wifi_test_periodicTick() {
       WiFi.begin(wifi_test_old_ssid.c_str(), wifi_test_old_pass.c_str());
     }
   }
-  else if (millis() - wifi_test_start > 30000) { // Тайм-аут 30с
-    wifi_test_result = "fail";
+  else if (millis() - wifi_test_start > 20000) { // Тайм-аут 20с на спробу підключення
+    if (st == WL_NO_SSID_AVAIL) wifi_test_result = "not_found";
+    else if (st == WL_WRONG_PASSWORD) wifi_test_result = "wrong_pass";
+    else wifi_test_result = "fail";
+    
     wifi_test_active = false;
     wifi_test_status = 0; // idle
     wifi_test_done_ms = millis();
@@ -380,8 +393,10 @@ void handle_api_wifi_status() {
   } else if (wifi_test_status == 2) {
     resp += "success\",\"ip\":\"" + wifi_test_ip + "\"}";
   } else {
-    // idle or fail
+    // idle or specific errors
     if (wifi_test_result == "fail") resp += "fail\"}";
+    else if (wifi_test_result == "not_found") resp += "not_found\"}";
+    else if (wifi_test_result == "wrong_pass") resp += "wrong_pass\"}";
     else resp += "idle\"}";
   }
   _sendJson(200, resp);

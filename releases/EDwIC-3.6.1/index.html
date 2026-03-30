@@ -1668,10 +1668,10 @@
         const sr = await apiGet('/api/wifi/status');
         if (!sr) {
           failCount++;
-          if (failCount > 15) { // 45 секунд без зв'язку
+          if (failCount > 24) { // 2 хвилини без зв'язку
             clearInterval(pollInterval);
             hideWifiModal();
-            showToast('⚠️ Зв\'язок втрачено або тест триває задовго.', false);
+            showToast("⚠️ Зв'язок з пристроєм втрачено, можливо потрібно перезавантажити його в ручну.", false);
           }
           return; 
         }
@@ -1681,18 +1681,25 @@
         if (sr.status === 'success') {
           clearInterval(pollInterval);
           hideWifiModal();
-          // Переходимо до екрану підтвердження (пристрій вже повернувся у стару мережу)
           showConfirmScreen(ssid, sr.ip);
+        } else if (sr.status === 'not_found') {
+          clearInterval(pollInterval);
+          hideWifiModal();
+          showToast('❌ Мережа не знайдена.', false);
+        } else if (sr.status === 'wrong_pass') {
+          clearInterval(pollInterval);
+          hideWifiModal();
+          showToast('❌ Недійсний пароль.', false);
         } else if (sr.status === 'fail') {
           clearInterval(pollInterval);
           hideWifiModal();
-          showToast('❌ Не вдалося підключитися. Перевірте пароль.', false);
+          showToast('❌ Невідома помилка підключення.', false);
         } else if (sr.status === 'idle') {
           clearInterval(pollInterval);
           hideWifiModal();
           showToast('⚠️ Тест завершено або скинуто пристроєм', false);
         }
-      }, 3000);
+      }, 5000);
     }
 
     function showConfirmScreen(ssid, newIp) {
@@ -1704,31 +1711,31 @@
       div.style = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center";
       
       div.innerHTML = `
-        <div style="font-size:4rem;margin-bottom:20px">🌐</div>
-        <h2 style="color:var(--green);margin-bottom:10px">Тест пройдено успішно!</h2>
-        <p style="color:var(--text);margin-bottom:15px">Пристрій підключився до "${ssid}".</p>
-        <p style="margin-bottom:20px;font-size:1.1rem">Нова IP-адреса у вашій мережі:<br>
-          <strong id="new-ip-val" style="color:var(--accent);font-size:1.6rem;user-select:all">${newIp}</strong>
+        <div style="font-size:4rem;margin-bottom:20px">🔄</div>
+        <h2 style="color:var(--green);margin-bottom:10px">Пристрій перезавантажується...</h2>
+        <p style="color:var(--text);margin-bottom:15px">Нова IP-адреса: <br>
+          <a href="http://${newIp}" target="_blank" style="color:var(--accent);font-size:1.6rem;font-weight:bold;text-decoration:underline">${newIp}</a>
         </p>
-        <div style="width:100%;max-width:300px">
-          <button class="btn primary" onclick="navigator.clipboard.writeText('${newIp}');showToast('IP скопійовано',true)" style="margin-bottom:15px;width:100%">Скопіювати IP</button>
-          <p style="font-size:0.9rem;color:var(--text);margin-bottom:10px">Автоматичне збереження та перезавантаження через <span id="auto-conf-timer">15</span>с...</p>
-          <p style="font-size:0.8rem;color:var(--muted);margin-bottom:20px;line-height:1.4">
-            <b>Увага:</b> Після перезавантаження це вікно (Captive Portal) <b>закриється</b>. Відкрийте збережену IP у звичайному браузері.
-          </p>
-          <button id="confirm-wifi-btn" class="btn success" onclick="confirmWifiSwitch()" style="width:100%">✅ Застосувати негайно</button>
-        </div>
+        <p style="color:var(--muted);font-size:0.9rem">
+          Очікування: <span id="reboot-countdown" style="font-weight:bold">30</span>с
+        </p>
       `;
       document.body.appendChild(div);
 
-      let s = 15;
+      // Надсилаємо запит на збереження після 5с очікування
+      setTimeout(() => {
+        apiPost('/api/wifi/confirm', {});
+      }, 5000);
+
+      // Таймер для користувача (30с)
+      let s = 30;
       const tmr = setInterval(() => {
         s--;
-        const el = document.getElementById('auto-conf-timer');
+        const el = document.getElementById('reboot-countdown');
         if (el) el.textContent = s;
         if (s <= 0) {
           clearInterval(tmr);
-          confirmWifiSwitch();
+          window.location.href = `http://${newIp}`; // спробуємо перекинути
         }
       }, 1000);
     }
