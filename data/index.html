@@ -1663,9 +1663,19 @@
       }
 
       // Починаємо опитування статусу
+      let failCount = 0;
       const pollInterval = setInterval(async () => {
         const sr = await apiGet('/api/wifi/status');
-        if (!sr) return; 
+        if (!sr) {
+          failCount++;
+          if (failCount > 15) { // 45 секунд без зв'язку
+            clearInterval(pollInterval);
+            hideWifiModal();
+            showToast('⚠️ Зв\'язок втрачено або тест триває задовго.', false);
+          }
+          return; 
+        }
+        failCount = 0; // скидаємо якщо відповідь успішна
         console.log('WiFi Status:', sr.status);
 
         if (sr.status === 'success') {
