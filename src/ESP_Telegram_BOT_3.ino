@@ -184,6 +184,7 @@ void setup()
   // Відображення "UPDATE" на OLED під час OTA оновлення
   Update.onStart([]() {
     TBLOG_LN(F("OTA Update Started!"));
+    Logger_flushToFile(); // Зберігаємо незбережену історію у флеш перед оновленням
     display.clearDisplay();
     display.setFont(&TomThumb);
     display.setTextSize(2);
