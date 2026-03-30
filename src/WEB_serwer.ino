@@ -148,8 +148,11 @@ void handle_api_save() {
   JsonObject s  = doc["s"];
   JsonObject g  = doc["g"];
 
+  bool wifi_changed = false;
   // Глобальні налаштування
   if (!g.isNull()) {
+    if (!g["SID_STA"].isNull() && g["SID_STA"].as<String>() != SID_STA) wifi_changed = true;
+    if (!g["PAS_STA"].isNull() && g["PAS_STA"].as<String>() != PAS_STA) wifi_changed = true;
     Update_Global_Config(g);
   }
 
@@ -175,6 +178,13 @@ void handle_api_save() {
 
   String resp = ok ? "{\"ok\":true}" : "{\"ok\":false,\"error\":\"write failed\"}";
   _sendJson(ok ? 200 : 500, resp);
+
+  if (wifi_changed) {
+    delay(100);
+    Logger_addEntry(11); // Перезавантаження
+    Logger_flushToFile();
+    ESP.restart();
+  }
 }
 
 // ============================================================
@@ -302,9 +312,9 @@ void handle_api_wifi_test() {
   wifi_test_old_pass = PAS_STA;
   wifi_test_old_mode = WiFi.getMode();
 
-  // Вимикаємо АП для чистоти тесту, якщо ми були в AP_STA
-  if (WiFi.getMode() != WIFI_STA) {
-    WiFi.mode(WIFI_STA);
+  // Залишаємо АП увімкненою під час тесту, щоб Captive Portal не закривався!
+  if (WiFi.getMode() == WIFI_AP) {
+    WiFi.mode(WIFI_AP_STA);
   }
   
   WiFi.disconnect();

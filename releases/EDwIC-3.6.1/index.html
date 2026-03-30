@@ -1695,21 +1695,32 @@
       
       div.innerHTML = `
         <div style="font-size:4rem;margin-bottom:20px">🌐</div>
-        <h2 style="color:var(--green);margin-bottom:10px">Мережа доступна!</h2>
-        <p style="color:var(--muted);margin-bottom:15px">Пристрій успішно перевірив з'єднання з "${ssid}".</p>
-        <p style="margin-bottom:30px">Нова IP-адреса: <strong style="color:var(--accent);font-size:1.2rem">${newIp}</strong></p>
-        
+        <h2 style="color:var(--green);margin-bottom:10px">Тест пройдено успішно!</h2>
+        <p style="color:var(--text);margin-bottom:15px">Пристрій підключився до "${ssid}".</p>
+        <p style="margin-bottom:20px;font-size:1.1rem">Нова IP-адреса у вашій мережі:<br>
+          <strong id="new-ip-val" style="color:var(--accent);font-size:1.6rem;user-select:all">${newIp}</strong>
+        </p>
         <div style="width:100%;max-width:300px">
-          <div class="spinner" style="margin:0 auto 15px"></div>
-          <p style="font-size:0.9rem;color:var(--text)">Автоматичне підтвердження через 2 секунди...</p>
+          <button class="btn primary" onclick="navigator.clipboard.writeText('${newIp}');showToast('IP скопійовано',true)" style="margin-bottom:15px;width:100%">Скопіювати IP</button>
+          <p style="font-size:0.9rem;color:var(--text);margin-bottom:10px">Автоматичне збереження та перезавантаження через <span id="auto-conf-timer">15</span>с...</p>
+          <p style="font-size:0.8rem;color:var(--muted);margin-bottom:20px;line-height:1.4">
+            <b>Увага:</b> Після перезавантаження це вікно (Captive Portal) <b>закриється</b>. Відкрийте збережену IP у звичайному браузері.
+          </p>
+          <button id="confirm-wifi-btn" class="btn success" onclick="confirmWifiSwitch()" style="width:100%">✅ Застосувати негайно</button>
         </div>
       `;
       document.body.appendChild(div);
 
-      // Автоматичне підтвердження через 2 секунди
-      setTimeout(() => {
-        confirmWifiSwitch();
-      }, 2000);
+      let s = 15;
+      const tmr = setInterval(() => {
+        s--;
+        const el = document.getElementById('auto-conf-timer');
+        if (el) el.textContent = s;
+        if (s <= 0) {
+          clearInterval(tmr);
+          confirmWifiSwitch();
+        }
+      }, 1000);
     }
 
     async function confirmWifiSwitch() {
