@@ -289,6 +289,13 @@ void handle_api_wifi_test() {
     _sendJson(204, "");
     return;
   }
+
+  // Захист від повторного запуску (наприклад, авто-повтор запиту браузером)
+  if (wifi_test_active || (wifi_test_status != 0 && millis() - wifi_test_done_ms < 10000)) {
+    _sendJson(200, "{\"ok\":true,\"msg\":\"already in progress\"}");
+    return;
+  }
+
   JsonDocument doc;
   DeserializationError err = deserializeJson(doc, WebServer.arg("plain"));
   if (err) {
