@@ -78,6 +78,9 @@ static void display_main_small() {
 }
 
 static void display_main_large() {
+  // Примусово підтверджуємо розміри для GFX
+  display.setRotation(0); 
+  
   // --- 1. Line (Y=14) ---
   display.drawLine(0, 14, 127, 14, WHITE);
 
@@ -160,11 +163,11 @@ static void display_main_large() {
 }
 
 static void display_main() {
-#ifdef SCREEN_128_64
-  display_main_large();
-#else
-  display_main_small();
-#endif
+  if (display_type == 1) {
+    display_main_large();
+  } else {
+    display_main_small();
+  }
 }
 
 // --- Відображення вікна IP адреси ---
@@ -180,11 +183,7 @@ void display_ip_page() {
   String part1 = ip.substring(0, dotIdx + 1);
   String part2 = ip.substring(dotIdx + 1);
 
-#ifdef SCREEN_128_64
-  if (true) {
-#else
-  if (false) {
-#endif
+  if (display_type == 1) {
     display.fillRect(0, 0, 128, 18, WHITE);
     display.setTextColor(BLACK);
     display.setFont(&FreeSans9pt7b);
@@ -228,14 +227,10 @@ static void display_qr_page() {
   uint8_t qrcodeBytes[qrcode_getBufferSize(1)];
   qrcode_initText(&qrcode, qrcodeBytes, 1, ECC_LOW, url.c_str());
 
-#ifdef SCREEN_128_64
-  if (true) {
-#else
-  if (false) {
-#endif
+  if (display_type == 1) {
     int scale = 3; 
-    int offX = (screenW - qrcode.size * scale) / 2;
-    int offY = (screenH - qrcode.size * scale) / 2;
+    int offX = (128 - qrcode.size * scale) / 2;
+    int offY = (64 - qrcode.size * scale) / 2;
     
     for (uint8_t y = 0; y < qrcode.size; y++) {
       for (uint8_t x = 0; x < qrcode.size; x++) {

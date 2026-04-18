@@ -1,0 +1,150 @@
+﻿Processing oled_64x48 (platform: espressif8266@4.2.1; board: nodemcuv2; framework: arduino)
+--------------------------------------------------------------------------------
+Verbose mode can be enabled via `-v, --verbose` option
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif8266/nodemcuv2.html
+PLATFORM: Espressif 8266 (4.2.1) > NodeMCU 1.0 (ESP-12E Module)
+HARDWARE: ESP8266 80MHz, 80KB RAM, 4MB Flash
+PACKAGES: 
+ - framework-arduinoespressif8266 @ 3.30102.0 (3.1.2) 
+ - tool-esptool @ 1.413.0 (4.13) 
+ - tool-esptoolpy @ 1.30000.201119 (3.0.0) 
+ - toolchain-xtensa @ 2.100300.220621 (10.3.0)
+Converting ESP_Telegram_BOT_3.ino
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Found 63 compatible libraries
+Scanning dependencies...
+Dependency Graph
+|-- DallasTemperature @ 4.0.6
+|-- OneWire @ 2.3.8
+|-- Time @ 1.6.1
+|-- ArduinoJson @ 7.4.3
+|-- NTP @ 1.6.0
+|-- FastBot2 @ 1.2.6
+|-- Adafruit BME280 Library @ 2.3.0
+|-- GyverHTU21D @ 1.1.0
+|-- QRCode @ 0.0.1
+|-- Adafruit GFX Library @ 1.11.4
+|-- Adafruit Unified Sensor @ 1.1.4
+|-- Adafruit SSD1306 Wemos Mini OLED @ 1.1.2
+|-- DNSServer @ 1.1.1
+|-- ESP8266HTTPClient @ 1.2
+|-- ESP8266HTTPUpdateServer @ 1.0
+|-- ESP8266WebServer @ 1.0
+|-- ESP8266WiFi @ 1.0
+|-- LittleFS @ 0.1.0
+|-- Wire @ 1.0
+Building in release mode
+Compiling .pio\build\oled_64x48\src\ESP_Telegram_BOT_3.ino.cpp.o
+Generating LD script .pio\build\oled_64x48\ld\local.eagle.app.v6.common.ld
+Compiling .pio\build\oled_64x48\lib3f8\OneWire\OneWire.cpp.o
+Compiling .pio\build\oled_64x48\lib619\DallasTemperature\DallasTemperature.cpp.o
+Compiling .pio\build\oled_64x48\libe69\Time\DateStrings.cpp.o
+Compiling .pio\build\oled_64x48\libe69\Time\Time.cpp.o
+Archiving .pio\build\oled_64x48\lib3f8\libOneWire.a
+Compiling .pio\build\oled_64x48\libaec\NTP\NTP.cpp.o
+Archiving .pio\build\oled_64x48\lib619\libDallasTemperature.a
+Compiling .pio\build\oled_64x48\lib65e\ESP8266WiFi\BearSSLHelpers.cpp.o
+Archiving .pio\build\oled_64x48\libe69\libTime.a
+Compiling .pio\build\oled_64x48\lib65e\ESP8266WiFi\CertStoreBearSSL.cpp.o
+Archiving .pio\build\oled_64x48\libaec\libNTP.a
+Compiling .pio\build\oled_64x48\lib65e\ESP8266WiFi\ESP8266WiFi.cpp.o
+C:\Users\dotka\.platformio\penv\Scripts\pio.exe : E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/ESP_Telegram_BOT_3.ino:4:6: e
+rror: redefinition of 'bool display_ok'
+At line:1 char:1
++ C:\Users\dotka\.platformio\penv\Scripts\pio.exe run -e oled_64x48 > b ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (E:/priladi/EDwi...ool display_ok':String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    4 | bool display_ok = false;
+      |      ^~~~~~~~~~
+In file included from E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/ESP_Telegram_BOT_3.ino:1:
+src\set.h:157:8: note: 'bool display_ok' previously defined here
+  157 | bool   display_ok  = false; // ╫ш тфрыюё  │э│Ў│ры│чєтрЄш хъЁрэ
+      |        ^~~~~~~~~~
+E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/Config.ino: In lambda function:
+E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/Config.ino:182:73: warning: 'bool ArduinoJson::V743PB22::JsonObject::containsKe
+y(const TString&) const [with TString = const char*; typename ArduinoJson::V743PB22::detail::enable_if<ArduinoJson::V74
+3PB22::detail::IsString<TString>::value, int>::type <anonymous> = 0]' is deprecated: use obj[key].is<T>() instead [-Wde
+precated-declarations]
+  182 |   auto patchF = [&](const char* k, const char* sk) { if (s.containsKey(k)) doc[k] = s[k].as<float>(); else if (
+s.containsKey(sk)) doc[k] = s[sk].as<float>(); };
+      |                                                                         ^
+In file included from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.hpp:39,
+                 from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.h:9,
+                 from src\set.h:10,
+                 from E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/ESP_Telegram_BOT_3.ino:1:
+.pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson/Object/JsonObject.hpp:168:8: note: declared here
+  168 |   bool containsKey(const TString& key) const {
+      |        ^~~~~~~~~~~
+E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/Config.ino:182:128: warning: 'bool ArduinoJson::V743PB22::JsonObject::containsK
+ey(const TString&) const [with TString = const char*; typename ArduinoJson::V743PB22::detail::enable_if<ArduinoJson::V7
+43PB22::detail::IsString<TString>::value, int>::type <anonymous> = 0]' is deprecated: use obj[key].is<T>() instead [-Wd
+eprecated-declarations]
+  182 |   auto patchF = [&](const char* k, const char* sk) { if (s.containsKey(k)) doc[k] = s[k].as<float>(); else if (
+s.containsKey(sk)) doc[k] = s[sk].as<float>(); };
+      |                                                                                                                
+                ^
+In file included from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.hpp:39,
+                 from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.h:9,
+                 from src\set.h:10,
+                 from E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/ESP_Telegram_BOT_3.ino:1:
+.pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson/Object/JsonObject.hpp:168:8: note: declared here
+  168 |   bool containsKey(const TString& key) const {
+      |        ^~~~~~~~~~~
+E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/Config.ino: In lambda function:
+E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/Config.ino:183:73: warning: 'bool ArduinoJson::V743PB22::JsonObject::containsKe
+y(const TString&) const [with TString = const char*; typename ArduinoJson::V743PB22::detail::enable_if<ArduinoJson::V74
+3PB22::detail::IsString<TString>::value, int>::type <anonymous> = 0]' is deprecated: use obj[key].is<T>() instead [-Wde
+precated-declarations]
+  183 |   auto patchI = [&](const char* k, const char* sk) { if (s.containsKey(k)) doc[k] = s[k].as<int>(); else if (s.
+containsKey(sk)) doc[k] = s[sk].as<int>(); };
+      |                                                                         ^
+In file included from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.hpp:39,
+                 from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.h:9,
+                 from src\set.h:10,
+                 from E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/ESP_Telegram_BOT_3.ino:1:
+.pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson/Object/JsonObject.hpp:168:8: note: declared here
+  168 |   bool containsKey(const TString& key) const {
+      |        ^~~~~~~~~~~
+E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/Config.ino:183:126: warning: 'bool ArduinoJson::V743PB22::JsonObject::containsK
+ey(const TString&) const [with TString = const char*; typename ArduinoJson::V743PB22::detail::enable_if<ArduinoJson::V7
+43PB22::detail::IsString<TString>::value, int>::type <anonymous> = 0]' is deprecated: use obj[key].is<T>() instead [-Wd
+eprecated-declarations]
+  183 |   auto patchI = [&](const char* k, const char* sk) { if (s.containsKey(k)) doc[k] = s[k].as<int>(); else if (s.
+containsKey(sk)) doc[k] = s[sk].as<int>(); };
+      |                                                                                                                
+              ^
+In file included from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.hpp:39,
+                 from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.h:9,
+                 from src\set.h:10,
+                 from E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/ESP_Telegram_BOT_3.ino:1:
+.pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson/Object/JsonObject.hpp:168:8: note: declared here
+  168 |   bool containsKey(const TString& key) const {
+      |        ^~~~~~~~~~~
+E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/Config.ino: In function 'bool Patch_Profile(String, ArduinoJson::V743PB22::Json
+Object)':
+E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/Config.ino:188:34: warning: 'bool ArduinoJson::V743PB22::JsonObject::containsKe
+y(const TString&) const [with TString = char [12]; typename ArduinoJson::V743PB22::detail::enable_if<ArduinoJson::V743P
+B22::detail::IsString<TString>::value, int>::type <anonymous> = 0]' is deprecated: use obj[key].is<T>() instead [-Wdepr
+ecated-declarations]
+  188 |   if (s.containsKey("Rele_status")) doc["Rele_status"] = s["Rele_status"].as<int>() == 1;
+      |                                  ^
+In file included from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.hpp:39,
+                 from .pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson.h:9,
+                 from src\set.h:10,
+                 from E:/priladi/EDwiC/ESP_Telegram_BOT_3/src/ESP_Telegram_BOT_3.ino:1:
+.pio\libdeps\oled_64x48\ArduinoJson\src/ArduinoJson/Object/JsonObject.hpp:168:8: note: declared here
+  168 |   bool containsKey(const TString& key) const {
+      |        ^~~~~~~~~~~
+Compiling .pio\build\oled_64x48\lib65e\ESP8266WiFi\ESP8266WiFiAP.cpp.o
+Compiling .pio\build\oled_64x48\lib65e\ESP8266WiFi\ESP8266WiFiGeneric.cpp.o
+Compiling .pio\build\oled_64x48\lib65e\ESP8266WiFi\ESP8266WiFiGratuitous.cpp.o
+*** [.pio\build\oled_64x48\src\ESP_Telegram_BOT_3.ino.cpp.o] Error 1
+========================= [FAILED] Took 27.82 seconds =========================
+
+Environment    Status    Duration
+-------------  --------  ------------
+oled_64x48     FAILED    00:00:27.816
+==================== 1 failed, 0 succeeded in 00:00:27.816 ====================
