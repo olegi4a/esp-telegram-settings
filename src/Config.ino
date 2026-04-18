@@ -28,9 +28,11 @@ void Load_Config()
   alluser = doc["alluser"] | 0L;
   Time_D = doc["Time_D"] | 28800; // 08:00
   Time_N = doc["Time_N"] | 72000; // 20:00
+  profile_timer_en = doc["profile_timer_en"] | false;
   TB_pasword = doc["TB_pasword"] | 12345;
   TB_Token = doc["TB_Token"] | Token;
   timezone_str = doc["timezone_str"] | String("EET-2EEST,M3.5.0/3,M10.5.0/4");
+  display_type = doc["display_type"] | 1;
 
   JsonArray TB_users = doc["users"];
   for(byte i = 0; i < 10 && i < TB_users.size(); i++)
@@ -53,9 +55,11 @@ bool Save_Config()
   doc["alluser"] = alluser;
   doc["Time_D"] = Time_D;
   doc["Time_N"] = Time_N;
+  doc["profile_timer_en"] = profile_timer_en;
   doc["TB_pasword"] = TB_pasword;
   doc["TB_Token"] = TB_Token;
   doc["timezone_str"] = timezone_str;
+  doc["display_type"] = display_type;
 
   JsonArray TB_users = doc["users"].to<JsonArray>();
   for(byte i = 0; i < 10; i++)
@@ -103,6 +107,7 @@ void Load_Profile(String profil_name)
   }
   
   profile = doc["profile"] | 0;
+  if (profil_name == "/G_profile.json") profile = 2; // Forced ID for general
   Sensor_set = doc["Sensor_set"] | 20.0;
   Sensor_histeresis = doc["Sensor_histeresis"] | 1.0;
   Statatus_sensor_control = doc["Statatus_sensor_control"] | 0;
@@ -126,8 +131,10 @@ void Load_Profile(String profil_name)
 void Save_Current_Profile() {
   if (profile == 1) {
     Save_Profile("/D_profile.json");
-  } else {
+  } else if (profile == 0) {
     Save_Profile("/N_profile.json");
+  } else {
+    Save_Profile("/G_profile.json");
   }
 }
 
@@ -204,7 +211,11 @@ bool Patch_Profile(String filename, JsonObject s) {
 }
 // Відновлення режиму автоматики з файлу профілю (без запису!)
 void restoreAutomationMode() {
-  String profil_name = (profile == 1) ? "/D_profile.json" : "/N_profile.json";
+  String profil_name;
+  if (profile == 1) profil_name = "/D_profile.json";
+  else if (profile == 0) profil_name = "/N_profile.json";
+  else profil_name = "/G_profile.json";
+  
   File f = LittleFS.open(profil_name, "r");
   if (!f) return;
 
@@ -223,8 +234,13 @@ void restoreAutomationMode() {
 void Update_Global_Config(JsonObject g) {
   if (g.isNull()) return;
   
+  if (!g["profile_timer_en"].isNull()) profile_timer_en = g["profile_timer_en"].as<bool>();
+  if (!g["Time_D"].isNull())  Time_D = g["Time_D"].as<int>();
+  if (!g["Time_N"].isNull())  Time_N = g["Time_N"].as<int>();
+  // Legacy support for hours if UI sends them
   if (!g["Time_D_h"].isNull())  Time_D = g["Time_D_h"].as<int>() * 3600;
   if (!g["Time_N_h"].isNull())  Time_N = g["Time_N_h"].as<int>() * 3600;
+  
   if (!g["SID_STA"].isNull())   SID_STA = g["SID_STA"].as<String>();
   if (!g["PAS_STA"].isNull())   PAS_STA = g["PAS_STA"].as<String>();
   
@@ -239,6 +255,7 @@ void Update_Global_Config(JsonObject g) {
   }
   
   if (!g["TB_pasword"].isNull()) TB_pasword = g["TB_pasword"].as<long>();
+  if (!g["display_type"].isNull()) display_type = g["display_type"].as<int>();
   
   Save_Config();
 }

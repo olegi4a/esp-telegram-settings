@@ -111,8 +111,11 @@ String buildDashboard() {
     if (is_usb_mode) pwr = F("Відсутнє (USB)");
     else if (digitalRead(POWER) == LOW) pwr = F("Відсутнє");
 
-    String rel = digitalRead(RELE) ? F("Включено") : F("Виключено");
-    String mod = (profile == 1) ? F("День") : F("Ніч");
+    String rel = digitalRead(RELE) ? F("Увімкнуто") : F("Вимкнуто");
+    
+    String mod = F("Загальний");
+    if (profile == 1) mod = F("День");
+    else if (profile == 0) mod = F("Ніч");
     
     String tSign = (Temperature > 0) ? "+" : (Temperature < 0 ? "-" : "");
     String tVal = tSign + String(abs(Temperature), 1);

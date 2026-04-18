@@ -37,7 +37,12 @@ All text above, and the splash screen below must be included in any redistributi
 
 // the memory buffer for the LCD
 
-static uint8_t buffer[SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8] = {
+extern byte display_type; // 0=64x48, 1=128x64
+
+// the memory buffer for the LCD
+static uint8_t buffer[1024] = {0}; 
+
+/* 
 
 #if (SSD1306_LCDWIDTH == 64 && SSD1306_LCDHEIGHT == 48)
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -132,9 +137,7 @@ static uint8_t buffer[SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH / 8] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 #endif
-#endif
-#endif
-};
+*/
 
 #define ssd1306_swap(a, b) { int16_t t = a; a = b; b = t; }
 
@@ -259,7 +262,7 @@ void Adafruit_SSD1306::begin(uint8_t vccstate, uint8_t i2caddr, bool reset) {
   ssd1306_command(0x80);                                  // the suggested ratio 0x80
 
   ssd1306_command(SSD1306_SETMULTIPLEX);                  // 0xA8
-  ssd1306_command(SSD1306_LCDHEIGHT - 1);
+  ssd1306_command((display_type == 0) ? 47 : 63); // 47 for 64x48, 63 for 128x64
 
   ssd1306_command(SSD1306_SETDISPLAYOFFSET);              // 0xD3
   ssd1306_command(0x0);                                   // no offset
@@ -274,40 +277,26 @@ void Adafruit_SSD1306::begin(uint8_t vccstate, uint8_t i2caddr, bool reset) {
   ssd1306_command(SSD1306_SEGREMAP | 0x1);
   ssd1306_command(SSD1306_COMSCANDEC);
 
- #if defined SSD1306_128_32
-  ssd1306_command(SSD1306_SETCOMPINS);                    // 0xDA
-  ssd1306_command(0x02);
-  ssd1306_command(SSD1306_SETCONTRAST);                   // 0x81
-  ssd1306_command(0x8F);
+  // Update GFX dimensions
+  WIDTH = (display_type == 0) ? 64 : 128;
+  HEIGHT = (display_type == 0) ? 48 : 64;
 
-#elif defined SSD1306_128_64
-  ssd1306_command(SSD1306_SETCOMPINS);                    // 0xDA
-  ssd1306_command(0x12);
-  ssd1306_command(SSD1306_SETCONTRAST);                   // 0x81
-  if (vccstate == SSD1306_EXTERNALVCC)
-    { ssd1306_command(0x9F); }
-  else
-    { ssd1306_command(0xCF); }
-
-#elif defined SSD1306_96_16
-  ssd1306_command(SSD1306_SETCOMPINS);                    // 0xDA
-  ssd1306_command(0x2);   //ada x12
-  ssd1306_command(SSD1306_SETCONTRAST);                   // 0x81
-  if (vccstate == SSD1306_EXTERNALVCC)
-    { ssd1306_command(0x10); }
-  else
-    { ssd1306_command(0xAF); }
-
-#elif defined SSD1306_64_48
-  ssd1306_command(SSD1306_SETCOMPINS);                    // 0xDA
-  ssd1306_command(0x12);
-  ssd1306_command(SSD1306_SETCONTRAST);                   // 0x81
-  if (vccstate == SSD1306_EXTERNALVCC)
-    { ssd1306_command(0x9F); }
-  else
-    { ssd1306_command(0xCF); }
-
-#endif
+  if (display_type == 0) {
+    // 64x48 specific init (Multiplex ratio is already set to 47 earlier)
+    ssd1306_command(SSD1306_SETCOMPINS);                    // 0xDA
+    ssd1306_command(0x12);
+    ssd1306_command(SSD1306_SETCONTRAST);                   // 0x81
+    ssd1306_command(0xCF);
+  } else {
+    // 128x64 specific init
+    ssd1306_command(SSD1306_SETCOMPINS);                    // 0xDA
+    ssd1306_command(0x12);
+    ssd1306_command(SSD1306_SETCONTRAST);                   // 0x81
+    if (vccstate == SSD1306_EXTERNALVCC)
+      { ssd1306_command(0x9F); }
+    else
+      { ssd1306_command(0xCF); }
+  }
 
   ssd1306_command(SSD1306_SETPRECHARGE);                  // 0xd9
   if (vccstate == SSD1306_EXTERNALVCC)
@@ -455,17 +444,18 @@ void Adafruit_SSD1306::dim(boolean dim) {
 
 void Adafruit_SSD1306::display(void) {
   ssd1306_command(SSD1306_COLUMNADDR);
-  #if SSD1306_LCDWIDTH == 64 && SSD1306_LCDHEIGHT == 48
+  if (display_type == 0) {
+    // 64x48 offset starting at column 32
     ssd1306_command(32);
-    ssd1306_command(32 + SSD1306_LCDWIDTH - 1);
-  #else
-    ssd1306_command(0);   // Column start address (0 = reset)
-    ssd1306_command(SSD1306_LCDWIDTH-1); // Column end address (127 = reset)
-  #endif
+    ssd1306_command(32 + 64 - 1);
+  } else {
+    ssd1306_command(0);   // Column start address
+    ssd1306_command(128 - 1); // Column end address
+  }
 
   ssd1306_command(SSD1306_PAGEADDR);
   ssd1306_command(0); // Page start address (0 = reset)
-  ssd1306_command((SSD1306_LCDHEIGHT / 8) - 1); // Page end address
+  ssd1306_command((display_type == 0) ? 5 : 7); // 5 for 48px height, 7 for 64px height
   /*
   #if SSD1306_LCDWIDTH == 128 && SSD1306_LCDHEIGHT == 64
     ssd1306_command(7); // Page end address

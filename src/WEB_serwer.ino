@@ -23,7 +23,13 @@ void handle_api_status() {
   bool sensorOk = (Temperature > -100.0f);
   doc["sensor_ok"] = sensorOk;
   doc["temp"]    = sensorOk ? serialized(String(Temperature, 1)) : serialized(String(-127));
-  doc["hum"]     = Humedity;
+  
+  if (Humedity != 255) {
+    doc["hum"] = Humedity;
+  } else {
+    doc["hum"] = serialized("null");
+  }
+  
   doc["press"]   = (int)(Pressure + 0.5f); // округлення до цілого mmHg
   doc["relay"]   = digitalRead(RELE);
   doc["mode"]    = Statatus_sensor_control;  // 0=manual,1=sensor,2=timer
@@ -40,18 +46,21 @@ void handle_api_status() {
   doc["log_max"]   = Logger_getMax();
   doc["wifi_rssi"] = WiFi.RSSI();
   doc["version"]   = FIRMWARE_VERSION;
+  doc["display_type"] = display_type; // 0=64, 1=128
   // Telegram статус та назва бота
   doc["tg_ok"]    = tg_connected;
   doc["bot_name"] = botName;
 
-  // Прямий стрімінг JSON-відповіді для уникнення фрагментації пам'яті
+  // Справжній стрімінг JSON — без проміжного String буфера
   WebServer.sendHeader(F("Access-Control-Allow-Origin"),  F("*"));
   WebServer.sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST, OPTIONS"));
   WebServer.sendHeader(F("Access-Control-Allow-Headers"), F("Content-Type"));
   WebServer.sendHeader(F("Cache-Control"),                F("no-cache"));
-  String output;
-  serializeJson(doc, output);
-  WebServer.send(200, F("application/json"), output);
+  WebServer.setContentLength(measureJson(doc));
+  WebServer.send(200, F("application/json"), "");
+  WiFiClient client = WebServer.client();
+  serializeJson(doc, client);
+  client.stop();
 }
 
 // ============================================================
@@ -64,12 +73,14 @@ void handle_api_config() {
   JsonObject g = doc["global"].to<JsonObject>();
   g["SID_STA"]      = SID_STA;
   g["PAS_STA"]      = PAS_STA;         // реальний пароль WiFi
-  g["Time_D_h"]     = Time_D / 3600;
-  g["Time_N_h"]     = Time_N / 3600;
-  g["alluser"]      = alluser;
-  g["timezone_str"] = timezone_str;
+  g["Time_D"]        = Time_D;
+  g["Time_N"]        = Time_N;
+  g["profile_timer_en"] = profile_timer_en;
+  g["alluser"]       = alluser;
+  g["timezone_str"]  = timezone_str;
   g["TB_Token"]     = TB_Token;        // реальний токен бота
   g["TB_pasword"]   = TB_pasword;      // реальний пароль доступу
+  g["display_type"] = display_type;
 
   // Поточний профіль (активний)
   JsonObject cur = doc["current"].to<JsonObject>();
@@ -93,24 +104,46 @@ void handle_api_config() {
   // Завантажуємо обидва профілі з файлів
   auto addProfile = [&doc](const char* key, const char* fname) {
     File f = LittleFS.open(fname, "r");
-    if (!f) return;
+    if (!f) {
+      // Якщо файлу немає, створюємо дефолтний об'єкт для API
+      JsonObject p = doc[key].to<JsonObject>();
+      p["profile"] = (strcmp(key, "day") == 0) ? 1 : (strcmp(key, "night") == 0 ? 0 : 2);
+      p["Sensor_set"] = 20.0;
+      p["Sensor_histeresis"] = 1.0;
+      p["Statatus_sensor_control"] = 0;
+      p["Rele_status"] = false;
+      p["Start_status"] = 0;
+      p["Time_on"] = 10;
+      p["Time_off"] = 10;
+      p["Alarm_data_u"] = 30.0;
+      p["Alarm_data_d"] = 15.0;
+      p["Alarm_data_set"] = 0;
+      p["trend"] = 0;
+      p["widget_status"] = 0;
+      p["Alarm_power"] = 0;
+      p["relay_change_notify"] = 0;
+      return;
+    }
     JsonDocument tmp;
     if (!deserializeJson(tmp, f)) {
       doc[key] = tmp;
     }
     f.close();
   };
-  addProfile("day",   "/D_profile.json");
-  addProfile("night", "/N_profile.json");
+  addProfile("day",     "/D_profile.json");
+  addProfile("night",   "/N_profile.json");
+  addProfile("general", "/G_profile.json");
 
-  // Використовуємо прямий стрімінг JSON для уникнення фрагментації пам'яті
+  // Справжній стрімінг JSON — без проміжного String буфера
   WebServer.sendHeader(F("Access-Control-Allow-Origin"),  F("*"));
   WebServer.sendHeader(F("Access-Control-Allow-Methods"), F("GET, POST, OPTIONS"));
   WebServer.sendHeader(F("Access-Control-Allow-Headers"), F("Content-Type"));
   WebServer.sendHeader(F("Cache-Control"),                F("no-cache"));
-  String output;
-  serializeJson(doc, output);
-  WebServer.send(200, F("application/json"), output);
+  WebServer.setContentLength(measureJson(doc));
+  WebServer.send(200, F("application/json"), "");
+  WiFiClient client = WebServer.client();
+  serializeJson(doc, client);
+  client.stop();
 }
 
 
@@ -154,16 +187,19 @@ void handle_api_save() {
     if (!g["SID_STA"].isNull() && g["SID_STA"].as<String>() != SID_STA) wifi_changed = true;
     if (!g["PAS_STA"].isNull() && g["PAS_STA"].as<String>() != PAS_STA) wifi_changed = true;
     Update_Global_Config(g);
+    // Save_Config() вже викликається всередині Update_Global_Config()
   }
 
   // Параметри профілю
   bool ok = true;
   if (target == "D" || target == "B") ok &= Patch_Profile("/D_profile.json", s);
   if (target == "N" || target == "B") ok &= Patch_Profile("/N_profile.json", s);
+  if (target == "G") ok &= Patch_Profile("/G_profile.json", s);
   
   // Перезавантажуємо активний профіль
   if (profile == 1) Load_Profile("/D_profile.json");
-  else Load_Profile("/N_profile.json");
+  else if (profile == 0) Load_Profile("/N_profile.json");
+  else Load_Profile("/G_profile.json");
 
   // Логуємо подію більш точно:
   if (!s.isNull() && s.size() == 1 && !s["Statatus_sensor_control"].isNull()) {
@@ -253,6 +289,32 @@ void handle_api_reboot() {
   Logger_flushToFile();
   delay(500);
   ESP.restart();
+}
+
+// ============================================================
+//  POST /api/time — синхронізація часу з браузера
+// ============================================================
+void handle_api_time() {
+  if (WebServer.method() != HTTP_POST) { WebServer.send(405, "text/plain", "Method Not Allowed"); return; }
+  
+  String body = WebServer.arg("plain");
+  JsonDocument doc;
+  DeserializationError error = deserializeJson(doc, body);
+  if (!error && doc["t"].is<uint32_t>()) {
+    uint32_t browserTs = doc["t"];
+    uint32_t espTs = time(nullptr);
+    
+    // Якщо різниця більше 60 секунд або час ще взагалі не встановлено
+    if (abs((long)(browserTs - espTs)) > 60 || espTs < 1500000000) {
+      struct timeval tv = { .tv_sec = (time_t)browserTs, .tv_usec = 0 };
+      settimeofday(&tv, nullptr);
+      is_time_exact = true;
+      TBLOG_LN("Time synced from Browser!");
+    }
+    _sendJson(200, "{\"ok\":true}");
+  } else {
+    _sendJson(400, "{\"ok\":false}");
+  }
 }
 
 // ============================================================
@@ -546,6 +608,7 @@ void WebServer_Init() {
   WebServer.on("/api/history_ram", HTTP_GET, handle_api_history_ram);
   WebServer.on("/api/save",    HTTP_POST,   handle_api_save);
   WebServer.on("/api/relay",   HTTP_POST,   handle_api_relay);
+  WebServer.on("/api/time",    HTTP_POST,   handle_api_time);
   WebServer.on("/api/reboot",  HTTP_GET,    handle_api_reboot);
   WebServer.on("/api/wifi/scan", HTTP_GET,  handle_api_wifi_scan);
   WebServer.on("/api/wifi/test", HTTP_POST, handle_api_wifi_test);
@@ -555,7 +618,8 @@ void WebServer_Init() {
   // OPTIONS catch-all for CORS preflight
   WebServer.on("/api/mode",    HTTP_OPTIONS, handle_api_options);
   WebServer.on("/api/save",    HTTP_OPTIONS, handle_api_options);
-  WebServer.on("/api/wifi/relay",   HTTP_OPTIONS, handle_api_options);
+  WebServer.on("/api/relay",   HTTP_OPTIONS, handle_api_options);
+  WebServer.on("/api/time",    HTTP_OPTIONS, handle_api_options);
   WebServer.on("/api/wifi/test", HTTP_OPTIONS, handle_api_options);
   WebServer.on("/api/wifi/confirm", HTTP_OPTIONS, handle_api_options);
 

@@ -40,6 +40,8 @@ void sensor_init()
       Sensor_fund = 1;
       _ds_available = true;
       _ds_fail_count = 0;
+      Temperature = t;                // FIX: Задаємо початкову температуру, щоб не було '0'
+      DS.requestTemperatures();       // FIX: Одразу просимо нове перетворення, щоб за 5с воно було готове
       TBLOG_LN("DS18B20 found!");
     } else {
       sensorType  = S_NONE;
@@ -97,15 +99,17 @@ void sensor_read()
           _ds_fail_count++;
           TBLOG("DS18B20 read error, fail_count="); TBLOG_LN(_ds_fail_count);
           if (_ds_fail_count >= DS_FAIL_THRESHOLD) {
-            // Датчик справді відсутній — фіксуємо -127 та намагаємось реініціалізувати
             TBLOG_LN("DS18B20 confirmed absent, re-init...");
             Temperature = -127.0f;
+            visual_trend = 0;
             sensor_init();
           }
-          // else: залишаємо попереднє значення Temperature без змін
         } else {
-          // Успішне читання — скидаємо лічильник збоїв
           _ds_fail_count = 0;
+          if (t > Temperature + 0.01f) visual_trend = 1;
+          else if (t < Temperature - 0.01f) visual_trend = -1;
+          else visual_trend = 0;
+          
           Temperature = t;
         }
         Humedity = 255;

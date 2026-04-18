@@ -45,12 +45,14 @@ static uint16_t lastLogPress = 0;
 //  Утиліта: Формування імені поточного файлу логу (по днях)
 // ============================================================
 String Logger_getCurrentFile() {
-  if (timeStatus() == timeNotSet || year() < 2024) {
+  time_t t = time(nullptr);
+  struct tm *tm_info = localtime(&t);
+  if (t < 1500000000 || (tm_info->tm_year + 1900) < 2024) {
     // Якщо час ще не синхронізовано, пишемо у тимчасовий файл
     return String(LOG_DIR) + "/system_startup.ndjson";
   }
   char buf[32];
-  snprintf(buf, sizeof(buf), "%s/%04d-%02d-%02d.ndjson", LOG_DIR, year(), month(), day());
+  snprintf(buf, sizeof(buf), "%s/%04d-%02d-%02d.ndjson", LOG_DIR, tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday);
   return String(buf);
 }
 
@@ -145,7 +147,7 @@ void Logger_addEntry(uint8_t eventType) {
   }
   if (logCount >= LOG_MAX) Logger_emergencyFlush(false);
 
-  buf_ts   [logCount] = (uint32_t)now();
+  buf_ts   [logCount] = (uint32_t)time(nullptr);
   buf_temp [logCount] = Temperature;
   buf_hum  [logCount] = (uint8_t)Humedity;
   buf_press[logCount] = (uint16_t)Pressure;
@@ -176,7 +178,7 @@ void Logger_emergencyFlush(bool isPowerFail) {
     emergencyFlushCount++;
   }
   if (logCount < LOG_MAX) {
-    buf_ts   [logCount] = (uint32_t)now();
+    buf_ts   [logCount] = (uint32_t)time(nullptr);
     buf_temp [logCount] = Temperature;
     buf_hum  [logCount] = (uint8_t)Humedity;
     buf_press[logCount] = (uint16_t)Pressure;
@@ -214,10 +216,10 @@ uint32_t History_loadLastTimestamp() {
   Dir dir = LittleFS.openDir(LOG_DIR);
   String newestFile = "";
   
-  // Шукаємо найновіший файл (за алфавітом YYYY-MM-DD це працює)
+  // Шукаємо найновіший файл (за алфавітом YYYY-MM-DD це працює, але ігноруємо system_startup)
   while (dir.next()) {
     String fileName = dir.fileName();
-    if (fileName.endsWith(".ndjson")) {
+    if (fileName.endsWith(".ndjson") && fileName != "system_startup.ndjson") {
       if (newestFile == "" || fileName > newestFile) {
         newestFile = fileName;
       }

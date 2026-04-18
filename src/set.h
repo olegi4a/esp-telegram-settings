@@ -5,17 +5,17 @@
 #include <WiFiClientSecureBearSSL.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
-#include <TimeLib.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>  // Версія 7.x
 #include <FastBot2.h>
 #include <DNSServer.h>
+#include <coredecls.h> // Для settimeofday_cb
 
 const byte DNS_PORT = 53;
 extern DNSServer dnsServer;
 
 // Версія прошивки (порівнюється з GitHub releases tag_name)
-#define FIRMWARE_VERSION "EDwIC-3.6.1"
+#define FIRMWARE_VERSION "EDwIC-3.7.0"
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -31,8 +31,10 @@ extern DNSServer dnsServer;
 // SCL GPIO5
 // SDA GPIO4
 #define OLED_RESET 15  // GPIO0
-// Дисплей 64x48 (0.66") I2C - використовуємо конструктор локальної бібліотеки 
-Adafruit_SSD1306 display(OLED_RESET);
+// Дисплей: 0 = 64x48 (0.66"), 1 = 128x64 (0.96")
+extern byte display_type;     // 0 = 64x48, 1 = 128x64
+extern bool display_ok;
+extern Adafruit_SSD1306 display;
 
 void Telegram_Callback(fb::Update& update);
 void sendWelcomeMessage(int64_t senderId);
@@ -132,6 +134,7 @@ byte RESTART = 0;
 long Time_now;
 int Time_N = 72000; // 20:00
 int Time_D = 28800; // 08:00
+bool profile_timer_en = false; // Робота за розкладом
 byte profile;
 
 long users[10];
@@ -144,6 +147,7 @@ bool   Rele_status = false;
 byte   Statatus_sensor_control = 0;
 byte   Start_status = 0;
 byte   widget_status = 0;
+bool   is_time_exact = false; // Flag for exact time
 
 int    Time_on = 1;
 int    Time_off = 1;
@@ -152,6 +156,7 @@ time_t   now_Time;
 byte    now_Time_off_on;
 
 bool   display_inv = true;
+// display_ok та display_type тепер оголошені як extern на початку файлу
 
 byte   Sensor_fund;
 float  Temperature;
@@ -164,6 +169,7 @@ float  Alarm_data_u = 30.0;
 float  Alarm_data_d = 15.0;
 float  Alarm_Temperature;
 byte   Alarm_data_set;
+int8_t visual_trend = 0; // 0=стабільно, 1=вгору, -1=вниз
 byte   trend;
 unsigned long   Alarm_data_milis;
 bool   relay_change_notify;

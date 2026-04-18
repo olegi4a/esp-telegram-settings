@@ -63,6 +63,15 @@ class FlasherApp:
         self.fw_file = os.path.join(get_exe_dir(), "firmware.bin")
         self.fs_file = os.path.join(get_exe_dir(), "littlefs.bin")
         
+        # Перевірка альтернативного шляху в test_updates
+        test_fw = os.path.abspath(os.path.join(get_exe_dir(), "..", "test_updates", "firmware.bin"))
+        test_fs = os.path.abspath(os.path.join(get_exe_dir(), "..", "test_updates", "littlefs.bin"))
+        
+        if not os.path.exists(self.fw_file) and os.path.exists(test_fw):
+            self.fw_file = test_fw
+        if not os.path.exists(self.fs_file) and os.path.exists(test_fs):
+            self.fs_file = test_fs
+        
         # UI Elements
         self.lbl_info = tk.Label(self.root, text="Оновлення EDwIC 🚀", font=("Helvetica", 14, "bold"))
         self.lbl_info.pack(pady=10)
@@ -88,10 +97,21 @@ class FlasherApp:
         self.btn_refresh = ttk.Button(frame_com, text="🔄 Визначити COM порт", command=self.refresh_ports)
         self.btn_refresh.pack(side=tk.RIGHT)
         
-        # Flash Button
-        self.btn_flash = tk.Button(self.root, text="Оновити прошивку", font=("Helvetica", 12, "bold"), 
-                                   command=self.start_flash, bg="#4CAF50", fg="white", height=2, cursor="hand2")
+        self.btn_flash = tk.Button(self.root, text="🚀 Оновити ВСЕ (Код + ФС)", font=("Helvetica", 12, "bold"), 
+                                   command=lambda: self.start_flash("all"), bg="#4CAF50", fg="white", height=2, cursor="hand2")
         self.btn_flash.pack(fill=tk.X, padx=20, pady=10)
+        
+        # Frame for small selective buttons
+        frame_btns = tk.Frame(self.root)
+        frame_btns.pack(fill=tk.X, padx=15, pady=0)
+        
+        self.btn_flash_fw = tk.Button(frame_btns, text="💾 Тільки КОД", font=("Helvetica", 9, "bold"), 
+                                      command=lambda: self.start_flash("fw"), bg="#2196F3", fg="white", height=1, cursor="hand2")
+        self.btn_flash_fw.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
+        
+        self.btn_flash_fs = tk.Button(frame_btns, text="📁 Тільки ФС", font=("Helvetica", 9, "bold"), 
+                                      command=lambda: self.start_flash("fs"), bg="#9C27B0", fg="white", height=1, cursor="hand2")
+        self.btn_flash_fs.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=5)
         
         # Progress Bar
         self.progress_var = tk.IntVar()
@@ -198,41 +218,54 @@ class FlasherApp:
             self.log(f"Помилка: файл драйвера не знайдено за шляхом {driver_path}\n")
             messagebox.showwarning("Увага", "Файл драйвера SETUP.EXE не знайдено в збірці.")
 
-    def start_flash(self):
+    def start_flash(self, mode="all"):
         if not self.port_var.get() or "не знайдено" in self.port_var.get():
             messagebox.showerror("Помилка", "Будь ласка, оберіть COM порт!")
             return
             
         port = self.port_var.get().split(" - ")[0]
         
-        if not os.path.exists(self.fw_file):
-            messagebox.showerror("Помилка", f"Не знайдено файл прошивки ({os.path.basename(self.fw_file)}) поруч з програмою!")
-            return
-        if not os.path.exists(self.fs_file):
-            messagebox.showerror("Помилка", f"Не знайдено файл системи ({os.path.basename(self.fs_file)}) поруч з програмою!")
-            return
+        # Перевірка файлів залежно від режиму
+        if mode in ["all", "fw"]:
+            if not os.path.exists(self.fw_file):
+                messagebox.showerror("Помилка", f"Не знайдено файл прошивки ({os.path.basename(self.fw_file)})!")
+                return
+        if mode in ["all", "fs"]:
+            if not os.path.exists(self.fs_file):
+                messagebox.showerror("Помилка", f"Не знайдено файл системи ({os.path.basename(self.fs_file)})!")
+                return
             
-        self.btn_flash.config(state=tk.DISABLED, text="Триває прошивка...", bg="#FF9800")
+        status_text = "Оновлення коду..." if mode == "fw" else ("Оновлення ФС..." if mode == "fs" else "Повне оновлення...")
+        self.btn_flash.config(state=tk.DISABLED, text=status_text, bg="#FF9800")
+        self.btn_flash_fw.config(state=tk.DISABLED)
+        self.btn_flash_fs.config(state=tk.DISABLED)
         self.btn_refresh.config(state=tk.DISABLED)
         self.btn_drv.config(state=tk.DISABLED)
         self.com_combo.config(state=tk.DISABLED)
         
-        self.log(f"\n--- Початок прошивки на порті {port} ---")
+        mode_label = "повну прошивку" if mode=="all" else ("тільки код" if mode=="fw" else "тільки файлову систему")
+        self.log(f"\n--- Запуск ({mode_label}) на порті {port} ---")
+        if mode != "all":
+            self.log(f"Шлях до файлу: {self.fw_file if mode=='fw' else self.fs_file}")
+            
         self.progress_var.set(0)
         
-        threading.Thread(target=self.flash_worker, args=(port,), daemon=True).start()
+        threading.Thread(target=self.flash_worker, args=(port, mode), daemon=True).start()
 
-    def flash_worker(self, port):
+    def flash_worker(self, port, mode="all"):
         # We also redirect esptool logs here
         baud = "115200" # Знижено швидкість для стабільності CH340
         command = [
             "--port", port,
             "--baud", baud,
             "write_flash",
-            "--flash_size", "detect",
-            "0x00000", self.fw_file,
-            "0x200000", self.fs_file
+            "--flash_size", "detect"
         ]
+        
+        if mode in ["all", "fw"]:
+            command.extend(["0x00000", self.fw_file])
+        if mode in ["all", "fs"]:
+            command.extend(["0x200000", self.fs_file])
         
         old_stdout = sys.stdout
         old_stderr = sys.stderr
@@ -254,6 +287,8 @@ class FlasherApp:
         self.progress_var.set(100)
         self.log("\n--- ПРОШИВКА УСПІШНО ЗАВЕРШЕНА ---")
         self.btn_flash.config(text="Готово ✅", bg="#9E9E9E", state=tk.DISABLED)
+        self.btn_flash_fw.config(state=tk.DISABLED)
+        self.btn_flash_fs.config(state=tk.DISABLED)
         self.btn_refresh.config(state=tk.NORMAL)
         self.btn_drv.config(state=tk.NORMAL)
         self.com_combo.config(state="readonly")
@@ -262,6 +297,8 @@ class FlasherApp:
     def flash_failed(self, error):
         self.log(f"\n--- ПОМИЛКА ПРОШИВКИ ---\n{error}")
         self.btn_flash.config(text="Спробувати ще", state=tk.NORMAL, bg="#F44336")
+        self.btn_flash_fw.config(state=tk.NORMAL)
+        self.btn_flash_fs.config(state=tk.NORMAL)
         self.btn_refresh.config(state=tk.NORMAL)
         self.btn_drv.config(state=tk.NORMAL)
         self.com_combo.config(state="readonly")

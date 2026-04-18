@@ -1,6 +1,15 @@
 #include "set.h"
 
+byte display_type = 1; 
+bool display_ok = false;
+Adafruit_SSD1306 display(OLED_RESET);
+
 DNSServer dnsServer;
+
+void time_is_set_cb() {
+  is_time_exact = true;
+  TBLOG_LN(F("Background: SNTP updated system time. Time is now exact."));
+}
 
 void setup()
 {
@@ -14,8 +23,15 @@ void setup()
   digitalWrite(LED_STATUS, LOW); // Було HIGH
   digitalWrite(LED_BOOTON, HIGH);
   
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  display.clearDisplay();
-  display.setTextColor(WHITE);
+  FS_INIT();
+  Load_Config(); // Завантажуємо налаштування (включаючи display_type) до ініціалізації екрану
+
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display_ok = true; 
+  if (display_ok) {
+    display.clearDisplay();
+    display.setTextColor(WHITE);
+  }
   
   // Logo "EDwIC" centered
   display.setTextSize(2);
@@ -44,10 +60,10 @@ void setup()
   Serial.begin(115200);
 
   TBLOG_LN(" ");
-  FS_INIT();
+  // FS_INIT() та Load_Config() вже виконано вище
 
   Logger_init();
-  Load_Config();
+  // Load_Config(); // Виконано вище
   
   WebServer_Init();
   sensor_init();
@@ -96,6 +112,7 @@ void setup()
   // --- СИНХРОНІЗАЦІЯ ЧАСУ ---
   if(WiFi.getMode() != WIFI_AP) {
     TBLOG_LN("Starting NTP Sync");
+    settimeofday_cb(time_is_set_cb); // Реєструємо системний колбек ESP8266
     configTime(timezone_str.c_str(), ntpServerName, ntpServerName2);
     time_t nowTimeRead = time(nullptr);
     byte timeout = 0;
@@ -103,9 +120,7 @@ void setup()
       delay(200); TBLOG("."); nowTimeRead = time(nullptr); timeout++;
     }
     if (nowTimeRead >= 1500000000) {
-      setTime(nowTimeRead);
-      setSyncProvider(getNtpTime);
-      setSyncInterval(3600);
+      is_time_exact = true;
       TBLOG_LN(F("Boot: NTP OK"));
       Logger_addEntry(13); // 13 = Час синхронізовано
     }
@@ -117,28 +132,38 @@ void setup()
     uint32_t lastTs = History_loadLastTimestamp();
     if (lastTs > 1500000000) {
       time_t estimated = (time_t)(lastTs + (millis() / 1000));
-      setTime(estimated);
+      struct timeval tv = { .tv_sec = estimated, .tv_usec = 0 };
+      settimeofday(&tv, nullptr);
       TBLOG(F("Boot: estimated time from history: ")); TBLOG_LN((long)estimated);
     }
   }
 
-  // --- ЗАГАЛЬНІ НАЛАШТУВАННЯ ТА ПРОФІЛІ ---
-  time_t t_now = time(nullptr);
-  struct tm *tm_info = localtime(&t_now);
-  Time_now = (tm_info->tm_hour * 3600) + (tm_info->tm_min * 60);
+  time_t t_boot = time(nullptr);
+  struct tm *tm_info_boot = localtime(&t_boot);
+  Time_now = tm_info_boot->tm_hour * 3600 + tm_info_boot->tm_min * 60 + tm_info_boot->tm_sec;
 
-  // Завантажуємо ОБИДВА профілі, щоб у пам'яті були дані для обох (для WebApp)
-  Load_Profile("/D_profile.json");
-  Load_Profile("/N_profile.json");
-
-  if(Time_D < Time_now && Time_N > Time_now) {
-     TBLOG_LN(" Day profile active ");
-     Load_Profile("/D_profile.json"); // Активуємо денний
-     profile = 1;
+  // Визначаємо цільовий профіль при старті (в один прохід)
+  if (!profile_timer_en) {
+    TBLOG_LN(" General profile active (Schedule OFF) ");
+    Load_Profile("/G_profile.json");
+    profile = 2; // ID для Загального профілю
   } else {
-     TBLOG_LN(" Night profile active ");
-     Load_Profile("/N_profile.json"); // Активуємо нічний
-     profile = 0;
+    // Визначаємо цільовий профіль за часом (з урахуванням переходу через північ)
+    int target;
+    if (Time_D < Time_N) 
+      target = (Time_now >= Time_D && Time_now < Time_N) ? 1 : 0;
+    else 
+      target = (Time_now >= Time_D || Time_now < Time_N) ? 1 : 0;
+
+    if (target == 1) {
+       TBLOG_LN(" Day profile active ");
+       Load_Profile("/D_profile.json");
+       profile = 1;
+    } else {
+       TBLOG_LN(" Night profile active ");
+       Load_Profile("/N_profile.json");
+       profile = 0;
+    }
   }
 
   // --- ТЕЛЕГРАМ (Тільки для STA режиму) ---
@@ -321,13 +346,20 @@ void loop()
   WebServer.handleClient();
   yield();
 
-  time_t t = time(nullptr);
-  struct tm *tm_info = localtime(&t);
-  Time_now = (tm_info->tm_hour * 3600) + (tm_info->tm_min * 60);
+  time_t t_loop = time(nullptr);
+  struct tm *tm_info_loop = localtime(&t_loop);
+  Time_now = tm_info_loop->tm_hour * 3600 + tm_info_loop->tm_min * 60 + tm_info_loop->tm_sec;
 
-  if(!((Time_D < Time_now && Time_N > Time_now && profile == 1) || (Time_D > Time_now && profile == 0) || (Time_N < Time_now && profile == 0) || (WiFi.getMode() == WIFI_AP)))
-  {
-    RESTART = 3;
+  if (profile_timer_en) {
+    int target;
+    if (Time_D < Time_N) 
+      target = (Time_now >= Time_D && Time_now < Time_N) ? 1 : 0;
+    else 
+      target = (Time_now >= Time_D || Time_now < Time_N) ? 1 : 0;
+
+    if (profile != target && WiFi.getMode() != WIFI_AP) {
+      if (RESTART == 0) RESTART = 3; 
+    }
   }
   
   if(WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
@@ -381,19 +413,19 @@ void loop()
   // Автоматика по часу (циклічний таймер)
   if (Statatus_sensor_control == 2)
   {
-    if (now() >= now_Time)
+    if (time(nullptr) >= now_Time)
     {
       if(now_Time_off_on == 0)
       {
         digitalWrite(RELE, HIGH);
         now_Time_off_on = 1;
-        now_Time = now() + (Time_on * 60);
+        now_Time = time(nullptr) + (Time_on * 60);
       }
       else
       {
         digitalWrite(RELE, LOW);
         now_Time_off_on = 0;
-        now_Time = now() + (Time_off * 60);
+        now_Time = time(nullptr) + (Time_off * 60);
       }
     }
   }

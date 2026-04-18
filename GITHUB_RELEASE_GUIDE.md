@@ -31,8 +31,8 @@
 ### 4. Синхронізація з GitHub (Git Push)
 Це критично для роботи прямого завантаження з ESP:
 1. `git add src/set.h releases/EDwIC-X.X.X/`
-2. `git commit -m "Release vX.X.X"`
-3. `git tag "vX.X.X"` (або ім'я тегу за стандартом)
+2. `git commit -m "Release EDwIC-X.X.X"`
+3. `git tag "EDwIC-X.X.X"` (або ім'я тегу за стандартом)
 4. `git push origin main --tags`
 
 ### 5. Створення Release на GitHub (Web UI)
