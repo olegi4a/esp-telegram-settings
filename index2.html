@@ -478,7 +478,20 @@
 
         let currentProf = 'D';
         let initialData = null; 
-        let dataStore = { D: {}, N: {}, G: {}, global: {} };
+        const defaults = {
+            Sensor_set: 20.0, Sensor_histeresis: 1.0, Rele_status: 0,
+            Time_on: 1, Time_off: 1,
+            Alarm_data_u: 30.0, Alarm_data_d: 15.0, Alarm_data_set: 0, trend: 0,
+            Alarm_start: 0, Alarm_power: 0, relay_change_notify: 0, widget_status: 0,
+            Statatus_sensor_control: 0, Start_status: 0
+        };
+
+        let dataStore = { 
+            D: JSON.parse(JSON.stringify(defaults)), 
+            N: JSON.parse(JSON.stringify(defaults)), 
+            G: JSON.parse(JSON.stringify(defaults)), 
+            global: { profile_timer_en: false, Time_D_h: 8, Time_D_m: 0, Time_N_h: 20, Time_N_m: 0 } 
+        };
 
         // Key mapping between ESP URL params and internal keys
         const paramMap = {
@@ -517,7 +530,7 @@
                 const prefix = p.toLowerCase() + '_';
                 profileKeys.forEach(k => {
                     const val = params.get(prefix + paramMap[k]);
-                    dataStore[p][k] = (val !== null) ? parseVal(val) : 0;
+                    if (val !== null) dataStore[p][k] = parseVal(val);
                 });
             });
 
