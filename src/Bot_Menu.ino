@@ -1,16 +1,18 @@
 // Помічник для побудови повного URL з параметрами профілів
 String getFullWebAppURL() {
     auto getFullWebAppURL_Params = [](const char* name, const char* prefix) {
-        File f = LittleFS.open(name, "r");
-        if (!f) return String("");
         JsonDocument d;
-        deserializeJson(d, f);
-        f.close();
+        File f = LittleFS.open(name, "r");
+        if (f) {
+            deserializeJson(d, f);
+            f.close();
+        }
         
         String p;
         p.reserve(256);
         p += "&"; p += prefix; p += "ss=" + String(d["Sensor_set"] | 20.0, 1);
         p += "&"; p += prefix; p += "sh=" + String(d["Sensor_histeresis"] | 1.0, 1);
+        p += "&"; p += prefix; p += "rs=" + String(d["Rele_status"] | 0);
         p += "&"; p += prefix; p += "ton=" + String(d["Time_on"] | 1);
         p += "&"; p += prefix; p += "tof=" + String(d["Time_off"] | 1);
         p += "&"; p += prefix; p += "au=" + String(d["Alarm_data_u"] | 30.0, 1);
@@ -18,9 +20,9 @@ String getFullWebAppURL() {
         p += "&"; p += prefix; p += "as=" + String(d["Alarm_data_set"] | 0);
         p += "&"; p += prefix; p += "w=" + String(d["widget_status"] | 0);
         p += "&"; p += prefix; p += "tr=" + String(d["trend"] | 0);
-        p += "&"; p += prefix; p += "ap=" + String(d["Alarm_power"].as<bool>() ? 1 : 0);
-        p += "&"; p += prefix; p += "rn=" + String(d["relay_change_notify"].as<bool>() ? 1 : 0);
-        p += "&"; p += prefix; p += "ast=" + String(d["Alarm_start"].as<bool>() ? 1 : 0);
+        p += "&"; p += prefix; p += "ap=" + String(d["Alarm_power"] | 0);
+        p += "&"; p += prefix; p += "rn=" + String(d["relay_change_notify"] | 0);
+        p += "&"; p += prefix; p += "ast=" + String(d["Alarm_start"] | 0);
         p += "&"; p += prefix; p += "sc=" + String(d["Statatus_sensor_control"] | 0);
         p += "&"; p += prefix; p += "sts=" + String(d["Start_status"] | 0);
         return p;
