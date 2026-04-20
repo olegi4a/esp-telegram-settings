@@ -697,21 +697,23 @@
 
         function saveSettings() {
             const s = collectData('profile');
-            const g = collectData('global');
+            const g = dataStore.global;
             
+            // Формуємо чистий об'єкт (тільки необхідні поля)
             const body = {
                 t: g.profile_timer_en ? currentProf : 'G',
                 s: s,
                 g: {
-                    profile_timer_en: g.profile_timer_en,
+                    profile_timer_en: g.profile_timer_en ? 1 : 0,
                     Time_D: (parseInt(g.Time_D_h) * 3600) + (parseInt(g.Time_D_m) * 60),
                     Time_N: (parseInt(g.Time_N_h) * 3600) + (parseInt(g.Time_N_m) * 60)
                 }
             };
 
+            console.log('Save body:', body);
             tg.sendData(JSON.stringify(body));
-            showToast('✅ Надіслано!');
-            setTimeout(() => tg.close(), 1200);
+            showToast('✅ Надіслано на пристрій');
+            setTimeout(() => tg.close(), 1500);
         }
 
         init();
