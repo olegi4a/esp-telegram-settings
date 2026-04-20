@@ -58,9 +58,14 @@ void Telegram_Callback(fb::Update& update)
   // 3. WebApp Data processing
   if (isWebApp) {
     String json = update.message().entry["web_app_data"]["data"].toString();
-    json.replace("\\\"", "\"");
-    json.replace("\"{", "{");
-    json.replace("}\"", "}");
+    
+    // Розумне очищення: якщо JSON прийшов як рядок у лапках (буває в деяких версіях TG/FastBot)
+    if (json.startsWith("\"") && json.endsWith("\"")) {
+      json = json.substring(1, json.length() - 1);
+      json.replace("\\\"", "\"");
+    }
+    
+    TBLOG("WebApp Data: "); TBLOG_LN(json);
     
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, json);
@@ -70,20 +75,21 @@ void Telegram_Callback(fb::Update& update)
       JsonObject g = doc["g"];
       
       if (!g.isNull()) {
-        if (!g["Time_D_h"].isNull()) Time_D = g["Time_D_h"].as<int>() * 3600;
-        if (!g["Time_N_h"].isNull()) Time_N = g["Time_N_h"].as<int>() * 3600;
-        Save_Config();
+        Update_Global_Config(g);
       }
 
       if (target == "D" || target == "B") Patch_Profile("/D_profile.json", s);
       if (target == "N" || target == "B") Patch_Profile("/N_profile.json", s);
+      if (target == "G") Patch_Profile("/G_profile.json", s);
 
-      if (profile == 1) Load_Profile("/D_profile.json");
+      if (!profile_timer_en) Load_Profile("/G_profile.json");
+      else if (profile == 1) Load_Profile("/D_profile.json");
       else Load_Profile("/N_profile.json");
 
       myBot.sendMessage(fb::Message(F("📥 Налаштування збережено!"), senderId));
-      myBot.sendMessage(fb::Message(F("🔄 Клавіатуру оновлено"), senderId));
       sendSettingsMenu(senderId);
+    } else {
+      myBot.sendMessage(fb::Message(F("❌ Помилка обробки даних"), senderId));
     }
     return;
   }

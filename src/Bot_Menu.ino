@@ -1,6 +1,6 @@
 // Помічник для побудови повного URL з параметрами профілів
 String getFullWebAppURL() {
-    auto getProfParams = [](const char* name, const char* prefix) {
+    auto getFullWebAppURL_Params = [](const char* name, const char* prefix) {
         File f = LittleFS.open(name, "r");
         if (!f) return String("");
         JsonDocument d;
@@ -29,14 +29,23 @@ String getFullWebAppURL() {
     String url;
     url.reserve(700);
     url = WEBAPP_URL;
-    url += "?cp="; url += (profile ? "D" : "N");
-    url += getProfParams("/D_profile.json", "d_");
-    url += getProfParams("/N_profile.json", "n_");
+    url += "?"; // Початок параметрів
     
-    int td = (Time_D > 0) ? (Time_D / 3600) : 8;
-    int tn = (Time_N > 0) ? (Time_N / 3600) : 20;
-    url += "&g_tdh="; url += String(td);
-    url += "&g_tnh="; url += String(tn);
+    // Перший виклик додасть "&", тому ми приберемо його або додамо заглушку.
+    // Краще просто прибрати "&" з першого результату.
+    String p1 = getFullWebAppURL_Params("/D_profile.json", "d_");
+    if (p1.startsWith("&")) p1 = p1.substring(1);
+    url += p1;
+    
+    url += getFullWebAppURL_Params("/N_profile.json", "n_");
+    url += getFullWebAppURL_Params("/G_profile.json", "g_");
+    
+    url += "&g_td="; url += String(Time_D);
+    url += "&g_tn="; url += String(Time_N);
+    url += "&g_en="; url += String(profile_timer_en ? 1 : 0);
+    url += "&cp="; 
+    if (!profile_timer_en) url += "G";
+    else url += (profile == 1 ? "D" : "N");
     return url;
 }
 

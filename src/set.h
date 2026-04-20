@@ -83,7 +83,7 @@ const int timeZone = 2;
 
 #define SID_AP "CONTROL"
 // #define PAS_AP "qawsedrf" // Пароль видалено для відкритої мережі
-#define WEBAPP_URL "https://olegi4a.github.io/esp-telegram-settings/"
+#define WEBAPP_URL "https://olegi4a.github.io/esp-telegram-settings/index2.html"
 #define Token  "1613585471:AAG351riAaemnIVA7sjrTYfgtT2xKTIyGFY"
 #define bos    411849588
 

@@ -34,19 +34,21 @@ void setup()
   }
   
   // Logo "EDwIC" centered
-  display.setTextSize(2);
+  display.setTextSize(display_type == 0 ? 1 : 2); // На малому екрані краще 1 розмір або 2, якщо влізе
+  if (display_type == 0) display.setTextSize(2);  // Залишаємо 2 для "EDwIC", воно рівно 60 пікселів
+
   int16_t x1, y1;
   uint16_t w, h;
   display.getTextBounds("EDwIC", 0, 0, &x1, &y1, &w, &h);
-  display.setCursor((display.width() - w) / 2, 5);
+  display.setCursor((display.width() - w) / 2, (display_type == 0 ? 2 : 5));
   display.print("EDwIC");
 
-  // Version number centered horizontally, Y=23
+  // Version number centered horizontally
   String fullVer = FIRMWARE_VERSION;
   String shortVer = (fullVer.indexOf('-') != -1) ? fullVer.substring(fullVer.indexOf('-') + 1) : fullVer;
   display.setTextSize(1);
   display.getTextBounds(shortVer, 0, 0, &x1, &y1, &w, &h);
-  display.setCursor((display.width() - w) / 2, 23);
+  display.setCursor((display.width() - w) / 2, (display_type == 0 ? 22 : 23));
   display.print(shortVer);
 
   display.display();
@@ -170,7 +172,7 @@ void setup()
   if (WiFi.getMode() != WIFI_AP) {
     myBot.setToken(TB_Token);
     myBot.setTimeout(8500);
-    myBot.client.setBufferSizes(3072, 512);
+    myBot.client.setBufferSizes(5120, 512);
     myBot.onUpdate(Telegram_Callback);
     
     if (TB_Token.length() > 10) {

@@ -165,9 +165,9 @@ void Adafruit_SSD1306::drawPixel(int16_t x, int16_t y, uint16_t color) {
   // x is which column
     switch (color)
     {
-      case WHITE:   buffer[x+ (y/8)*SSD1306_LCDWIDTH] |=  (1 << (y&7)); break;
-      case BLACK:   buffer[x+ (y/8)*SSD1306_LCDWIDTH] &= ~(1 << (y&7)); break;
-      case INVERSE: buffer[x+ (y/8)*SSD1306_LCDWIDTH] ^=  (1 << (y&7)); break;
+      case WHITE:   buffer[x+ (y/8)*WIDTH] |=  (1 << (y&7)); break;
+      case BLACK:   buffer[x+ (y/8)*WIDTH] &= ~(1 << (y&7)); break;
+      case INVERSE: buffer[x+ (y/8)*WIDTH] ^=  (1 << (y&7)); break;
     }
 
 }
@@ -280,6 +280,8 @@ void Adafruit_SSD1306::begin(uint8_t vccstate, uint8_t i2caddr, bool reset) {
   // Update GFX dimensions
   WIDTH = (display_type == 0) ? 64 : 128;
   HEIGHT = (display_type == 0) ? 48 : 64;
+  _width = WIDTH;
+  _height = HEIGHT;
 
   if (display_type == 0) {
     // 64x48 specific init (Multiplex ratio is already set to 47 earlier)
@@ -390,7 +392,7 @@ void Adafruit_SSD1306::startscrollleft(uint8_t start, uint8_t stop){
 void Adafruit_SSD1306::startscrolldiagright(uint8_t start, uint8_t stop){
   ssd1306_command(SSD1306_SET_VERTICAL_SCROLL_AREA);
   ssd1306_command(0x00);
-  ssd1306_command(SSD1306_LCDHEIGHT);
+  ssd1306_command(HEIGHT);
   ssd1306_command(SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL);
   ssd1306_command(0x00);
   ssd1306_command(start);
@@ -407,7 +409,7 @@ void Adafruit_SSD1306::startscrolldiagright(uint8_t start, uint8_t stop){
 void Adafruit_SSD1306::startscrolldiagleft(uint8_t start, uint8_t stop){
   ssd1306_command(SSD1306_SET_VERTICAL_SCROLL_AREA);
   ssd1306_command(0x00);
-  ssd1306_command(SSD1306_LCDHEIGHT);
+  ssd1306_command(HEIGHT);
   ssd1306_command(SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL);
   ssd1306_command(0x00);
   ssd1306_command(start);
@@ -481,7 +483,7 @@ void Adafruit_SSD1306::display(void) {
     digitalWrite(cs, LOW);
 #endif
 
-    for (uint16_t i=0; i<(SSD1306_LCDWIDTH*SSD1306_LCDHEIGHT/8); i++) {
+    for (uint16_t i=0; i<(WIDTH*HEIGHT/8); i++) {
       fastSPIwrite(buffer[i]);
     }
 #ifdef HAVE_PORTREG
@@ -502,7 +504,7 @@ void Adafruit_SSD1306::display(void) {
     //Serial.println(TWSR & 0x3, DEC);
 
     // I2C
-    for (uint16_t i=0; i<(SSD1306_LCDWIDTH*SSD1306_LCDHEIGHT/8); i++) {
+    for (uint16_t i=0; i<(WIDTH*HEIGHT/8); i++) {
       // send a bunch of data in one xmission
       Wire.beginTransmission(_i2caddr);
       WIRE_WRITE(0x40);
@@ -521,7 +523,7 @@ void Adafruit_SSD1306::display(void) {
 
 // clear everything
 void Adafruit_SSD1306::clearDisplay(void) {
-  memset(buffer, 0, (SSD1306_LCDWIDTH*SSD1306_LCDHEIGHT/8));
+  memset(buffer, 0, (WIDTH*HEIGHT/8));
 }
 
 
@@ -591,7 +593,7 @@ void Adafruit_SSD1306::drawFastHLineInternal(int16_t x, int16_t y, int16_t w, ui
   }
 
   // make sure we don't go off the edge of the display
-  if( (x + w) > WIDTH) {
+  if( (x + w) > (int16_t)WIDTH) {
     w = (WIDTH - x);
   }
 
@@ -601,7 +603,7 @@ void Adafruit_SSD1306::drawFastHLineInternal(int16_t x, int16_t y, int16_t w, ui
   // set up the pointer for  movement through the buffer
   register uint8_t *pBuf = buffer;
   // adjust the buffer pointer for the current row
-  pBuf += ((y/8) * SSD1306_LCDWIDTH);
+  pBuf += ((y/8) * WIDTH);
   // and offset x columns in
   pBuf += x;
 
@@ -680,7 +682,7 @@ void Adafruit_SSD1306::drawFastVLineInternal(int16_t x, int16_t __y, int16_t __h
   // set up the pointer for fast movement through the buffer
   register uint8_t *pBuf = buffer;
   // adjust the buffer pointer for the current row
-  pBuf += ((y/8) * SSD1306_LCDWIDTH);
+  pBuf += ((y/8) * WIDTH);
   // and offset x columns in
   pBuf += x;
 
@@ -712,7 +714,7 @@ void Adafruit_SSD1306::drawFastVLineInternal(int16_t x, int16_t __y, int16_t __h
 
     h -= mod;
 
-    pBuf += SSD1306_LCDWIDTH;
+    pBuf += WIDTH;
   }
 
 
@@ -723,7 +725,7 @@ void Adafruit_SSD1306::drawFastVLineInternal(int16_t x, int16_t __y, int16_t __h
       *pBuf=~(*pBuf);
 
         // adjust the buffer forward 8 rows worth of data
-        pBuf += SSD1306_LCDWIDTH;
+        pBuf += WIDTH;
 
         // adjust h & y (there's got to be a faster way for me to do this, but this should still help a fair bit for now)
         h -= 8;
@@ -738,7 +740,7 @@ void Adafruit_SSD1306::drawFastVLineInternal(int16_t x, int16_t __y, int16_t __h
       *pBuf = val;
 
         // adjust the buffer forward 8 rows worth of data
-        pBuf += SSD1306_LCDWIDTH;
+        pBuf += WIDTH;
 
         // adjust h & y (there's got to be a faster way for me to do this, but this should still help a fair bit for now)
         h -= 8;

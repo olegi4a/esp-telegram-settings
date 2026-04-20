@@ -229,8 +229,8 @@ static void display_qr_page() {
 
   if (display_type == 1) {
     int scale = 3; 
-    int offX = (128 - qrcode.size * scale) / 2;
-    int offY = (64 - qrcode.size * scale) / 2;
+    int offX = (screenW - qrcode.size * scale) / 2;
+    int offY = (screenH - qrcode.size * scale) / 2;
     
     for (uint8_t y = 0; y < qrcode.size; y++) {
       for (uint8_t x = 0; x < qrcode.size; x++) {
@@ -270,6 +270,8 @@ void display_loop(void)
 
   display.clearDisplay();
   display.setTextColor(WHITE);
+  display.setFont();      // Скидання шрифту на дефолтний
+  display.setTextSize(1); // Скидання розміру на 1
 
   switch (display_page) {
     case 0:  display_main();    break;
