@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ESP Control Settings</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* === DESIGN SYSTEM (Mirroring Home.html Exactly) === */
+        :root {
+            --bg: #0f1117;
+            --card: #1a1d2e;
+            --border: #2a2d3e;
+            --accent: #6c63ff;
+            --accent2: #ff6b6b;
+            --green: #43e97b;
+            --orange: #ff9f43;
+            --text: #eaf0fb;
+            --muted: #8892a4;
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 16px;
+            padding-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .card-title {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .1rem;
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        /* === FORM FIELDS === */
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: block;
+            font-size: .72rem;
+            color: var(--muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-weight: 600;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: .9rem;
+            outline: none;
+            transition: border .2s;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--accent);
+        }
+
+        /* === MODE BUTTONS === */
+        .mode-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 8px 4px;
+            background: var(--border);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: center;
+        }
+
+        .mode-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* === PROFILE TABS === */
+        .prof-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .prof-tab {
+            flex: 1;
+            padding: 8px;
+            background: var(--border);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all .2s;
+        }
+
+        .prof-tab.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* === PROFILE MODE SELECTOR (Vertical) === */
+        .pmode-opt {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .pmode-opt.active {
+            border-color: var(--accent);
+            background: rgba(108, 99, 255, 0.12);
+        }
+
+        .pmode-radio {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--muted);
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: relative;
+            transition: border-color .2s;
+        }
+
+        .pmode-opt.active .pmode-radio {
+            border-color: var(--accent);
+        }
+
+        .pmode-opt.active .pmode-radio::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* === TOGGLES (Web UI Style) === */
+        .toggle-wrap {
+            position: relative;
+        }
+        .toggle-wrap input {
+            display: none;
+        }
+        .toggle-wrap label {
+            display: block;
+            width: 50px;
+            height: 26px;
+            background: var(--border);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background .3s;
+            position: relative;
+        }
+        .toggle-wrap label::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            top: 4px;
+            left: 4px;
+            transition: transform .3s;
+        }
+        .toggle-wrap input:checked+label {
+            background: var(--green);
+        }
+        .toggle-wrap input:checked+label::after {
+            transform: translateX(26px);
+        }
+
+        /* === BUTTONS === */
+        .btn {
+            padding: 11px 20px;
+            border: none;
+            border-radius: 9px;
+            font-size: .85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: .02em;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-full {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* === TOAST === */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e2340;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            padding: 10px 22px;
+            font-size: .85rem;
+            transition: transform .35s;
+            z-index: 1000;
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .section-title {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            margin: 8px 0 6px;
+        }
+
+        /* === DIRTY STATE === */
+        .dirty-legend {
+            font-size: .85rem;
+            font-weight: 600;
+            color: #ff9f43;
+            text-align: center;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .dirty-wrap {
+            border: 2px solid var(--orange) !important;
+            border-radius: 12px;
+            padding: 6px;
+            margin: -8px;
+        }
+
+        .dirty-tgl {
+            box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.4);
+            border-radius: 2em;
+        }
+
+        .prof-mode-card {
+            animation: fadeIn .25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Schedule Control -->
+    <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="card-title" style="margin:0">Робота за розкладом</div>
+            <div class="toggle-wrap">
+                <input type="checkbox" id="g-profile_timer_en" onchange="handleScheduleChange(this)">
+                <label for="g-profile_timer_en"></label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time profile boundaries -->
+    <div class="card" id="card-schedule-time" style="display:none">
+        <div class="card-title">Межі профілів за часом</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field" style="margin:0">
+                <label style="font-size:0.65rem">☀️ День починається</label>
+                <div style="display:flex;align-items:center;gap:4px">
+                    <input type="number" id="g-Time_D_h" min="0" max="23" value="8" style="padding:8px 4px;text-align:center">
+                    <span>:</span>
+                    <input type="number" id="g-Time_D_m" min="0" max="59" value="0" style="padding:8px 4px;text-align:center">
+                </div>
+            </div>
+            <div class="field" style="margin:0">
+                <label style="font-size:0.65rem">🌙 Ніч починається</label>
+                <div style="display:flex;align-items:center;gap:4px">
+                    <input type="number" id="g-Time_N_h" min="0" max="23" value="20" style="padding:8px 4px;text-align:center">
+                    <span>:</span>
+                    <input type="number" id="g-Time_N_m" min="0" max="59" value="0" style="padding:8px 4px;text-align:center">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title" id="prof-header">Виберіть профіль</div>
+    <div class="prof-tabs" id="prof-tabs-wrap">
+        <div class="prof-tab active" id="ptab-D" onclick="setProfTab('D')">☀️ День</div>
+        <div class="prof-tab" id="ptab-N" onclick="setProfTab('N')">🌙 Ніч</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Початковий стан реле при старті</div>
+        <div class="mode-btns" id="ss-wrap">
+            <div class="mode-btn" id="ss-0" onclick="setStartStatus(0)">Вимкнено</div>
+            <div class="mode-btn" id="ss-1" onclick="setStartStatus(1)">Увімкнено</div>
+        </div>
+    </div>
+
+    <!-- Mode selector (vertical) -->
+    <div class="card">
+        <div class="card-title">Режим автоматики профілю</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="pmode-wrap">
+            <div class="pmode-opt" id="pmode-0" onclick="setProfMode(0)">
+                <div class="pmode-radio"></div>
+                <div>
+                    <div style="font-weight:700;font-size:.88rem">🖐 Ручний</div>
+                    <div style="font-size:.72rem;color:var(--muted)">Керування тільки вручну</div>
+                </div>
+            </div>
+            <div class="pmode-opt" id="pmode-1" onclick="setProfMode(1)">
+                <div class="pmode-radio"></div>
+                <div>
+                    <div style="font-weight:700;font-size:.88rem">🌡 По датчику</div>
+                    <div style="font-size:.72rem;color:var(--muted)">Підтримка температури</div>
+                </div>
+            </div>
+            <div class="pmode-opt" id="pmode-2" onclick="setProfMode(2)">
+                <div class="pmode-radio"></div>
+                <div>
+                    <div style="font-weight:700;font-size:.88rem">⏱ По таймеру</div>
+                    <div style="font-size:.72rem;color:var(--muted)">Циклічне ввімкнення/вимкнення</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensor settings -->
+    <div class="card prof-mode-card" id="card-sensor" style="display:none">
+        <div class="card-title">🌡 Параметри датчика</div>
+        <div class="field">
+            <label>Уставка (SetPoint) °C</label>
+            <input type="number" id="p-Sensor_set" step="0.1" min="-30" max="120" value="20">
+        </div>
+        <div class="field">
+            <label>Гістерезис °C</label>
+            <input type="number" id="p-Sensor_histeresis" step="0.1" min="0.1" max="20" value="0.1">
+        </div>
+        <div class="field" style="margin:0">
+            <label>Реле вмикається якщо temp</label>
+            <select id="p-Rele_status">
+                <option value="0">Нижче уставки</option>
+                <option value="1">Вище уставки</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Timer settings -->
+    <div class="card prof-mode-card" id="card-timer" style="display:none">
+        <div class="card-title">⏱ Параметри таймера</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field" style="margin:0">
+                <label>ON хвилин</label>
+                <input type="number" id="p-Time_on" value="1">
+            </div>
+            <div class="field" style="margin:0">
+                <label>OFF хвилин</label>
+                <input type="number" id="p-Time_off" value="1">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Тривога по температурі</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field" style="margin:0">
+                <label>Верхня межа °C</label>
+                <input type="number" id="p-Alarm_data_u" step="0.1" min="-30" max="120" value="30">
+            </div>
+            <div class="field" style="margin:0">
+                <label>Нижня межа °C</label>
+                <input type="number" id="p-Alarm_data_d" step="0.1" min="-30" max="120" value="15">
+            </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-Alarm_data_set"> Тривога активна
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-trend"> По тенденції
+            </label>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Сповіщення</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-Alarm_start"> Повідомлення про перезавантаження
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-Alarm_power"> Сповіщення про збій живлення
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-relay_change_notify"> Сповіщення про зміну реле
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-widget_status"> Віджет (раз на 5 хв)
+            </label>
+        </div>
+    </div>
+
+    <div class="dirty-legend">⚠️ Є незбережені зміни</div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+        <button class="btn" style="flex:1;background:var(--border);color:var(--text)" onclick="cancelChanges()">❌ Скасувати</button>
+        <button class="btn btn-primary" id="btn-save" style="flex:1" onclick="saveSettings()">💾 Зберегти</button>
+    </div>
+
+    <div id="toast">✅ Збережено на пристрої</div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.setHeaderColor('#0f1117');
+
+        let currentProf = 'D';
+        let initialData = null; 
+        let dataStore = { D: {}, N: {}, G: {}, global: {} };
+
+        const paramMap = {
+            'Sensor_set': 'ss', 'Sensor_histeresis': 'sh', 'Rele_status': 'rs',
+            'Time_on': 'ton', 'Time_off': 'tof',
+            'Alarm_data_u': 'au', 'Alarm_data_d': 'ad', 'Alarm_data_set': 'as', 'trend': 'tr',
+            'Alarm_start': 'ast', 'Alarm_power': 'ap', 'relay_change_notify': 'rn', 'widget_status': 'w',
+            'Statatus_sensor_control': 'sc', 'Start_status': 'sts'
+        };
+
+        const profileKeys = Object.keys(paramMap);
+
+        function parseVal(v) {
+            if (v === null || v === undefined) return 0;
+            if (v === 'true' || v === '1') return 1;
+            if (v === 'false' || v === '0') return 0;
+            const n = parseFloat(v);
+            return isNaN(n) ? v : n;
+        }
+
+        function init() {
+            const params = new URLSearchParams(location.search);
+            
+            // Завантаження глобальних налаштувань
+            dataStore.global.profile_timer_en = parseVal(params.get('g_en')) === 1;
+            const td = parseVal(params.get('g_td')) || 28800;
+            const tn = parseVal(params.get('g_tn')) || 72000;
+            
+            dataStore.global.Time_D_h = Math.floor(td / 3600);
+            dataStore.global.Time_D_m = Math.floor((td % 3600) / 60);
+            dataStore.global.Time_N_h = Math.floor(tn / 3600);
+            dataStore.global.Time_N_m = Math.floor((tn % 3600) / 60);
+
+            // Завантаження профілів D, N, G
+            ['D', 'N', 'G'].forEach(p => {
+                const prefix = p.toLowerCase() + '_';
+                profileKeys.forEach(k => {
+                    dataStore[p][k] = parseVal(params.get(prefix + paramMap[k]));
+                });
+            });
+
+            // Визначення початкового профілю
+            if (!dataStore.global.profile_timer_en) {
+                currentProf = 'G';
+            } else {
+                currentProf = params.get('cp') || 'D';
+            }
+
+            initialData = JSON.parse(JSON.stringify(dataStore));
+
+            // Синхронізація UI
+            document.getElementById('g-profile_timer_en').checked = dataStore.global.profile_timer_en;
+            document.getElementById('g-Time_D_h').value = dataStore.global.Time_D_h;
+            document.getElementById('g-Time_D_m').value = dataStore.global.Time_D_m;
+            document.getElementById('g-Time_N_h').value = dataStore.global.Time_N_h;
+            document.getElementById('g-Time_N_m').value = dataStore.global.Time_N_m;
+
+            updateProfileVisibility();
+            syncTabs();
+            loadProfileToUI();
+            
+            document.addEventListener('input', evaluateChanges);
+        }
+
+        function updateProfileVisibility() {
+            const en = document.getElementById('g-profile_timer_en').checked;
+            document.getElementById('card-schedule-time').style.display = en ? 'block' : 'none';
+            document.getElementById('prof-tabs-wrap').style.display = en ? 'flex' : 'none';
+            document.getElementById('prof-header').textContent = en ? 'Виберіть профіль' : 'Загальний профіль';
+            
+            if (!en) {
+                currentProf = 'G';
+            } else if (currentProf === 'G') {
+                currentProf = 'D';
+            }
+            syncTabs();
+            loadProfileToUI();
+        }
+
+        function handleScheduleChange(el) {
+            updateProfileVisibility();
+            evaluateChanges();
+        }
+
+        function syncTabs() {
+            ['D', 'N'].forEach(id => {
+                const el = document.getElementById('ptab-' + id);
+                if (el) el.classList.toggle('active', id === currentProf);
+            });
+        }
+
+        function setProfTab(p) {
+            saveUIToStore();
+            currentProf = p;
+            syncTabs();
+            loadProfileToUI();
+            evaluateChanges();
+        }
+
+        function loadProfileToUI() {
+            const data = dataStore[currentProf];
+            profileKeys.forEach(k => {
+                const el = document.getElementById('p-' + k);
+                if (!el) return;
+                if (el.type === 'checkbox') el.checked = (data[k] == 1);
+                else el.value = data[k];
+            });
+            setStartStatus(parseInt(data.Start_status || 0), false);
+            setProfMode(parseInt(data.Statatus_sensor_control || 0), false);
+        }
+
+        function saveUIToStore() {
+            const data = dataStore[currentProf];
+            profileKeys.forEach(k => {
+                const el = document.getElementById('p-' + k);
+                if (!el) return;
+                data[k] = el.type === 'checkbox' ? (el.checked ? 1 : 0) : parseVal(el.value);
+            });
+        }
+
+        function setStartStatus(v, manual = true) {
+            if (manual) dataStore[currentProf].Start_status = v;
+            document.getElementById('ss-0').classList.toggle('active', v === 0);
+            document.getElementById('ss-1').classList.toggle('active', v === 1);
+            if (manual) evaluateChanges();
+        }
+
+        function setProfMode(m, manual = true) {
+            if (manual) dataStore[currentProf].Statatus_sensor_control = m;
+            [0, 1, 2].forEach(id => {
+                document.getElementById('pmode-' + id).classList.toggle('active', id === m);
+            });
+            document.getElementById('card-sensor').style.display = (m === 1 ? 'block' : 'none');
+            document.getElementById('card-timer').style.display = (m === 2 ? 'block' : 'none');
+            if (manual) evaluateChanges();
+        }
+
+        function evaluateChanges() {
+            saveUIToStore();
+            dataStore.global.profile_timer_en = document.getElementById('g-profile_timer_en').checked;
+            dataStore.global.Time_D_h = parseVal(document.getElementById('g-Time_D_h').value);
+            dataStore.global.Time_D_m = parseVal(document.getElementById('g-Time_D_m').value);
+            dataStore.global.Time_N_h = parseVal(document.getElementById('g-Time_N_h').value);
+            dataStore.global.Time_N_m = parseVal(document.getElementById('g-Time_N_m').value);
+
+            let isDirty = JSON.stringify(dataStore) !== JSON.stringify(initialData);
+            let hasInvalid = false;
+            
+            document.querySelectorAll('input[type="number"]').forEach(el => {
+                const valid = el.checkValidity();
+                const dirty = isFieldDirty(el);
+                el.style.borderColor = valid ? (dirty ? 'var(--orange)' : '') : 'var(--orange)';
+                el.style.borderWidth = (valid && !dirty) ? '' : '2px';
+                if (!valid) hasInvalid = true;
+            });
+
+            document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+                const dirty = isFieldDirty(el);
+                const wrap = el.closest('.toggle-wrap');
+                if (wrap) {
+                    const lbl = wrap.querySelector('label');
+                    if (lbl) lbl.style.boxShadow = dirty ? '0 0 0 3px rgba(255, 159, 67, 0.4)' : '';
+                }
+            });
+
+            document.querySelectorAll('.pmode-opt, .mode-btn').forEach(el => {
+                const dirty = isFieldDirty(el);
+                el.style.borderColor = dirty ? 'var(--orange)' : '';
+                el.style.borderWidth = dirty ? '2px' : '';
+            });
+
+            document.querySelector('.dirty-legend').style.display = isDirty ? 'block' : 'none';
+            const saveBtn = document.getElementById('btn-save');
+            saveBtn.disabled = hasInvalid;
+            saveBtn.style.opacity = hasInvalid ? '0.5' : '1';
+        }
+
+        function isFieldDirty(el) {
+            let key = el.id.startsWith('p-') ? el.id.substring(2) : (el.id.startsWith('g-') ? el.id.substring(2) : el.id);
+            
+            if (el.classList.contains('pmode-opt')) {
+                const m = parseInt(el.id.split('-')[1]);
+                return m !== initialData[currentProf].Statatus_sensor_control;
+            }
+            if (el.classList.contains('mode-btn')) {
+                const s = parseInt(el.id.split('-')[1]);
+                return s !== initialData[currentProf].Start_status;
+            }
+            
+            let current = el.type === 'checkbox' ? el.checked : parseVal(el.value);
+            let original;
+            
+            if (el.id.startsWith('p-')) {
+                original = initialData[currentProf][key];
+            } else if (el.id.startsWith('g-')) {
+                original = initialData.global[key];
+            }
+            
+            if (original === undefined) return false;
+            return current !== original;
+        }
+
+        function cancelChanges() {
+            dataStore = JSON.parse(JSON.stringify(initialData));
+            loadProfileToUI();
+            
+            document.getElementById('g-profile_timer_en').checked = dataStore.global.profile_timer_en;
+            document.getElementById('g-Time_D_h').value = dataStore.global.Time_D_h;
+            document.getElementById('g-Time_D_m').value = dataStore.global.Time_D_m;
+            document.getElementById('g-Time_N_h').value = dataStore.global.Time_N_h;
+            document.getElementById('g-Time_N_m').value = dataStore.global.Time_N_m;
+            
+            updateProfileVisibility();
+            evaluateChanges();
+            showToast('🔄 Зміни скасовано');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function saveSettings() {
+            saveUIToStore();
+            const g = dataStore.global;
+            const body = {
+                t: g.profile_timer_en ? currentProf : 'G',
+                s: dataStore[currentProf],
+                g: {
+                    profile_timer_en: g.profile_timer_en ? 1 : 0,
+                    Time_D: (parseInt(g.Time_D_h) * 3600) + (parseInt(g.Time_D_m) * 60),
+                    Time_N: (parseInt(g.Time_N_h) * 3600) + (parseInt(g.Time_N_m) * 60)
+                }
+            };
+
+            tg.sendData(JSON.stringify(body));
+            showToast('✅ Надіслано!');
+            setTimeout(() => tg.close(), 1200);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
