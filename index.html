@@ -44,6 +44,7 @@
             border-radius: var(--radius);
             padding: 16px;
             margin-bottom: 12px;
+            position: relative;
         }
 
         .card-title {
@@ -87,7 +88,7 @@
             border-color: var(--accent);
         }
 
-        /* === MODE BUTTONS (Start status) === */
+        /* === MODE BUTTONS === */
         .mode-btns {
             display: flex;
             gap: 8px;
@@ -95,13 +96,13 @@
 
         .mode-btn {
             flex: 1;
-            padding: 10px 4px;
+            padding: 8px 4px;
             background: var(--border);
             border: 1px solid transparent;
             border-radius: 8px;
             color: var(--muted);
             font-size: .75rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             transition: all .2s;
             text-align: center;
@@ -150,20 +151,21 @@
             border-radius: 10px;
             cursor: pointer;
             transition: all .2s;
-            margin-bottom: 8px;
         }
 
         .pmode-opt.active {
             border-color: var(--accent);
-            background: rgba(108, 99, 255, 0.05);
+            background: rgba(108, 99, 255, 0.12);
         }
 
         .pmode-radio {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border);
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--muted);
             border-radius: 50%;
+            flex-shrink: 0;
             position: relative;
+            transition: border-color .2s;
         }
 
         .pmode-opt.active .pmode-radio {
@@ -173,12 +175,48 @@
         .pmode-opt.active .pmode-radio::after {
             content: '';
             position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background: var(--accent);
             border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* === TOGGLES (Web UI Style) === */
+        .toggle-wrap {
+            position: relative;
+        }
+        .toggle-wrap input {
+            display: none;
+        }
+        .toggle-wrap label {
+            display: block;
+            width: 50px;
+            height: 26px;
+            background: var(--border);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background .3s;
+            position: relative;
+        }
+        .toggle-wrap label::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            top: 4px;
+            left: 4px;
+            transition: transform .3s;
+        }
+        .toggle-wrap input:checked+label {
+            background: var(--green);
+        }
+        .toggle-wrap input:checked+label::after {
+            transform: translateX(26px);
         }
 
         /* === BUTTONS === */
@@ -204,28 +242,11 @@
 
         .btn-full {
             width: 100%;
-            margin: 16px 0 10px;
+            margin-bottom: 10px;
         }
 
         .btn:active {
             transform: scale(0.97);
-        }
-
-        /* === CHECKBOXES (Home.html style) === */
-        label[style*="cursor:pointer"] {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: .88rem;
-            padding: 6px 0;
-            color: var(--text);
-        }
-
-        input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--accent);
-            cursor: pointer;
         }
 
         /* === TOAST === */
@@ -246,19 +267,93 @@
         #toast.show {
             transform: translateX(-50%) translateY(0);
         }
+
+        .section-title {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--muted);
+            margin: 8px 0 6px;
+        }
+
+        /* === DIRTY STATE === */
+        .dirty-legend {
+            font-size: .85rem;
+            font-weight: 600;
+            color: #ff9f43;
+            text-align: center;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .dirty-wrap {
+            border: 2px solid var(--orange) !important;
+            border-radius: 12px;
+            padding: 6px;
+            margin: -8px;
+        }
+
+        .dirty-tgl {
+            box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.4);
+            border-radius: 2em;
+        }
+
+        .prof-mode-card {
+            animation: fadeIn .25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="prof-tabs">
+    <!-- Schedule Control -->
+    <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="card-title" style="margin:0">Робота за розкладом</div>
+            <div class="toggle-wrap">
+                <input type="checkbox" id="g-profile_timer_en" onchange="handleScheduleChange(this)">
+                <label for="g-profile_timer_en"></label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time profile boundaries -->
+    <div class="card" id="card-schedule-time" style="display:none">
+        <div class="card-title">Межі профілів за часом</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field" style="margin:0">
+                <label style="font-size:0.65rem">☀️ День починається</label>
+                <div style="display:flex;align-items:center;gap:4px">
+                    <input type="number" id="g-Time_D_h" min="0" max="23" value="8" style="padding:8px 4px;text-align:center">
+                    <span>:</span>
+                    <input type="number" id="g-Time_D_m" min="0" max="59" value="0" style="padding:8px 4px;text-align:center">
+                </div>
+            </div>
+            <div class="field" style="margin:0">
+                <label style="font-size:0.65rem">🌙 Ніч починається</label>
+                <div style="display:flex;align-items:center;gap:4px">
+                    <input type="number" id="g-Time_N_h" min="0" max="23" value="20" style="padding:8px 4px;text-align:center">
+                    <span>:</span>
+                    <input type="number" id="g-Time_N_m" min="0" max="59" value="0" style="padding:8px 4px;text-align:center">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title" id="prof-header">Виберіть профіль</div>
+    <div class="prof-tabs" id="prof-tabs-wrap">
         <div class="prof-tab active" id="ptab-D" onclick="setProfTab('D')">☀️ День</div>
         <div class="prof-tab" id="ptab-N" onclick="setProfTab('N')">🌙 Ніч</div>
     </div>
 
     <div class="card">
         <div class="card-title">Початковий стан реле при старті</div>
-        <div class="mode-btns">
+        <div class="mode-btns" id="ss-wrap">
             <div class="mode-btn" id="ss-0" onclick="setStartStatus(0)">Вимкнено</div>
             <div class="mode-btn" id="ss-1" onclick="setStartStatus(1)">Увімкнено</div>
         </div>
@@ -267,25 +362,25 @@
     <!-- Mode selector (vertical) -->
     <div class="card">
         <div class="card-title">Режим автоматики профілю</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:8px" id="pmode-wrap">
             <div class="pmode-opt" id="pmode-0" onclick="setProfMode(0)">
                 <div class="pmode-radio"></div>
                 <div>
-                    <div style="font-weight:700;font-size:1rem">🖐 Ручний</div>
+                    <div style="font-weight:700;font-size:.88rem">🖐 Ручний</div>
                     <div style="font-size:.72rem;color:var(--muted)">Керування тільки вручну</div>
                 </div>
             </div>
             <div class="pmode-opt" id="pmode-1" onclick="setProfMode(1)">
                 <div class="pmode-radio"></div>
                 <div>
-                    <div style="font-weight:700;font-size:1rem">🌡 По датчику</div>
+                    <div style="font-weight:700;font-size:.88rem">🌡 По датчику</div>
                     <div style="font-size:.72rem;color:var(--muted)">Підтримка температури</div>
                 </div>
             </div>
             <div class="pmode-opt" id="pmode-2" onclick="setProfMode(2)">
                 <div class="pmode-radio"></div>
                 <div>
-                    <div style="font-weight:700;font-size:1rem">⏱ По таймеру</div>
+                    <div style="font-weight:700;font-size:.88rem">⏱ По таймеру</div>
                     <div style="font-size:.72rem;color:var(--muted)">Циклічне ввімкнення/вимкнення</div>
                 </div>
             </div>
@@ -297,15 +392,15 @@
         <div class="card-title">🌡 Параметри датчика</div>
         <div class="field">
             <label>Уставка (SetPoint) °C</label>
-            <input type="number" id="p-sensor_set" step="0.1" min="-30" max="120" value="20">
+            <input type="number" id="p-Sensor_set" step="0.1" min="-30" max="120" value="20">
         </div>
         <div class="field">
             <label>Гістерезис °C</label>
-            <input type="number" id="p-sensor_histeresis" step="0.1" min="0.1" max="20" value="0.1">
+            <input type="number" id="p-Sensor_histeresis" step="0.1" min="0.1" max="20" value="0.1">
         </div>
         <div class="field" style="margin:0">
             <label>Реле вмикається якщо temp</label>
-            <select id="p-rele_status">
+            <select id="p-Rele_status">
                 <option value="0">Нижче уставки</option>
                 <option value="1">Вище уставки</option>
             </select>
@@ -318,11 +413,11 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="field" style="margin:0">
                 <label>ON хвилин</label>
-                <input type="number" id="p-time_on" value="1">
+                <input type="number" id="p-Time_on" value="1">
             </div>
             <div class="field" style="margin:0">
                 <label>OFF хвилин</label>
-                <input type="number" id="p-time_off" value="1">
+                <input type="number" id="p-Time_off" value="1">
             </div>
         </div>
     </div>
@@ -332,18 +427,18 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="field" style="margin:0">
                 <label>Верхня межа °C</label>
-                <input type="number" id="p-alarm_data_u" step="0.1" min="-30" max="120" value="30">
+                <input type="number" id="p-Alarm_data_u" step="0.1" min="-30" max="120" value="30">
             </div>
             <div class="field" style="margin:0">
                 <label>Нижня межа °C</label>
-                <input type="number" id="p-alarm_data_d" step="0.1" min="-30" max="120" value="15">
+                <input type="number" id="p-Alarm_data_d" step="0.1" min="-30" max="120" value="15">
             </div>
         </div>
-        <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-            <label style="cursor:pointer">
-                <input type="checkbox" id="p-alarm_data_set"> Тривога активна
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-Alarm_data_set"> Тривога активна
             </label>
-            <label style="cursor:pointer">
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
                 <input type="checkbox" id="p-trend"> По тенденції
             </label>
         </div>
@@ -352,47 +447,26 @@
     <div class="card">
         <div class="card-title">Сповіщення</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-            <label style="cursor:pointer">
-                <input type="checkbox" id="p-alarm_start"> Повідомлення про перезавантаження
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-Alarm_start"> Повідомлення про перезавантаження
             </label>
-            <label style="cursor:pointer">
-                <input type="checkbox" id="p-alarm_power"> Сповіщення про збій живлення
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-Alarm_power"> Сповіщення про збій живлення
             </label>
-            <label style="cursor:pointer">
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
                 <input type="checkbox" id="p-relay_change_notify"> Сповіщення про зміну реле
             </label>
-            <label style="cursor:pointer">
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
                 <input type="checkbox" id="p-widget_status"> Віджет (раз на 5 хв)
             </label>
         </div>
     </div>
 
-    <!-- Global context context boundaries -->
-    <div class="card">
-        <div class="card-title">🕐 Тимчасові межі профілів</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div class="field" style="margin:0">
-                <label style="font-size: calc(0.72rem - 1px)">☀️ День починається</label>
-                <input type="number" id="g-time_d_h" min="0" max="23" value="8">
-            </div>
-            <div class="field" style="margin:0">
-                <label style="font-size: calc(0.72rem - 1px)">🌙 Ніч починається</label>
-                <input type="number" id="g-time_n_h" min="0" max="23" value="20">
-            </div>
-        </div>
+    <div class="dirty-legend">⚠️ Є незбережені зміни</div>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+        <button class="btn" style="flex:1;background:var(--border);color:var(--text)" onclick="cancelChanges()">❌ Скасувати</button>
+        <button class="btn btn-primary" id="btn-save" style="flex:1" onclick="saveSettings()">💾 Зберегти</button>
     </div>
-
-    <div class="field" style="padding: 0 4px; margin-top: 10px;">
-        <label>Збереження</label>
-        <select id="saveTarget">
-            <option value="CUR">Зберегти в обраний профіль</option>
-            <option value="D">Тільки в ДЕННИЙ профіль</option>
-            <option value="N">Тільки в НІЧНИЙ профіль</option>
-            <option value="BOTH">В ОБИДВА профілі одразу</option>
-        </select>
-    </div>
-
-    <button class="btn btn-primary btn-full" onclick="saveSettings()">💾 Зберегти налаштування</button>
 
     <div id="toast">✅ Збережено на пристрої</div>
 
@@ -402,11 +476,11 @@
         tg.setHeaderColor('#0f1117');
 
         let currentProf = 'D';
+        let initialData = null; // Store original values for cancel/dirty check
         const dataStore = { D: {}, N: {}, G: {} };
 
-        // Mapping keys to decode compressed URL parameters from C++
         const paramMap = {
-            'Sensor_set': 'ss', 'Sensor_histeresis': 'sh',
+            'Sensor_set': 'ss', 'Sensor_histeresis': 'sh', 'Rele_status': 'rs',
             'Time_on': 'ton', 'Time_off': 'tof',
             'Alarm_data_u': 'au', 'Alarm_data_d': 'ad', 'Alarm_data_set': 'as', 'trend': 'tr',
             'Alarm_start': 'ast', 'Alarm_power': 'ap', 'relay_change_notify': 'rn', 'widget_status': 'w',
@@ -417,46 +491,71 @@
 
         function init() {
             const params = new URLSearchParams(location.search);
-            currentProf = params.get('cp');
+            currentProf = params.get('cp') || 'D';
 
             profileKeys.forEach(k => {
                 const shortKey = paramMap[k];
                 dataStore.D[k] = params.get('d_' + shortKey);
                 dataStore.N[k] = params.get('n_' + shortKey);
             });
-            dataStore.G.Time_D_h = params.get('g_tdh');
-            dataStore.G.Time_N_h = params.get('g_tnh');
+            
+            dataStore.G.profile_timer_en = params.get('g_en') == '1';
+            dataStore.G.Time_D_h = params.get('g_tdh') || 8;
+            dataStore.G.Time_D_m = params.get('g_tdm') || 0;
+            dataStore.G.Time_N_h = params.get('g_tnh') || 20;
+            dataStore.G.Time_N_m = params.get('g_tnm') || 0;
 
-            // Init global inputs
-            document.getElementById('g-time_d_h').value = dataStore.G.Time_D_h;
-            document.getElementById('g-time_n_h').value = dataStore.G.Time_N_h;
+            initialData = JSON.parse(JSON.stringify(dataStore));
 
-            // Activate tab and load WITHOUT triggering saveUIToStore()
-            ['D', 'N'].forEach(id => {
-                document.getElementById('ptab-' + id).classList.toggle('active', id === currentProf);
-            });
+            document.getElementById('g-profile_timer_en').checked = dataStore.G.profile_timer_en;
+            document.getElementById('g-Time_D_h').value = dataStore.G.Time_D_h;
+            document.getElementById('g-Time_D_m').value = dataStore.G.Time_D_m;
+            document.getElementById('g-Time_N_h').value = dataStore.G.Time_N_h;
+            document.getElementById('g-Time_N_m').value = dataStore.G.Time_N_m;
+
+            updateProfileVisibility();
+            syncTabs();
             loadProfileToUI();
+            
+            document.addEventListener('input', evaluateChanges);
+        }
+
+        function updateProfileVisibility() {
+            const en = document.getElementById('g-profile_timer_en').checked;
+            document.getElementById('card-schedule-time').style.display = en ? 'block' : 'none';
+            document.getElementById('prof-tabs-wrap').style.display = en ? 'flex' : 'none';
+            document.getElementById('prof-header').textContent = en ? 'Виберіть профіль' : 'Загальний профіль';
+            if (!en) currentProf = 'D'; // Force D (treated as G on server usually)
+        }
+
+        function handleScheduleChange(el) {
+            updateProfileVisibility();
+            evaluateChanges();
+        }
+
+        function syncTabs() {
+            ['D', 'N'].forEach(id => {
+                const el = document.getElementById('ptab-' + id);
+                if (el) el.classList.toggle('active', id === currentProf);
+            });
         }
 
         function setProfTab(p) {
-            saveUIToStore(); // Save current profile changes to memory first
+            saveUIToStore();
             currentProf = p;
-            ['D', 'N'].forEach(id => {
-                document.getElementById('ptab-' + id).classList.toggle('active', id === p);
-            });
+            syncTabs();
             loadProfileToUI();
+            evaluateChanges();
         }
 
         function loadProfileToUI() {
             const data = dataStore[currentProf];
             profileKeys.forEach(k => {
-                if (k === 'Statatus_sensor_control' || k === 'Start_status') return;
-                const el = document.getElementById('p-' + k.toLowerCase());
+                const el = document.getElementById('p-' + k);
                 if (!el) return;
                 if (el.type === 'checkbox') el.checked = (data[k] == 1);
                 else el.value = data[k];
             });
-
             setStartStatus(parseInt(data.Start_status || 0), false);
             setProfMode(parseInt(data.Statatus_sensor_control || 0), false);
         }
@@ -464,28 +563,92 @@
         function saveUIToStore() {
             const data = dataStore[currentProf];
             profileKeys.forEach(k => {
-                if (k === 'Statatus_sensor_control' || k === 'Start_status') return;
-                const el = document.getElementById('p-' + k.toLowerCase());
+                const el = document.getElementById('p-' + k);
                 if (!el) return;
                 data[k] = el.type === 'checkbox' ? (el.checked ? 1 : 0) : el.value;
             });
-            // Mode and StartStatus are already updated via their functions
         }
 
-        function setStartStatus(v, updateStore = true) {
-            if (updateStore) dataStore[currentProf].Start_status = v;
-            [0, 1].forEach(id => {
-                document.getElementById('ss-' + id).classList.toggle('active', id === v);
-            });
+        function setStartStatus(v, manual = true) {
+            if (manual) dataStore[currentProf].Start_status = v;
+            document.getElementById('ss-0').classList.toggle('active', v === 0);
+            document.getElementById('ss-1').classList.toggle('active', v === 1);
+            if (manual) evaluateChanges();
         }
 
-        function setProfMode(m, updateStore = true) {
-            if (updateStore) dataStore[currentProf].Statatus_sensor_control = m;
+        function setProfMode(m, manual = true) {
+            if (manual) dataStore[currentProf].Statatus_sensor_control = m;
             [0, 1, 2].forEach(id => {
                 document.getElementById('pmode-' + id).classList.toggle('active', id === m);
             });
             document.getElementById('card-sensor').style.display = (m === 1 ? 'block' : 'none');
             document.getElementById('card-timer').style.display = (m === 2 ? 'block' : 'none');
+            if (manual) evaluateChanges();
+        }
+
+        function evaluateChanges() {
+            saveUIToStore();
+            dataStore.G.profile_timer_en = document.getElementById('g-profile_timer_en').checked;
+            dataStore.G.Time_D_h = document.getElementById('g-Time_D_h').value;
+            dataStore.G.Time_D_m = document.getElementById('g-Time_D_m').value;
+            dataStore.G.Time_N_h = document.getElementById('g-Time_N_h').value;
+            dataStore.G.Time_N_m = document.getElementById('g-Time_N_m').value;
+
+            let isDirty = JSON.stringify(dataStore) !== JSON.stringify(initialData);
+            let hasInvalid = false;
+            
+            document.querySelectorAll('input[type="number"]').forEach(el => {
+                const valid = el.checkValidity();
+                el.style.borderColor = valid ? (isFieldDirty(el) ? 'var(--orange)' : '') : 'var(--orange)';
+                el.style.borderWidth = (valid && !isFieldDirty(el)) ? '' : '2px';
+                if (!valid) hasInvalid = true;
+            });
+
+            document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+                const dirty = isFieldDirty(el);
+                const wrap = el.closest('.toggle-wrap');
+                if (wrap) {
+                    const lbl = wrap.querySelector('label');
+                    if (lbl) lbl.style.boxShadow = dirty ? '0 0 0 3px rgba(255, 159, 67, 0.4)' : '';
+                }
+            });
+
+            document.querySelectorAll('.pmode-opt, .mode-btn').forEach(el => {
+                const dirty = isFieldDirty(el);
+                el.style.borderColor = dirty ? 'var(--orange)' : '';
+                el.style.borderWidth = dirty ? '2px' : '';
+            });
+
+            document.querySelector('.dirty-legend').style.display = isDirty ? 'block' : 'none';
+            const saveBtn = document.getElementById('btn-save');
+            saveBtn.disabled = hasInvalid;
+            saveBtn.style.opacity = hasInvalid ? '0.5' : '1';
+        }
+
+        function isFieldDirty(el) {
+            let key = el.id.startsWith('p-') ? el.id.substring(2) : (el.id.startsWith('g-') ? el.id.substring(2) : el.id);
+            if (el.classList.contains('pmode-opt')) {
+                const m = parseInt(el.id.split('-')[1]);
+                return m !== parseInt(initialData[currentProf].Statatus_sensor_control);
+            }
+            if (el.classList.contains('mode-btn')) {
+                const s = parseInt(el.id.split('-')[1]);
+                return s !== parseInt(initialData[currentProf].Start_status);
+            }
+            
+            let current = el.type === 'checkbox' ? el.checked : el.value;
+            let original;
+            if (el.id.startsWith('p-')) original = initialData[currentProf][key];
+            else if (el.id.startsWith('g-')) original = initialData.G[key];
+            
+            if (original === undefined) return false;
+            return String(current) !== String(original);
+        }
+
+        function cancelChanges() {
+            dataStore = JSON.parse(JSON.stringify(initialData));
+            init(); // Re-init UI
+            showToast('🔄 Зміни скасовано');
         }
 
         function showToast(msg) {
@@ -497,18 +660,18 @@
 
         function saveSettings() {
             saveUIToStore();
-            dataStore.G.Time_D_h = document.getElementById('g-time_d_h').value;
-            dataStore.G.Time_N_h = document.getElementById('g-time_n_h').value;
+            const g = dataStore.G;
+            const body = {
+                t: g.profile_timer_en ? currentProf : 'G',
+                s: dataStore[currentProf],
+                g: {
+                    profile_timer_en: g.profile_timer_en ? 1 : 0,
+                    Time_D: (parseInt(g.Time_D_h) * 3600) + (parseInt(g.Time_D_m) * 60),
+                    Time_N: (parseInt(g.Time_N_h) * 3600) + (parseInt(g.Time_N_m) * 60)
+                }
+            };
 
-            const target = document.getElementById('saveTarget').value;
-
-            if (target === 'BOTH') {
-                // Send Day payload
-                tg.sendData(JSON.stringify({ t: 'D', s: dataStore.D, g: dataStore.G }));
-            } else {
-                const prof = (target === 'CUR') ? currentProf : target;
-                tg.sendData(JSON.stringify({ t: prof, s: dataStore[prof], g: dataStore.G }));
-            }
+            tg.sendData(JSON.stringify(body));
             showToast('✅ Надіслано!');
             setTimeout(() => tg.close(), 1200);
         }
