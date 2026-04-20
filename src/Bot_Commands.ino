@@ -59,16 +59,17 @@ void Telegram_Callback(fb::Update& update)
   if (isWebApp) {
     String json = update.message().entry["web_app_data"]["data"].toString();
     
-    // Розумне очищення: якщо JSON прийшов як рядок у лапках (буває в деяких версіях TG/FastBot)
+    // Полегшене розкодування (найшвидший варіант для ESP)
     if (json.startsWith("\"") && json.endsWith("\"")) {
       json = json.substring(1, json.length() - 1);
-      json.replace("\\\"", "\"");
     }
+    json.replace("\\\"", "\"");
     
-    TBLOG("WebApp Data: "); TBLOG_LN(json);
+    TBLOG("Clean Data: "); TBLOG_LN(json);
     
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, json);
+    
     if (!error) {
       String target = doc["t"] | "D";
       JsonObject s = doc["s"];
@@ -89,7 +90,16 @@ void Telegram_Callback(fb::Update& update)
       myBot.sendMessage(fb::Message(F("📥 Налаштування збережено!"), senderId));
       sendSettingsMenu(senderId);
     } else {
-      myBot.sendMessage(fb::Message(F("❌ Помилка обробки даних"), senderId));
+      TBLOG("JSON Error: "); TBLOG_LN(error.c_str());
+      String err = F("❌ Помилка JSON. Довжина: ");
+      err += json.length();
+      if (json.length() > 100) {
+        err += F("\nПочаток: "); err += json.substring(0, 50);
+        err += F("\nКінець: "); err += json.substring(json.length() - 50);
+      } else {
+        err += F("\nДані: "); err += json;
+      }
+      myBot.sendMessage(fb::Message(err, senderId));
     }
     return;
   }

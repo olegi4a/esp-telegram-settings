@@ -453,7 +453,16 @@
             <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
                 <input type="checkbox" id="p-Alarm_power" data-cfg="Alarm_power" data-section="profile"> Сповіщення про збій живлення
             </label>
-            <label style="display:flex;align-it    <div id="validation-msg" class="validation-msg"></div>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-relay_change_notify" data-cfg="relay_change_notify" data-section="profile"> Сповіщення про зміну реле
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer">
+                <input type="checkbox" id="p-widget_status" data-cfg="widget_status" data-section="profile"> Віджет (раз на 5 хв)
+            </label>
+        </div>
+    </div>
+
+    <div id="validation-msg" class="validation-msg"></div>
     <div class="dirty-legend">⚠️ Є незбережені зміни</div>
     <div style="display:flex;gap:10px;margin-bottom:14px">
         <button class="btn" style="flex:1;background:var(--border);color:var(--text)" onclick="cancelChanges()">❌ Скасувати</button>
