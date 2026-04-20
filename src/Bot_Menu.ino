@@ -53,11 +53,13 @@ String getFullWebAppURL() {
 
 // Формування текстової таблиці налаштувань для Telegram
 String buildSettingsTable() {
-    JsonDocument dD, dN;
+    JsonDocument dD, dN, dG;
     File fD = LittleFS.open("/D_profile.json", "r");
     if (fD) { deserializeJson(dD, fD); fD.close(); }
     File fN = LittleFS.open("/N_profile.json", "r");
     if (fN) { deserializeJson(dN, fN); fN.close(); }
+    File fG = LittleFS.open("/G_profile.json", "r");
+    if (fG) { deserializeJson(dG, fG); fG.close(); }
 
     auto getS = [](const JsonDocument& d, const char* k, float def) { return String(d[k] | def, 1); };
     auto getI = [](const JsonDocument& d, const char* k, int def) { return String(d[k] | def); };
@@ -75,33 +77,32 @@ String buildSettingsTable() {
     };
 
     String t = F("Поточні налаштування профілів\n\n<pre>");
-    t += F("Налаштування    | День | Ніч\n");
-    t += F("──────────────────────────────\n");
-    t += F("Режим роботи    | "); t += getM(dD); t += F(" | "); t += getM(dN); t += F(" \n");
-    t += F("Реле при старті | "); t += getSt(dD); t += F(" | "); t += getSt(dN); t += F(" \n");
-    t += F("──────────────────────────────\n");
+    t += F("Налаштування    | День | Ніч | Заг\n");
+    t += F("──────────────────────────────────\n");
+    t += F("Режим роботи    | "); t += getM(dD); t += F(" | "); t += getM(dN); t += F(" | "); t += getM(dG); t += F(" \n");
+    t += F("Реле при старті | "); t += getSt(dD); t += F(" | "); t += getSt(dN); t += F(" | "); t += getSt(dG); t += F(" \n");
+    t += F("──────────────────────────────────\n");
     t += F("автоматика по датчику\n");
-    t += F("Уставка         | "); t += getS(dD, "Sensor_set", 22.5); t += F(" | "); t += getS(dN, "Sensor_set", 18.0); t += F(" \n");
-    t += F("Гістерезис      | "); t += getS(dD, "Sensor_histeresis", 1.0); t += F("  | "); t += getS(dN, "Sensor_histeresis", 1.5); t += F(" \n");
-    t += F("──────────────────────────────\n");
+    t += F("Уставка         | "); t += getS(dD, "Sensor_set", 22.5); t += F(" | "); t += getS(dN, "Sensor_set", 18.0); t += F(" | "); t += getS(dG, "Sensor_set", 20.0); t += F(" \n");
+    t += F("Гістерезис      | "); t += getS(dD, "Sensor_histeresis", 1.0); t += F("  | "); t += getS(dN, "Sensor_histeresis", 1.5); t += F("  | "); t += getS(dG, "Sensor_histeresis", 1.0); t += F(" \n");
+    t += F("──────────────────────────────────\n");
     t += F("автоматика по таймеру\n");
-    t += F("Таймер ON       | "); t += getI(dD, "Time_on", 10); t += F("хв  | "); t += getI(dN, "Time_on", 30); t += F("хв \n");
-    t += F("Таймер OFF      | "); t += getI(dD, "Time_off", 20); t += F("хв  | "); t += getI(dN, "Time_off", 60); t += F("хв \n");
-    t += F("──────────────────────────────\n");
+    t += F("Таймер ON       | "); t += getI(dD, "Time_on", 10); t += F("хв  | "); t += getI(dN, "Time_on", 30); t += F("хв  | "); t += getI(dG, "Time_on", 10); t += F("хв \n");
+    t += F("Таймер OFF      | "); t += getI(dD, "Time_off", 20); t += F("хв  | "); t += getI(dN, "Time_off", 60); t += F("хв  | "); t += getI(dG, "Time_off", 20); t += F("хв \n");
+    t += F("──────────────────────────────────\n");
     t += F("Тривога по температурі\n");
-    t += F("Межа Max        | "); t += getS(dD, "Alarm_data_u", 30.0); t += F(" | "); t += getS(dN, "Alarm_data_u", 28.0); t += F(" \n");
-    t += F("Межа Min        | "); t += getS(dD, "Alarm_data_d", 15.0); t += F(" | "); t += getS(dN, "Alarm_data_d", 12.0); t += F(" \n");
-    t += F("Тривога актив   | "); t += getB(dD, "Alarm_data_set", false); t += F("   | "); t += getB(dN, "Alarm_data_set", false); t += F(" \n");
-    t += F("Тенденція       | "); t += getB(dD, "trend", false); t += F("   | "); t += getB(dN, "trend", false); t += F(" \n");
-    t += F("──────────────────────────────\n");
+    t += F("Межа Max        | "); t += getS(dD, "Alarm_data_u", 30.0); t += F(" | "); t += getS(dN, "Alarm_data_u", 28.0); t += F(" | "); t += getS(dG, "Alarm_data_u", 30.0); t += F(" \n");
+    t += F("Межа Min        | "); t += getS(dD, "Alarm_data_d", 15.0); t += F(" | "); t += getS(dN, "Alarm_data_d", 12.0); t += F(" | "); t += getS(dG, "Alarm_data_d", 15.0); t += F(" \n");
+    t += F("Тривога актив   | "); t += getB(dD, "Alarm_data_set", false); t += F("   | "); t += getB(dN, "Alarm_data_set", false); t += F("   | "); t += getB(dG, "Alarm_data_set", false); t += F(" \n");
+    t += F("Тенденція       | "); t += getB(dD, "trend", false); t += F("   | "); t += getB(dN, "trend", false); t += F("   | "); t += getB(dG, "trend", false); t += F(" \n");
+    t += F("──────────────────────────────────\n");
     t += F("Сповіщення\n");
-    t += F("перезавантаження| "); t += getB(dD, "Alarm_start", true); t += F("   | "); t += getB(dN, "Alarm_start", true); t += F(" \n");
-    t += F("збій живлення   | "); t += getB(dD, "Alarm_power", true); t += F("   | "); t += getB(dN, "Alarm_power", false); t += F(" \n");
-    t += F("зміну реле      | "); t += getB(dD, "relay_change_notify", false); t += F("   | "); t += getB(dN, "relay_change_notify", false); t += F(" \n");
-    t += F("Тривога актив   | "); t += getB(dD, "Alarm_data_set", false); t += F("   | "); t += getB(dN, "Alarm_data_set", false); t += F(" \n");
-    t += F("Віджет(раз/5хв) | "); t += getB(dD, "widget_status", false); t += F("   | "); t += getB(dN, "widget_status", false); t += F(" \n");
+    t += F("перезавантаження| "); t += getB(dD, "Alarm_start", true); t += F("   | "); t += getB(dN, "Alarm_start", true); t += F("   | "); t += getB(dG, "Alarm_start", true); t += F(" \n");
+    t += F("збій живлення   | "); t += getB(dD, "Alarm_power", true); t += F("   | "); t += getB(dN, "Alarm_power", false); t += F("   | "); t += getB(dG, "Alarm_power", true); t += F(" \n");
+    t += F("зміну реле      | "); t += getB(dD, "relay_change_notify", false); t += F("   | "); t += getB(dN, "relay_change_notify", false); t += F("   | "); t += getB(dG, "relay_change_notify", false); t += F(" \n");
+    t += F("Віджет(раз/5хв) | "); t += getB(dD, "widget_status", false); t += F("   | "); t += getB(dN, "widget_status", false); t += F("   | "); t += getB(dG, "widget_status", false); t += F(" \n");
     t += F("Збереження логу | 15 хв        \n");
-    t += F("───────────────────────────────\n");
+    t += F("──────────────────────────────────\n");
     
     char bufD[10], bufN[10];
     sprintf(bufD, "%02d:00", (Time_D > 0 ? Time_D / 3600 : 8));
