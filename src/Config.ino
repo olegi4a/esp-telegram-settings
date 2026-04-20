@@ -25,7 +25,7 @@ void Load_Config()
   PAS_STA = doc["PAS_STA"] | PAS_STA;
 
 //--------Telegram Settings------------------
-  alluser = doc["alluser"] | 0L;
+  alluser = doc["alluser"] | 0LL;
   Time_D = doc["Time_D"] | 28800; // 08:00
   Time_N = doc["Time_N"] | 72000; // 20:00
   profile_timer_en = doc["profile_timer_en"] | false;
@@ -37,7 +37,7 @@ void Load_Config()
   JsonArray TB_users = doc["users"];
   for(byte i = 0; i < 10 && i < TB_users.size(); i++)
   {
-    users[i] = TB_users[i];
+    users[i] = TB_users[i].as<int64_t>();
   }
 
   TBLOG_LN(F("Configuration is loaded"));
@@ -88,7 +88,7 @@ void Load_Profile(String profil_name)
   {
     TBLOG_LN(F("Failed to open profile file, setting defaults..."));
     Sensor_set = 20.0;
-    Sensor_histeresis = 1.0;
+    Sensor_histeresis = 0.1;
     Time_on = 1;
     Time_off = 1;
     Statatus_sensor_control = 0;
@@ -109,7 +109,7 @@ void Load_Profile(String profil_name)
   profile = doc["profile"] | 0;
   if (profil_name == "/G_profile.json") profile = 2; // Forced ID for general
   Sensor_set = doc["Sensor_set"] | 20.0;
-  Sensor_histeresis = doc["Sensor_histeresis"] | 1.0;
+  Sensor_histeresis = doc["Sensor_histeresis"] | 0.1;
   Statatus_sensor_control = doc["Statatus_sensor_control"] | 0;
   Rele_status = doc["Rele_status"] | false;
   Start_status = doc["Start_status"] | 0;   // Per-profile initial relay state

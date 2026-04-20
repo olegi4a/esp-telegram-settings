@@ -37,7 +37,7 @@ extern bool display_ok;
 extern Adafruit_SSD1306 display;
 
 void Telegram_Callback(fb::Update& update);
-void sendWelcomeMessage(int64_t senderId);
+void handleBotState(int64_t senderId, String text);
 String buildDashboard();
 void sendSettingsMenu(int64_t senderId);
 void sendMainMenu(int64_t senderId);
@@ -137,12 +137,12 @@ int Time_D = 28800; // 08:00
 bool profile_timer_en = false; // Робота за розкладом
 byte profile;
 
-long users[10];
+int64_t users[10];
 
-long   alluser;
+int64_t alluser;
 
 float  Sensor_set = 20.0;
-float  Sensor_histeresis = 1.0;
+float  Sensor_histeresis = 0.1;
 bool   Rele_status = false;
 byte   Statatus_sensor_control = 0;
 byte   Start_status = 0;

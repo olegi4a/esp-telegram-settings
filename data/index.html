@@ -789,11 +789,11 @@
       <div class="card-title">🌡 Параметри датчика</div>
       <div class="field">
         <label>Уставка (SetPoint) °C</label>
-        <input type="number" id="p-Sensor_set" data-cfg="Sensor_set" data-section="profile" step="0.1" value="20">
+        <input type="number" id="p-Sensor_set" data-cfg="Sensor_set" data-section="profile" step="0.1" min="-30" max="120" value="20">
       </div>
       <div class="field">
         <label>Гістерезис °C</label>
-        <input type="number" id="p-Sensor_histeresis" data-cfg="Sensor_histeresis" data-section="profile" step="0.1" value="1">
+        <input type="number" id="p-Sensor_histeresis" data-cfg="Sensor_histeresis" data-section="profile" step="0.1" min="0.1" max="20" value="0.1">
       </div>
       <div class="field" style="margin:0">
         <label>Реле вмикається якщо temp</label>
@@ -824,11 +824,11 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="field" style="margin:0">
           <label>Верхня межа °C</label>
-          <input type="number" id="p-Alarm_data_u" data-cfg="Alarm_data_u" data-section="profile" step="0.1" value="30">
+          <input type="number" id="p-Alarm_data_u" data-cfg="Alarm_data_u" data-section="profile" step="0.1" min="-30" max="120" value="30">
         </div>
         <div class="field" style="margin:0">
           <label>Нижня межа °C</label>
-          <input type="number" id="p-Alarm_data_d" data-cfg="Alarm_data_d" data-section="profile" step="0.1" value="15">
+          <input type="number" id="p-Alarm_data_d" data-cfg="Alarm_data_d" data-section="profile" step="0.1" min="-30" max="120" value="15">
         </div>
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
@@ -979,10 +979,11 @@
       <div class="field">
         <label>Пароль доступу</label>
         <div style="position:relative">
-          <input type="password" id="g-pass" data-cfg="TB_pasword" data-section="global" placeholder="числовий код" style="padding-right:40px">
+          <input type="password" id="g-pass" data-cfg="TB_pasword" data-section="global" placeholder="числовий код" style="padding-right:40px" inputmode="numeric" maxlength="9" oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0,9); evaluateChanges()">
           <button type="button" onclick="toggleVis('g-pass', this)"
             style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem">⊙</button>
         </div>
+        <div style="font-size:0.65rem;color:var(--muted);margin-top:4px">Тільки цифри (максимум 9 знаків)</div>
       </div>
     </div>
 
@@ -1063,9 +1064,11 @@
     function evaluateChanges() {
       if (!SERVER_DATA) return;
       let dirtyCount = 0;
+      let hasInvalid = false;
 
       document.querySelectorAll('[data-cfg]').forEach(el => {
         const fieldDirty = isFieldDirty(el);
+        const isValid = el.checkValidity ? el.checkValidity() : true;
 
         // Візуальна індикація
         if (el.type === 'checkbox') {
@@ -1079,8 +1082,9 @@
           if (fieldDirty) el.classList.add('dirty-wrap');
           else el.classList.remove('dirty-wrap');
         } else {
-          el.style.borderColor = fieldDirty ? 'var(--orange)' : '';
-          el.style.borderWidth = fieldDirty ? '2px' : '';
+          // Якщо невалідно - помаранчевий (як при зміні), якщо валідно - звичайний або за замовчуванням
+          el.style.borderColor = (!isValid || fieldDirty) ? 'var(--orange)' : '';
+          el.style.borderWidth = (!isValid || fieldDirty) ? '2px' : '';
           
           // Спеціальний випадок для випадаючого списку часового поясу
           if (el.id === 'g-timezone') {
@@ -1093,9 +1097,17 @@
         }
 
         if (fieldDirty) dirtyCount++;
+        if (!isValid) hasInvalid = true;
       });
 
-      setDirty(dirtyCount > 0);
+      setDirty(dirtyCount > 0 && !hasInvalid);
+      // Блокуємо кнопки збереження якщо є помилки
+      document.querySelectorAll('.btn-primary').forEach(b => {
+        if (b.getAttribute('onclick')?.includes('save')) {
+           b.disabled = hasInvalid;
+           b.style.opacity = hasInvalid ? '0.5' : '1';
+        }
+      });
     }
 
     function setDirty(state) {

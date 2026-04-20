@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uk">
 
 <head>
@@ -9,15 +9,16 @@
     <style>
         /* === DESIGN SYSTEM (Mirroring Home.html Exactly) === */
         :root {
-            --bg: #0b0e14;
-            --card-bg: #151921;
-            --accent: #6c63ff;
-            --accent-glow: rgba(108, 99, 255, 0.3);
-            --text: #e1e1e6;
-            --muted: #8c92a4;
+            --bg: #0f1117;
+            --card: #1a1d2e;
             --border: #2a2d3e;
-            --green: #00c853;
-            --accent2: #ff3d00;
+            --accent: #6c63ff;
+            --accent2: #ff6b6b;
+            --green: #43e97b;
+            --orange: #ff9f43;
+            --text: #eaf0fb;
+            --muted: #8892a4;
+            --radius: 14px;
         }
 
         * {
@@ -30,7 +31,7 @@
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             font-size: 14px;
             line-height: 1.5;
             padding: 16px;
@@ -38,20 +39,18 @@
         }
 
         .card {
-            background: var(--card-bg);
+            background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: var(--radius);
             padding: 16px;
             margin-bottom: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         .card-title {
-            font-size: .85rem;
-            font-weight: 800;
-            color: var(--accent);
+            font-size: .72rem;
             text-transform: uppercase;
-            letter-spacing: .08em;
+            letter-spacing: .1rem;
+            color: var(--muted);
             margin-bottom: 14px;
         }
 
@@ -112,36 +111,32 @@
             background: var(--accent);
             color: #fff;
             border-color: var(--accent);
-            box-shadow: 0 4px 12px var(--accent-glow);
         }
 
         /* === PROFILE TABS === */
         .prof-tabs {
             display: flex;
             gap: 8px;
-            margin-bottom: 16px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 4px;
-            border-radius: 12px;
+            margin-bottom: 14px;
         }
 
         .prof-tab {
             flex: 1;
-            padding: 10px;
-            background: transparent;
-            border-radius: 9px;
+            padding: 8px;
+            background: var(--border);
+            border: 1px solid transparent;
+            border-radius: 8px;
             color: var(--muted);
-            font-size: .8rem;
-            font-weight: 700;
-            text-align: center;
+            font-size: .78rem;
+            font-weight: 600;
             cursor: pointer;
+            text-align: center;
             transition: all .2s;
         }
 
         .prof-tab.active {
             background: var(--accent);
             color: #fff;
-            box-shadow: 0 4px 12px var(--accent-glow);
         }
 
         /* === PROFILE MODE SELECTOR (Vertical) === */
@@ -188,11 +183,11 @@
 
         /* === BUTTONS === */
         .btn {
-            padding: 14px 20px;
+            padding: 11px 20px;
             border: none;
-            border-radius: 12px;
-            font-size: .95rem;
-            font-weight: 800;
+            border-radius: 9px;
+            font-size: .85rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all .2s;
             display: flex;
@@ -205,7 +200,6 @@
         .btn-primary {
             background: var(--accent);
             color: #fff;
-            box-shadow: 0 4px 20px var(--accent-glow);
         }
 
         .btn-full {
@@ -240,12 +234,12 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: var(--card-bg);
+            background: #1e2340;
             border: 1px solid var(--accent);
-            border-radius: 12px;
-            padding: 12px 24px;
-            font-size: .9rem;
-            transition: transform .3s;
+            border-radius: 10px;
+            padding: 10px 22px;
+            font-size: .85rem;
+            transition: transform .35s;
             z-index: 1000;
         }
 
@@ -303,11 +297,11 @@
         <div class="card-title">🌡 Параметри датчика</div>
         <div class="field">
             <label>Уставка (SetPoint) °C</label>
-            <input type="number" id="p-sensor_set" step="0.1" value="20">
+            <input type="number" id="p-sensor_set" step="0.1" min="-30" max="120" value="20">
         </div>
         <div class="field">
             <label>Гістерезис °C</label>
-            <input type="number" id="p-sensor_histeresis" step="0.1" value="1">
+            <input type="number" id="p-sensor_histeresis" step="0.1" min="0.1" max="20" value="0.1">
         </div>
         <div class="field" style="margin:0">
             <label>Реле вмикається якщо temp</label>
@@ -338,11 +332,11 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="field" style="margin:0">
                 <label>Верхня межа °C</label>
-                <input type="number" id="p-alarm_data_u" step="0.5" value="30">
+                <input type="number" id="p-alarm_data_u" step="0.1" min="-30" max="120" value="30">
             </div>
             <div class="field" style="margin:0">
                 <label>Нижня межа °C</label>
-                <input type="number" id="p-alarm_data_d" step="0.5" value="15">
+                <input type="number" id="p-alarm_data_d" step="0.1" min="-30" max="120" value="15">
             </div>
         </div>
         <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
@@ -405,7 +399,7 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.setHeaderColor('#0b0e14');
+        tg.setHeaderColor('#0f1117');
 
         let currentProf = 'D';
         const dataStore = { D: {}, N: {}, G: {} };

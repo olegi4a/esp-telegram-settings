@@ -108,7 +108,7 @@ void Telegram_Callback(fb::Update& update)
       sendWelcomeMessage(senderId);
       sendMainMenu(senderId);
     } else {
-      myBot.sendMessage(fb::Message(F("🔐 Введіть пароль:"), senderId));
+      myBot.sendMessage(fb::Message(F("🔐 Введіть пароль (тільки цифри, макс. 9 знаків):"), senderId));
       botState = STATE_WAIT_AUTH_PASSWORD;
     }
   }

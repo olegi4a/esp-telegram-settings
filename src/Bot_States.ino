@@ -1,4 +1,4 @@
-void handleBotState(long senderId, String text) {
+void handleBotState(int64_t senderId, String text) {
   switch (botState) {
     case STATE_WAIT_AUTH_PASSWORD:
       if (text.toInt() == TB_pasword) {
