@@ -1,0 +1,11 @@
+{
+    "firmware":  "firmware.bin",
+    "version":  "EDwIC-3.7.2",
+    "web_files":  [
+                      "index.html",
+                      "Update.html",
+                      "Update.js",
+                      "Update.css",
+                      "jquery.js"
+                  ]
+}
